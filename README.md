@@ -1,18 +1,40 @@
-# iris_robots
+# R2D2: Residential Robot Demonstration Dataset
 
+The repository provides the code for contributing to and using the R2D2 dataset.
 
-Moving the robot:
+NOTE: Depending on whether this repository is being installed on the server or client machine, it may expect either of the two repositories to be setup:
 
-1) Go to the franka website (address=172.16.0.8), and unlock the joints
-2) In three different terminal tabs, enter "conda activate polymetis-local"
-3) In terminal 1, enter: launch_robot.py robot_client=franka_hardware robot_client.executable_cfg.robot_ip=172.16.0.8
-4a) In terminal 2, run sudo chmod a+rw /dev/ttyUSB0
-4b) In terminal 2, run launch_gripper.py gripper=robotiq_2f gripper.comport=/dev/ttyUSB0
-5) In terminal 3, run whatever robot script you are trying to use.
+1) https://github.com/facebookresearch/fairo
+2) https://github.com/rail-berkeley/oculus_reader
 
-Using The Oculus:
-- 
+## Setup Guide
+Setup this repository on both the server and client machine (ie: NUC and workstation)
 
-Shutting down the robot:
-- Lock the joints
+Install the necesary packages:
 
+```bash
+pip install -e .
+
+# Done like this to avoid dependency issues
+pip install dm-robotics-moma==0.4.0 --no-deps
+pip install dm-robotics-transformations==0.4.0 --no-deps
+pip install dm-robotics-agentflow==0.4.0 --no-deps
+pip install dm-robotics-geometry==0.4.0 --no-deps
+pip install dm-robotics-manipulation==0.4.0 --no-deps
+pip install dm-robotics-controllers==0.4.0 --no-deps
+```
+
+In r2d2/misc/parameters.py, set "sudo_password" to your machine's corresponding sudo password. Sudo access is needed to launch the robot.
+
+## Usage
+
+### Server Machine
+Activate the polymetis conda environment:
+```bash conda activate polymetis-local```
+
+Start the server:
+```python python scripts/server/run_server.py```
+
+### Client Machine
+Run a basic test with the desired parameters:
+```python python scripts/tests/basic_test.py```

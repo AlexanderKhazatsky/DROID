@@ -7,7 +7,7 @@ class ServerInterface:
         self.establish_connection()
         
         if launch:
-            #self.launch_controller()
+            self.launch_controller()
             self.launch_robot()
 
     def establish_connection(self):

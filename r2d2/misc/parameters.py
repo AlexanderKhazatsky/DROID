@@ -1,1 +1,1 @@
-sudo_password = 'robot'
+sudo_password = 'server_machine_password'

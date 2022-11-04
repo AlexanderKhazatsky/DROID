@@ -1,4 +1,4 @@
 source ~/anaconda3/etc/profile.d/conda.sh
 conda activate polymetis-local
-cd /home/sasha/Desktop/Robot/server
+cd $( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 python run_server.py
