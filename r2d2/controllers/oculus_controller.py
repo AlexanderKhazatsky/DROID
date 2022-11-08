@@ -1,6 +1,6 @@
 from r2d2.misc.transformations import quat_to_euler, euler_to_quat, quat_diff, rmat_to_quat
+from r2d2.misc.subprocess_utils import run_threaded_command
 from oculus_reader.reader import OculusReader
-import threading
 import numpy as np
 import time
 
@@ -40,43 +40,49 @@ class VRPolicy:
         self.controller_id = 'r' if right_controller else 'l'
         self.reset_state()
 
+        # Start State Listening Thread #
+        run_threaded_command(self._update_internal_state)
+
     def reset_state(self):
         self._state = {'poses': {}, 'buttons': {'A': False, 'B': False}, 
             'movement_enabled': False, 'controller_on': True}
         self.reset_orientation = True
         self.reset_origin = True
 
-    def _update_controller_state(self, num_wait_sec=5):
-        start_time = time.time()
+    def _update_internal_state(self, num_wait_sec=5, hz=50):
+        last_read_time = time.time()
         while True:
-            time_since_read = time.time() - start_time
+            # Regulate Read Frequency
+            time.sleep(1/hz)
+
+            # Read Controller
+            time_since_read = time.time() - last_read_time
             poses, buttons = self.oculus_reader.get_transformations_and_buttons()
-            
+            self._state['controller_on'] = time_since_read < num_wait_sec
+
             if poses != {}:
                 self._state['poses'] = poses
                 self._state['buttons'] = buttons
                 self._state['movement_enabled'] = self._state['buttons']['RG']
                 self._state['controller_on'] = True
-                return
-            elif poses == {} and time_since_read > num_wait_sec:
-                self._state['controller_on'] = False
-                self._state['movement_enabled'] = False
-                return
+                last_read_time = time.time()
+            else:
+                continue
+
+            self.reset_orientation = (self.reset_orientation or self._state['buttons']['RJ']) \
+                and (not self._state['movement_enabled'])
+
+            # Update Origin When Button Not Pressed
+            if not self._state['movement_enabled']: self.reset_origin = True
+
+            # Update "Forward" On First Press
+            if self.reset_orientation:
+                rot_mat = np.asarray(self._state['poses'][self.controller_id])
+                if self._state['buttons']['RJ']: self.reset_orientation = False
+                self.vr_to_global_mat = np.linalg.inv(rot_mat)
 
     def _process_reading(self):
         rot_mat = np.asarray(self._state['poses'][self.controller_id])
-        self.reset_orientation = (self.reset_orientation or self._state['buttons']['RJ']) \
-            and (not self._state['movement_enabled'])
-
-        # Update Origin When Button Not Pressed
-        if not self._state['movement_enabled']: self.reset_origin = True
-
-        # Update "Forward" On First Press
-        if self.reset_orientation:
-            if self._state['buttons']['RJ']: self.reset_orientation = False
-            self.vr_to_global_mat = np.linalg.inv(rot_mat)
-
-        # Process Rotation Matrix
         rot_mat = self.global_to_env_mat @ self.vr_to_global_mat @ rot_mat
         vr_pos = self.spatial_coeff * rot_mat[:3, 3]
         vr_quat = rmat_to_quat(rot_mat[:3, :3])
@@ -134,7 +140,6 @@ class VRPolicy:
         return action.clip(-1, 1)
 
     def get_info(self):
-        self._update_controller_state()
         return {
             'save_episode': self._state['buttons']['A'],
             'delete_episode': self._state['buttons']['B'],
@@ -142,7 +147,6 @@ class VRPolicy:
             'controller_on': self._state['controller_on']}
 
     def forward(self, state_dict):
-        self._update_controller_state()
         if self._state['poses'] == {}: return np.zeros(7)
         action = self._calculate_action(state_dict)
         return action

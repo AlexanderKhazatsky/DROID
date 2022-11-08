@@ -39,11 +39,11 @@ class FrankaRobot:
         assert action_space in ['joint', 'cartesian']
         action_info = {'robot_state': self.get_robot_state()}
 
-        action_info['gripper_delta_cmd'] = action[-1]
-        action_info[action_space + '_delta_cmd'] = action[:-1]
+        action_info['gripper_delta'] = action[-1]
+        action_info[action_space + '_delta'] = action[:-1]
         if action_space == 'cartesian':
             joint_delta, success = self._ik_solver.compute(action[:-1], robot_state=action_info['robot_state'])
-            action_info['joint_delta_cmd'] = joint_delta.tolist()
+            action_info['joint_delta'] = joint_delta.tolist()
 
         self.update_joints(action_info['joint'], delta=True, blocking=False)
         self.update_gripper(action_info['gripper'], delta=True, blocking=False)
@@ -77,8 +77,8 @@ class FrankaRobot:
         gripper_cmd = lambda: self._gripper.goto(width=self._max_gripper_width * (1 - close_percentage),
             speed=0.05, force=0.1, blocking=blocking)
         
-        if blocking: run_threaded_command(gripper_cmd)
-        else: gripper_cmd()
+        if blocking: gripper_cmd()
+        else: run_threaded_command(gripper_cmd)
 
     def get_joint_positions(self):
         return self._robot.get_joint_positions().tolist()

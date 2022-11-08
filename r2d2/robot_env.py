@@ -13,8 +13,8 @@ class RobotEnv(gym.Env):
         super().__init__()
 
         # Physics
-        self.max_lin_vel = 2.5
-        self.max_rot_vel = 2.5
+        self.max_lin_vel = 2.0
+        self.max_rot_vel = 2.0
         self.max_gripper_vel = 4.0
         self.DoF = 6
         self.hz = 15

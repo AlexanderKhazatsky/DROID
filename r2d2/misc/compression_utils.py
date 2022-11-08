@@ -2,7 +2,7 @@ from collections import defaultdict
 from moviepy.editor import *
 from io import BytesIO
 from PIL import Image
-import nupy as np
+import numpy as np
 
 FRAMES_PER_SECOND = 15
 
@@ -10,7 +10,7 @@ def apply_img_compression(traj_data, compression_type=None):
 	for obs in traj_data['observations']:
 		for frame_dict in obs['images']:
 			img = Image.fromarray(np.copy(frame_dict['array']))
-			byte_array = io.BytesIO()
+			byte_array = BytesIO()
 			img.save(byte_array, format=compression_type)
 			frame_dict['array'] = byte_array
 
@@ -31,9 +31,9 @@ def apply_video_compression(traj_data):
 
 	for sn in videos.keys():
 		video_clip = ImageSequenceClip(videos[sn], fps=FRAMES_PER_SECOND)
-		byte_array = io.BytesIO()
+		byte_array = BytesIO()
 
-		my_clip.write_videofile(byte_array, codec='mp4')
+		video_clip.write_videofile(byte_array, codec='mp4')
 		videos[sn] = byte_array
 
 	traj_data['videos'] = videos

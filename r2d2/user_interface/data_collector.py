@@ -47,7 +47,7 @@ class DataCollecter:
 		filepath = os.path.join(self.log_dir + self.traj_name)
 		os.makedirs(self.log_dir, exist_ok=True)
 
-		trajectory_utils.save_trajectory(self.traj_data)
+		trajectory_utils.save_trajectory(filepath, self.traj_data)
 
 		self.traj_saved = True
 		self.traj_num += 1
@@ -65,15 +65,17 @@ class DataCollecter:
 	def collect_trajectory(self, info={}, practice=False):
 		self.traj_running = True
 		self.traj_name = time.asctime().replace(" ", "_")
-		self.traj_data = defaultdict(list)
+		self.obs_pointer = {}
 		self.traj_saved = False
 
-		trajectory_utils.collect_trajectory(env, controller=self.controller,
-			policy=self.policy, traj_data=self.traj_data, wait_for_controller=True)
+		self.env._robot.establish_connection()
+		self.traj_data = trajectory_utils.collect_trajectory(self.env, controller=self.controller,
+			policy=self.policy, obs_pointer=self.obs_pointer, wait_for_controller=True)
+		self.traj_data['metadata'] = info.copy()
 		
 		self.traj_running = False
 		save = self.traj_data['info'][-1]['controller']['save_episode']
-		if save: self.save_trajectory()
+		if save and (not practice): self.save_trajectory()
 
 	def get_gui_imgs(self, camera_feed):
 		camera_feed = list(filter(lambda feed: ('rgb' in feed['type']) and \
@@ -82,10 +84,9 @@ class DataCollecter:
 		camera_feed = [cv2.cvtColor(feed['array'][:,:,:3], cv2.COLOR_BGR2RGB) for feed in camera_feed]
 		return camera_feed
 
-
 	def get_camera_feed(self):
-		if self.traj_running and len(self.traj_data['observations']) > 0:
-			camera_feed = deepcopy(self.traj_data['observations'][-1]['images'])
+		if self.traj_running and ('images' in self.obs_pointer):
+			camera_feed = deepcopy(self.obs_pointer['images'])
 		else:
 			camera_feed = self.env.get_images()
 

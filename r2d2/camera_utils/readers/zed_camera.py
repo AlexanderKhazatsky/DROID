@@ -10,8 +10,8 @@ except ModuleNotFoundError:
 def gather_zed_cameras():
 	all_zed_cameras = []
     
-    try: cameras = sl.Camera.get_device_list()
-    except NameError: return []
+	try: cameras = sl.Camera.get_device_list()
+	except NameError: return []
 
 	for cam in cameras:
 		cam = ZedCamera(cam)
@@ -43,15 +43,15 @@ class ZedCamera:
 		self._cam.retrieve_image(self._right_view, sl.VIEW.RIGHT)
 		self._cam.retrieve_measure(self._depth_view, sl.MEASURE.DEPTH)
 
-		left_img = self._left_view.get_data()
+		left_img = self._left_view.get_data().copy()
 		#left_img = cv2.resize(left_img, dsize=(128, 96), interpolation=cv2.INTER_AREA)
 		#left_img = cv2.cvtColor(left_img, cv2.COLOR_BGR2RGB)
 
-		right_img = self._right_view.get_data()
+		right_img = self._right_view.get_data().copy()
 		#right_img = cv2.resize(right_img, dsize=(128, 96), interpolation=cv2.INTER_AREA)
 		#right_img = cv2.cvtColor(right_img, cv2.COLOR_BGR2RGB)
 
-		depth_img = self._depth_view.get_data()
+		depth_img = self._depth_view.get_data().copy()
 		#depth_img = cv2.applyColorMap(cv2.convertScaleAbs(depth_img, alpha=0.03), cv2.COLORMAP_JET)
 		#depth_img = cv2.resize(depth_img, dsize=(128, 96), interpolation=cv2.INTER_AREA)
 		#depth_img = cv2.cvtColor(depth_img, cv2.COLOR_BGR2RGB)

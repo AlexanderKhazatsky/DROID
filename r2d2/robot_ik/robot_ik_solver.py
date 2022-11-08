@@ -29,10 +29,10 @@ class RobotIKSolver:
 			max_rot_vel=10.0, # Max out
 			joint_velocity_limits=np.array([2.075 * scaler] * 4 + [2.51 * scaler] * 3),
 			nullspace_joint_position_reference=[0] * 7,
-			nullspace_gain=0.05, #Original: 0.025
-			regularization_weight=2e-2, #Original: 1e-2
+			nullspace_gain=0.025, #Original: 0.025, 0.05
+			regularization_weight=1e-2, #Original: 1e-2, 2e-2
 			enable_joint_position_limits=True,
-			minimum_distance_from_joint_position_limit=0.5,
+			minimum_distance_from_joint_position_limit=0.3, #0.3, 0.5
 			joint_position_limit_velocity_scale=0.95,
 			max_cartesian_velocity_control_iterations=300,
 			max_nullspace_control_iterations=300)
