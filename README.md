@@ -30,11 +30,14 @@ In r2d2/misc/parameters.py, set "sudo_password" to your machine's corresponding 
 
 ### Server Machine
 Activate the polymetis conda environment:
+
 ```bash conda activate polymetis-local```
 
 Start the server:
+
 ```python python scripts/server/run_server.py```
 
 ### Client Machine
 Run a basic test with the desired parameters:
+
 ```python python scripts/tests/basic_test.py```

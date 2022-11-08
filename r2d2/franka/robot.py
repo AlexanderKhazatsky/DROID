@@ -37,13 +37,13 @@ class FrankaRobot:
 
     def update_command(self, action, action_space='cartesian'):
         assert action_space in ['joint', 'cartesian']
-        action_info = {}
+        action_info = {'robot_state': self.get_robot_state()}
 
-        action_info['gripper'] = action[-1]
-        action_info[action_space] = action[:-1]
+        action_info['gripper_delta_cmd'] = action[-1]
+        action_info[action_space + '_delta_cmd'] = action[:-1]
         if action_space == 'cartesian':
-            joint_delta, success = self._ik_solver.compute(action[:-1], robot_state=self.get_robot_state())
-            action_info['joint'] = joint_delta.tolist()
+            joint_delta, success = self._ik_solver.compute(action[:-1], robot_state=action_info['robot_state'])
+            action_info['joint_delta_cmd'] = joint_delta.tolist()
 
         self.update_joints(action_info['joint'], delta=True, blocking=False)
         self.update_gripper(action_info['gripper'], delta=True, blocking=False)

@@ -34,8 +34,6 @@ class RobotEnv(gym.Env):
         self.reset()
 
     def step(self, action, start_time=None):
-        if start_time is None: start_time = time.time()
-
         # Check Action
         assert len(action) == (self.DoF + 1)
         assert (action.max() <= 1) and (action.min() >= -1)
@@ -44,11 +42,7 @@ class RobotEnv(gym.Env):
         action = self._limit_velocity(action)
         action_info = self._robot.update_command(action)
 
-        # Regularize Control Frequency
-        comp_time = time.time() - start_time
-        sleep_left = (1 / self.hz) - comp_time
-        if sleep_left > 0: time.sleep(sleep_left)
-
+        # Return Action Info
         return action_info
 
     def _limit_velocity(self, action):

@@ -10,7 +10,6 @@ max_steps = 1000
 # Test Parameters #
 
 
-
 ip_address = None if server_is_client else server_ip_address
 env = RobotEnv(ip_address=ip_address)
 env.reset()
