@@ -1,2 +1,6 @@
-sudo_password = 'server_machine_password'
-data_logdir = 'directory_for_saving_data'
+sudo_password = 'robot'
+data_logdir = '/home/sasha/Desktop/temp_data_storage'
+
+
+hand_camera_serial_numer = ''
+#fixed_camera ..

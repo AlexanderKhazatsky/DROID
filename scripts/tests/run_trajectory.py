@@ -21,7 +21,11 @@ else:
     controller = lambda obs: np.array([0.01, 0, 0, 0, 0, 0, 0])
     
 print('READY')
-trajectory_utils.collect_trajectory(env, controller=controller, wait_for_controller=True)
+print('Num Cameras:', len(env.get_images()))
+
+
+trajectory_utils.collect_trajectory(env, controller=controller, wait_for_controller=False,
+    horizon=1000, save_filepath='/home/sasha/Desktop/temp/data.h5')
 
 # for i in range(max_steps):
 # 	obs = env.get_state()

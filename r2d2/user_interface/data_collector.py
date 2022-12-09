@@ -1,5 +1,6 @@
 from r2d2.misc import trajectory_utils
 from r2d2.misc.parameters import data_logdir
+from r2d2.misc.subprocess_utils import run_multiprocessed_command
 from collections import defaultdict
 from datetime import date
 from copy import deepcopy
@@ -44,13 +45,16 @@ class DataCollecter:
 		if self.traj_saved: return
 		print('Saving Trajectory #{0}'.format(self.traj_num))
 
-		filepath = os.path.join(self.log_dir + self.traj_name)
+		filepath = os.path.join(self.log_dir + self.traj_name) + '.npz'
 		os.makedirs(self.log_dir, exist_ok=True)
-
-		trajectory_utils.save_trajectory(filepath, self.traj_data)
 
 		self.traj_saved = True
 		self.traj_num += 1
+
+		trajectory_utils.save_trajectory(filepath, self.traj_data)
+
+		# run_multiprocessed_command(trajectory_utils.save_trajectory,
+		# 	args=(filepath, self.traj_data))
 
 	def delete_trajectory(self):
 		if not self.traj_saved: return
@@ -67,6 +71,7 @@ class DataCollecter:
 		self.traj_name = time.asctime().replace(" ", "_")
 		self.obs_pointer = {}
 		self.traj_saved = False
+		del self.traj_data
 
 		self.env._robot.establish_connection()
 		self.traj_data = trajectory_utils.collect_trajectory(self.env, controller=self.controller,

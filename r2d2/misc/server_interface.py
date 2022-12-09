@@ -11,7 +11,7 @@ class ServerInterface:
             self.launch_robot()
 
     def establish_connection(self):
-        self.server = zerorpc.Client()
+        self.server = zerorpc.Client(heartbeat=20)
         self.server.connect('tcp://' + self.ip_address + ':4242')
         
     def launch_controller(self):
@@ -23,8 +23,12 @@ class ServerInterface:
     def kill_controller(self):
         self.server.kill_controller()
 
-    def update_command(self, action, action_space='cartesian'):
-        self.server.update_command(action.tolist(), action_space)
+    def update_command(self, action, action_space='cartesian', delta=True, blocking=False):
+        action_dict = self.server.update_command(action.tolist(), action_space, delta, blocking)
+        return action_dict
+
+    def update_pose(self, pose, delta=False, blocking=False):
+        self.server.update_pose(joints.tolist(), delta, blocking)
 
     def update_joints(self, joints, delta=False, blocking=False):
         self.server.update_joints(joints.tolist(), delta, blocking)

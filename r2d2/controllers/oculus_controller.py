@@ -146,7 +146,7 @@ class VRPolicy:
             'movement_enabled': self._state['movement_enabled'],
             'controller_on': self._state['controller_on']}
 
-    def forward(self, state_dict):
+    def forward(self, obs_dict):
         if self._state['poses'] == {}: return np.zeros(7)
-        action = self._calculate_action(state_dict)
+        action = self._calculate_action(obs_dict['state_dict'])
         return action

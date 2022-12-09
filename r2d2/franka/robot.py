@@ -1,18 +1,52 @@
-''' Robot Server Environment Wrapper'''
-
 # ROBOT SPECIFIC IMPORTS
 from polymetis import RobotInterface, GripperInterface
 from r2d2.robot_ik.robot_ik_solver import RobotIKSolver
 import grpc
 
 # UTILITY SPECIFIC IMPORTS
-from r2d2.misc.transformations import euler_to_quat, quat_to_euler
+from r2d2.misc.transformations import euler_to_quat, quat_to_euler, add_poses, pose_diff
 from r2d2.misc.subprocess_utils import run_terminal_command, run_threaded_command
 from r2d2.misc.parameters import sudo_password
 import numpy as np
 import torch
 import time
 import os
+
+def create_action_dict(action, action_space, delta, robot_state, ik_solver):
+    assert action_space in ['cartesian', 'joint']
+    assert delta in [True, False]
+    action_dict = {}
+
+    if delta:
+        action_dict['gripper_delta'] = action[-1]
+        gripper = robot_state['ee_state'][-1] + action[-1]
+        action_dict['gripper'] = float(np.clip(gripper, 0, 1))
+    else:
+        action_dict['gripper'] = action[-1]
+        gripper_delta = action[-1] - robot_state['ee_state'][-1]
+        action_dict['gripper_delta'] = float(np.clip(gripper_delta, 0, 1))
+
+    if action_space == 'cartesian':
+        if delta:
+            action_dict['cartesian_delta'] = action[:-1]
+            action_dict['cartesian'] = add_poses(action[:-1], robot_state['ee_state'][:-1]).tolist()
+        else:
+            action_dict['cartesian'] = action[:-1]
+            action_dict['cartesian_delta'] = pose_diff(action[:-1], robot_state['ee_state'][:-1]).tolist()
+        
+        action_dict['joint_delta'] = ik_solver.compute(action_dict['cartesian_delta'], robot_state=robot_state)[0].tolist()
+        action_dict['joint'] = (np.array(action_dict['joint_delta']) + np.array(robot_state['joint_positions'])).tolist()
+
+    if action_space == 'joint':
+        # NOTE: Joint to cartesian has undefined dynamics due to IK
+        if delta:
+            action_dict['joint_delta'] = action[:-1]
+            action_dict['joint'] = (np.array(action[:-1]) + np.array(robot_state['joint_positions'])).tolist()
+        else:
+            action_dict['joint'] = action[:-1]
+            action_dict['joint_delta'] = (np.array(action[:-1]) - np.array(robot_state['joint_positions'])).tolist()
+
+    return action_dict
 
 
 class FrankaRobot:
@@ -35,20 +69,29 @@ class FrankaRobot:
         self._robot_process.terminate()
         self._gripper_process.terminate()
 
-    def update_command(self, action, action_space='cartesian'):
-        assert action_space in ['joint', 'cartesian']
-        action_info = {'robot_state': self.get_robot_state()}
+    def update_command(self, action, action_space='cartesian', delta=True, blocking=False):
+        action_dict = create_action_dict(action, action_space=action_space, delta=delta,
+            robot_state=self.get_robot_state(), ik_solver=self._ik_solver)
+        self.update_joints(action_dict['joint'], delta=False, blocking=blocking)
+        self.update_gripper(action_dict['gripper'], delta=False, blocking=blocking)
+        return action_dict
 
-        action_info['gripper_delta'] = action[-1]
-        action_info[action_space + '_delta'] = action[:-1]
-        if action_space == 'cartesian':
-            joint_delta, success = self._ik_solver.compute(action[:-1], robot_state=action_info['robot_state'])
-            action_info['joint_delta'] = joint_delta.tolist()
+    def update_pose(self, pose, delta=False, blocking=False):
+        if blocking:
+            if delta: pose = add_poses(pose, self.get_ee_pose())
+            pos = torch.Tensor(pose[:3])
+            quat = torch.Tensor(euler_to_quat(pose[3:6]))
 
-        self.update_joints(action_info['joint'], delta=True, blocking=False)
-        self.update_gripper(action_info['gripper'], delta=True, blocking=False)
+            if self._robot.is_running_policy():
+                self._robot.terminate_current_policy()
+                time.sleep(2)
 
-        return action_info
+            try: self._robot.move_to_ee_pose(pos, quat)
+            except grpc.RpcError: pass
+        else:
+            if not delta: pose = pose_diff(pose, self.get_ee_pose())
+            joint_delta = self._ik_solver.compute(pose, robot_state=self.get_robot_state())[0]
+            self.update_joints(joint_delta, delta=True, blocking=False)
 
     def update_joints(self, joints, delta=False, blocking=False):
         desired_joints = torch.Tensor(joints)
