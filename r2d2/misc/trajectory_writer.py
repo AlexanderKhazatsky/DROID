@@ -1,21 +1,19 @@
-from r2d2.misc.compression_utils import MP4Writer, DepthMP4Writer, encode_depth_data, decode_depth_data
 from r2d2.misc.subprocess_utils import run_threaded_command
 from collections import defaultdict
 from queue import Queue, Empty
 from copy import deepcopy
 import numpy as np
+import tempfile
 import imageio
 import h5py
-import io
-
-
 import os
 
-
-
-def write_dict_to_hdf5(hdf5_file, data_dict):
+def write_dict_to_hdf5(hdf5_file, data_dict, keys_to_ignore=['image', 'depth', 'pointcloud']):
 
 	for key in data_dict.keys():
+		# Pass Over Specified Keys #
+		if key in keys_to_ignore: continue
+
 		# Examine Data #
 		curr_data = data_dict[key]
 		if type(curr_data) == list:
@@ -41,90 +39,88 @@ def write_dict_to_hdf5(hdf5_file, data_dict):
 
 class TrajectoryWriter:
 
-	def __init__(self, filepath, metadata=None, exists_ok=True): #TODO
+	def __init__(self, filepath, metadata=None, exists_ok=False, save_images=True):
+		assert (not os.path.isfile(filepath)) or exists_ok
 		self._filepath = filepath
+		self._save_images = save_images
 		self._hdf5_file = h5py.File(filepath, 'w')
 		self._queue_dict = defaultdict(Queue)
 		self._video_writers = {}
-		self._video_buffers = {}
+		self._video_files = {}
 		self._open = True
 
-		self._count_dict = defaultdict(lambda: 0)
-
-		# Add Metadata
+		# Add Metadata #
 		if metadata is not None:
 			self._update_metadata(metadata)
 
 		# Start HDF5 Writer Thread #
 		hdf5_writer = lambda data: write_dict_to_hdf5(self._hdf5_file, data)
-		run_threaded_command(self._write_from_queue, args=(hdf5_writer, self._queue_dict['hdf5'], 'hdf5'))
+		run_threaded_command(self._write_from_queue, args=(hdf5_writer, self._queue_dict['hdf5']))
 
 	def write_timestep(self, timestep):
-		self._update_video_files(timestep)
-		del timestep['observations']['camera_dict']
-
+		if self._save_images: self._update_video_files(timestep)
 		self._queue_dict['hdf5'].put(timestep)
 
 	def _update_metadata(self, metadata):
 		for key in metadata:
-			self._hdf5_file.attr[key] = deepcopy(metadata[key])
+			self._hdf5_file.attrs[key] = deepcopy(metadata[key])
 
-	def _write_from_queue(self, writer, queue, video_id):
+	def _write_from_queue(self, writer, queue):
 		while self._open:
 			try: data = queue.get(timeout=1)
 			except Empty: continue
 			writer(data)
 			queue.task_done()
-			self._count_dict[video_id] += 1
 
 	def _update_video_files(self, timestep):
-		camera_dict = timestep['observations']['camera_dict']
+		image_dict = timestep['observations']['image_dict']
 
-		for camera_id in list(camera_dict):
-			for image_id in list(camera_dict[camera_id]):
+		for video_id in image_dict:
+			# Get Frame #
+			img = image_dict[video_id]
+			del image_dict[video_id]
 
-				# Get Frame #
-				img = camera_dict[camera_id][image_id]
-				del camera_dict[camera_id][image_id]
+			# Create Writer And Buffer #
+			if video_id not in self._video_buffers:
+				filename = self.create_video_file(video_id, '.mp4')
+				self._video_writers[video_id] = imageio.get_writer(filename, macro_block_size=1)
+				run_threaded_command(self._write_from_queue, args=
+						(self._video_writers[video_id].append_data, self._queue_dict[video_id]))
 
-				# Create Writer And Buffer #
-				video_id = '{0}_{1}'.format(camera_id, image_id)
+			# Add Image To Queue #
+			self._queue_dict[video_id].put(img)
 
-				if video_id not in self._video_buffers:
-					self._video_buffers[video_id] = io.BytesIO()
-					Writer = DepthMP4Writer if 'depth' in video_id else MP4Writer
-					self._video_writers[video_id] = Writer(self._video_buffers[video_id])
-					run_threaded_command(self._write_from_queue, args=
-							(self._video_writers[video_id].append, self._queue_dict[video_id], video_id))
+	def create_video_file(self, video_id, suffix):
+		temp_file = tempfile.NamedTemporaryFile(suffix=suffix)
+		self._video_files[video_id] = temp_file
+		return temp_file.name
 
-					# if 'rgb' in video_id:
-					# 	self._video_buffers[video_id] = io.BytesIO()
-					# 	self._video_writers[video_id] = imageio.get_writer(self._video_buffers[video_id],
-					# 		format='mp4', macro_block_size=1)					
-					# 	run_threaded_command(self._write_from_queue, args=
-					# 		(self._video_writers[video_id].append_data, self._queue_dict[video_id], video_id))
-					# else:
-					# 	folder = self._filepath[:-8] + '/depth/' + video_id
-					# 	run_threaded_command(self._write_from_queue_depth, args=(folder, self._queue_dict[video_id], video_id))
-				if 'depth' in video_id:
-					new_img = img + 100
-					encoded = encode_depth_data(new_img)
-					decoded = decode_depth_data(encoded)
-					import pdb; pdb.set_trace()
-				self._queue_dict[video_id].put(img)
-
-	def close(self):
-		print(self._count_dict)
+	def close(self, metadata=None):
+		# Add Metadata #
+		if metadata is not None:
+			self._update_metadata(metadata)
 
 		# Finish Remaining Jobs #
 		[queue.join() for queue in self._queue_dict.values()]
 
-		# TODO: Organize back info camera_id/image_id
-		video_folder = self._hdf5_file['observations'].create_group('videos')
+		# Close Video Writers #
 		for video_id in self._video_writers:
 			self._video_writers[video_id].close()
-			serialized_video = np.asarray(self._video_buffers[video_id].getvalue())
-			video_folder.create_dataset(video_id, data=serialized_video)
 
+		# Save Serialized Videos #
+		for video_id in self._video_files:
+			# Create Folder #
+			if 'videos' not in self._hdf5_file['observations']:
+				self._hdf5_file['observations'].create_group('videos')
+
+			# Get Serialized Video #
+			self._video_files[video_id].seek(0)
+			serialized_video = np.asarray(self._video_files[video_id].read())
+
+			# Save Data #
+			self._hdf5_file['observations']['videos'].create_dataset(video_id, data=serialized_video)
+			self._video_files[video_id].close()
+
+		# Close File #
 		self._hdf5_file.close()
 		self._open = False

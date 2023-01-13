@@ -1,16 +1,18 @@
 from r2d2.camera_utils.wrappers.multi_camera_wrapper import MultiCameraWrapper
-from r2d2.misc.transformations import add_angles, angle_diff
+from r2d2.calibration.calibration_utils import load_calibration_info
+from r2d2.misc.transformations import change_pose_frame
 from r2d2.misc.server_interface import ServerInterface
-from collections import defaultdict
+from r2d2.misc.parameters import robot_ip, hand_camera_id
+from r2d2.misc.time import time_ms
+from copy import deepcopy
 import numpy as np
 import time
 import gym
 
 
-
 class RobotEnv(gym.Env):
     
-    def __init__(self, ip_address=None):
+    def __init__(self):
         
         # Initialize Gym Environment
         super().__init__()
@@ -24,16 +26,15 @@ class RobotEnv(gym.Env):
 
         # Robot Configuration
         self.reset_joints = np.array([0., -np.pi/4,  0, -3/4 * np.pi, 0,  np.pi/2, 0.])
-        if ip_address is None:
+        if robot_ip is None:
             from franka.robot import FrankaRobot
             self._robot = FrankaRobot()
         else:
-            self._robot = ServerInterface(ip_address=ip_address)
+            self._robot = ServerInterface(ip_address=robot_ip)
 
         # Create Cameras
         self.camera_reader = MultiCameraWrapper()
-
-        self.delay = defaultdict(list)
+        self.calibration_dict = load_calibration_info()
 
         # Reset Robot
         self.reset()
@@ -72,43 +73,46 @@ class RobotEnv(gym.Env):
         if joints is None: joints = self.reset_joints
         self._robot.update_gripper(0, delta=False, blocking=True)
         self._robot.update_joints(joints, delta=False, blocking=True)
-        return self.get_observation()
 
-    def update_robot(self, action, action_space='cartesian', delta=True):
-        action_info = self._robot.update_command(action, action_space=action_space, delta=delta)
+    def update_robot(self, action, action_space='cartesian', delta=True, blocking=False):
+        action_info = self._robot.update_command(action, action_space=action_space, delta=delta, blocking=blocking)
         return action_info
 
-    def get_images(self):
-        return self.camera_reader.read_cameras()
+    def read_cameras(self, image=True, depth=False, pointcloud=False):
+        return self.camera_reader.read_cameras(image=True, depth=False, pointcloud=False)
 
     def get_state(self):
+        timestamp_dict = {'read_start': time_ms()}
         state_dict = self._robot.get_robot_state()
-        return state_dict, time.time()
+        timestamp_dict['read_end'] = time_ms()
+        return state_dict, timestamp_dict
 
-    def get_observation(self, include_images=True, include_robot_state=True):
-        obs_dict = {}
-        timestamp_dict = {}
+    def get_camera_extrinsics(self, state_dict):
+        # Adjust gripper camere by current pose
+        extrinsics = deepcopy(self.calibration_dict)
+        for cam_id in self.calibration_dict:
+            if hand_camera_id not in cam_id: continue
+            gripper_pose = state_dict['ee_state'][:6]
+            extrinsics[cam_id + '_gripper_offset'] = extrinsics[cam_id]
+            extrinsics[cam_id] = change_pose_frame(extrinsics[cam_id], gripper_pose)
+        return extrinsics
 
-        if include_images:
-            camera_dict, camera_timestamp_dict = self.get_images()
+    def get_observation(self, robot_state=True, camera_extrinsics=True, image=True, depth=False, pointcloud=False):
+        read_cameras = any([image, depth, pointcloud])
+        obs_dict = {'timestamp': {}}
 
-            # for cam in camera_timestamp_dict:
-            #     self.delay[cam].append(time.time() - camera_timestamp_dict[cam])
+        if robot_state:
+            state_dict, timestamp_dict = self.get_state()
+            obs_dict['robot_state'] = state_dict
+            obs_dict['timestamp']['robot_state'] = timestamp_dict
+        if read_cameras:
+            camera_obs, camera_timestamp = self.read_cameras(
+                image=image, depth=depth, pointcloud=pointcloud)
+            obs_dict.update(camera_obs)
+            obs_dict['timestamp']['cameras'] = camera_timestamp
+        if camera_extrinsics:
+            assert robot_state
+            extrinsics = self.get_camera_extrinsics(state_dict)
+            obs_dict['camera_extrinsics'] = extrinsics
 
-            obs_dict['camera_dict'] = camera_dict
-            timestamp_dict['cameras'] = camera_timestamp_dict
-        if include_robot_state:
-            state_dict, read_time = self.get_state()
-            obs_dict['state_dict'] = state_dict
-            timestamp_dict['robot_state'] = read_time
-
-        # if np.random.uniform() < 0.05:
-        #     for key in self.delay:
-        #         print(np.array(self.delay[key]).mean())
-
-        return obs_dict, timestamp_dict
-
-    # def is_robot_reset(self, epsilon=0.1):
-    #     curr_joints = self._robot.get_joint_positions()
-    #     joint_dist = np.linalg.norm(curr_joints - self.reset_joints)
-    #     return joint_dist < epsilon
+        return obs_dict

@@ -4,7 +4,7 @@ from r2d2.user_interface.data_collector import DataCollecter
 from r2d2.user_interface.gui import RobotGUI
 
 # Make the robot env
-env = RobotEnv('172.16.0.1')
+env = RobotEnv()
 controller = VRPolicy()
 
 # Make the data collector

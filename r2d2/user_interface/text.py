@@ -26,7 +26,7 @@ all_tasks = {
 	]
 }
 
-prefered_tasks = {
+preferred_tasks = {
  'Articulated Tasks':
 	['Flip a lightswitch',
 	 'Open or close a hinged cabinet',
@@ -71,6 +71,14 @@ how_to_text ="\
 4. Check the task categories that are doable from the CURRENT scene \n\n\
 5. Try to come up with roughly three tasks of your own"
 
+how_to_calibrate_text = "\
+Follow these steps EVERYTIME you move a camera:\n\n\
+1. Attach the ChArUco board to the gripper when calibrating 3rd person cameras, or place it on a table when calibrating the hand camera\n\n\
+2. Once the trajectory starts, move the gripper such that the board is clearly visible by the camera (1-2 feet away)\n\n\
+3. Press 'A' to begin the calibration trajectory, the GUI will inform you if calibration fails\n\n\
+Tip: You can name cameras in the parameters file\n\n\
+Warning: Button clicks here may take time..."
+
 data_collection_text="\
 * Use as much action noise as possible, such that you can still perform the tasks\n\n\
 * Make sure that you prioritize data collection for everything in 'Preferred Tasks'\n\n\
@@ -91,6 +99,7 @@ scene_changes = [
 	'Change the table height significantly (6+ inches)',
 	'Move the table position and angle slightly (1-6 square inches, 1-15 degrees)',
 	'Move the table position and angle significantly (6+ square inches, 15+ degrees)',
+	"Move the fixed camera's pose slightly (pertubation)",
 	'Move the non-fixed camera poses slightly (pertubation)',
 	'Move the non-fixed camera poses significantly (entirely new angle)',
 	"Add an object to the scene",
@@ -102,12 +111,14 @@ task_suggestions_text = 'Suggestions are organized below by room'
 use_checkboxes_text = 'Use the checkboxes to keep track of your progress'
 missing_name_text = 'Please enter your full name :)'
 move_robot_text = 'MANDATORY: Move the robot setup to an entirely new location'
-prefered_task_text = 'Use the checkboxes below to keep track of your progress'
+preferred_task_text = 'Use the checkboxes below to keep track of your progress'
 no_tasks_text = 'There are no tasks to sample. Please click or enter some :)'
 freewrite_text = 'Enter Your Own Tasks Here (Seperate Entries With Semicolons)'
 shift_text = "Press 'Shift' to toggle camera feed"
 controller_off_msg = "Place it on your head to wake it up. When ready, press space to continue :)"
-
+missing_calibration_text = 'You must finish calibrating all cameras in order to proceed'
+old_calibration_text = "You have cameras that haven't been calibrated in over an hour. Are you sure you want to continue?"
+color_spectrum_explantion = 'Blue: Camera has not been calibrated in over an hour\n\nRed: Camera has never been calibrated'
 
 camera_page_title = {
 	'live': 'Camera Feed',

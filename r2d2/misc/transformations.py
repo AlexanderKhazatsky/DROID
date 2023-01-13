@@ -56,3 +56,13 @@ def add_poses(delta, source, degrees=False):
     rot_sum = add_angles(delta[3:6], source[3:6], degrees=degrees)
     result = np.concatenate([lin_sum, rot_sum])
     return result
+
+### MISC ###
+def change_pose_frame(pose, frame, degrees=False):
+    R_frame = euler_to_rmat(frame[3:6], degrees=degrees)
+    R_pose = euler_to_rmat(pose[3:6], degrees=degrees)
+    t_frame, t_pose = frame[:3], pose[:3]
+    euler_new = rmat_to_euler(R_frame @ R_pose, degrees=degrees)
+    t_new = R_frame @ t_pose + t_frame
+    result = np.concatenate([t_new, euler_new])
+    return result

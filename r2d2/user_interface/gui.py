@@ -16,17 +16,10 @@ import math
 import os
 
 # Internal Imports #
+from r2d2.calibration.calibration_utils import get_camera_name
 from r2d2.user_interface.gui_parameters import *
 from r2d2.user_interface.text import *
 
-"""
-TODO:
-
-Low priority:
-- Figure out noise
-- Intro link on front page
-- Organize code (save for later)
-"""
 
 class RobotGUI(tk.Tk):
     
@@ -40,6 +33,7 @@ class RobotGUI(tk.Tk):
 
         # Prepare Relevent Items #
         self.num_traj_saved = 0
+        self.cam_ids = list(robot.cam_ids)
         self.camera_order = np.arange(robot.num_cameras)
         self.time_index = None
         self.robot = robot
@@ -48,7 +42,6 @@ class RobotGUI(tk.Tk):
             'fixed_tasks': [],
             'new_tasks': [],
             'current_task': '',
-            'action_noise': 0,
         }
 
         # Create Resizable Container #
@@ -59,9 +52,10 @@ class RobotGUI(tk.Tk):
 
         # Organize Frame Dict #
         self.frames = {}
-        for F in (LoginPage, RobotResetPage, CanRobotResetPage, InstructionsPage, ControllerOffPage,
-                  PreferedTasksPage,SceneConfigurationPage, CameraPage, EnlargedImagePage,
-                  NoisePage, RequestedBehaviorPage, SceneChangesPage, PreferedTasksPage):
+        self.curr_frame = None
+        for F in (LoginPage, RobotResetPage, CanRobotResetPage, ControllerOffPage, PreferredTasksPage,
+                  SceneConfigurationPage, CameraPage, EnlargedImagePage, RequestedBehaviorPage, SceneChangesPage,
+                  CalibrationPage, CalibrateCamera, IncompleteCalibration, OldCalibration):
             self.frames[F] = F(container, self)
             self.frames[F].grid(row=0, column=0, sticky="nsew")
 
@@ -90,8 +84,12 @@ class RobotGUI(tk.Tk):
     def show_frame(self, frame_id, refresh_page=True, wait=False):
         if time.time() - self.last_frame_change < 0.1: return
         self.focus()
+        
         self.last_frame_change = time.time()
-        self.curr_frame = self.frames[frame_id]
+        self.curr_frame, old_frame = self.frames[frame_id], self.curr_frame
+        
+        if hasattr(old_frame, 'exit_page'):
+            old_frame.exit_page()
         if hasattr(self.curr_frame, 'initialize_page') and refresh_page:
             self.curr_frame.initialize_page()
 
@@ -102,13 +100,15 @@ class RobotGUI(tk.Tk):
         self.camera_order[i], self.camera_order[j] = \
             self.camera_order[j], self.camera_order[i]
 
-    def set_img(self, i, widget=None, width=None, height=None):
+    def set_img(self, i, widget=None, width=None, height=None, use_camera_order=True):
+        index = self.camera_order[i] if use_camera_order else i
         if self.camera_feed is None: return
-        elif self.time_index is None: img = self.camera_feed[self.camera_order[i]]
-        else: img = self.last_traj[self.time_index][self.camera_order[i]]
+        elif self.time_index is None: img = self.camera_feed[index]
+        else: img = self.last_traj[self.time_index][index]
         img = Image.fromarray(img)
         if width is not None:
-            img = img.resize((width, height), Image.Resampling.LANCZOS)
+            img.thumbnail((width, height), Image.Resampling.LANCZOS)
+            #img.resize((width, height), Image.Resampling.LANCZOS)
         img = ImageTk.PhotoImage(img)
         widget.configure(image=img)
         widget.image = img
@@ -143,9 +143,10 @@ class RobotGUI(tk.Tk):
         while True:
             time.sleep(0.1)
             info = self.robot.get_user_feedback()
-            trigger = info['save_episode'] or info['delete_episode']
-            if trigger and last_was_false:
-                self.event_generate('<<KeyRelease-controller>>')
+            trigger = info['success'] or info['failure']
+            if info['success'] and last_was_false: self.event_generate('<<KeyRelease-controllerA>>')
+            if info['failure'] and last_was_false: self.event_generate('<<KeyRelease-controllerB>>')
+            if trigger and last_was_false: self.event_generate('<<KeyRelease-controller>>')
 
             if info['controller_on'] < controller_on:
                 self.show_frame(ControllerOffPage)
@@ -155,7 +156,8 @@ class RobotGUI(tk.Tk):
 
     def update_camera_feed(self, sleep=0.05):
         while True:
-            self.camera_feed = self.robot.get_camera_feed()
+            try: self.camera_feed, self.cam_ids = self.robot.get_camera_feed()
+            except: pass
             time.sleep(sleep)
 
 # Start up page
@@ -246,61 +248,120 @@ class ControllerOffPage(tk.Frame):
         if self.controller.curr_frame != self: return
         self.controller.show_frame(LoginPage)
 
-class InstructionsPage(tk.Frame):
+class CalibrationPage(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
+        self.controller = controller
+
+        # Title #
+        how_to_title_lbl = Label(self, text = "Calibration Hub", font=Font(size=30, weight='bold'))
+        how_to_title_lbl.pack(pady=5)
+
+        # Warning #
+        instr_lbl = tk.Label(self, text=color_spectrum_explantion, font=Font(size=20, slant='italic'))
+        instr_lbl.pack(pady=5)
 
         # How To Text #
-        how_to_tile_lbl = Label(self, text = "How To Prepare A Scene:", font=Font(size=30, weight='bold'))
-        how_to_tile_lbl.pack(pady=15)
+        how_to_text_lbl = Label(self, text=how_to_calibrate_text, font=Font(size=18))
+        how_to_text_lbl.pack(pady=20)
 
-        how_to_text_lbl = Label(self, text=how_to_text, font=Font(size=18))
-        how_to_text_lbl.pack(pady=5)
+        longest_name = max([len(get_camera_name(cam_id)) for cam_id in controller.cam_ids])
 
-        # Data Collection Text #
-        data_collection_lbl = Label(self, text = "Data Collection Notes:", font=Font(size=30, weight='bold'))
-        data_collection_lbl.pack(pady=15)
+        self.button_dict = {}
+        for i in range(len(controller.cam_ids)):
+            cam_id = controller.cam_ids[i]
+            cam_name = get_camera_name(cam_id)
 
-        data_collection_text_lbl = Label(self, text=data_collection_text, font=Font(size=18))
-        data_collection_text_lbl.pack(pady=5)
-
-        # Warning Text #
-        warnings_title_lbl = Label(self, text = "Warnings:", font=Font(size=30, weight='bold'))
-        warnings_title_lbl.pack(pady=15)
-
-        warnings_text_lbl = Label(self, text=warnings_text, font=Font(size=18))
-        warnings_text_lbl.pack(pady=5)
-
-        # Debugging Doc #
-        bx, by = 0.12, 0.045
-        box_lbl = tk.Button(self, text =' ' * 12, highlightbackground='blue',
-            font=Font(slant='italic', weight='bold') , padx=50, pady=6)
-        box_lbl.place(relx=bx, rely=by, anchor='n')
-
-        debugging_lbl = tk.Button(self, text = "Debugging + Q&A", font=Font(weight='bold'))
-        debugging_lbl.place(relx=bx, rely=by + 0.005, anchor='n')
-        debugging_lbl.bind("<Button-1>", lambda e: webbrowser.open_new(debugging_link))
+            camera_btn = tk.Button(self, text=cam_name, font=Font(size=30, weight="bold"), width=longest_name,
+                command=lambda cam_idx=cam_id: self.calibrate_camera(cam_idx), borderwidth=10)
+            camera_btn.place(relx=0.5, rely=0.45 + i * 0.08, anchor='n')
+            self.button_dict[cam_id] = camera_btn
 
         # Back Button #
-        back_btn = tk.Button(self, text ='BACK', highlightbackground='red',
+        back_btn = tk.Button(self, text ='BACK', highlightbackground='white',
             font=Font(size=30, weight='bold'), padx=3, pady=5, borderwidth=10,
             command=lambda: controller.show_frame(SceneConfigurationPage))
-        back_btn.place(relx=0.85, rely=0.85)
+        back_btn.place(relx=0.5, rely=0.9, anchor='n')
 
+    def calibrate_camera(self, cam_id):
+        self.controller.robot.set_calibration_mode(cam_id)
+        time.sleep(0.1)
 
-class PreferedTasksPage(tk.Frame):
+        self.controller.frames[CalibrateCamera].set_camera_id(cam_id)
+        self.controller.show_frame(CalibrateCamera, wait=True)
+
+    def initialize_page(self):
+        info_dict = self.controller.robot.check_calibration_info()
+
+        for cam_id in self.button_dict.keys():
+            is_missing = any([cam_id in missing_id for missing_id in info_dict['missing']])
+            is_old = any([cam_id in old_id for old_id in info_dict['old']])
+            if is_missing: color = 'red'
+            elif is_old: color = 'blue'
+            else: color = 'black'
+
+            self.button_dict[cam_id].config(highlightbackground=color)
+
+    def exit_page(self):
+        if self.controller.curr_frame != self.controller.frames[CalibrateCamera]:
+            self.controller.robot.set_trajectory_mode()
+
+class IncompleteCalibration(tk.Frame):
+    def __init__(self, parent, controller):
+        super().__init__(parent)
+        self.controller = controller
+
+        # Title #
+        how_to_title_lbl = Label(self, text = "Calibration Incomplete", font=Font(size=30, weight='bold'))
+        how_to_title_lbl.pack(pady=5)
+
+        # Warning #
+        instr_lbl = tk.Label(self, text=missing_calibration_text, font=Font(size=20, slant='italic'))
+        instr_lbl.pack(pady=5)
+
+        # Back Button #
+        back_btn = tk.Button(self, text ='CALIBRATE', highlightbackground='red',
+            font=Font(size=30, weight='bold'), padx=3, pady=5, borderwidth=10,
+            command=lambda: controller.show_frame(CalibrationPage))
+        back_btn.place(relx=0.5, rely=0.5, anchor='n')
+
+class OldCalibration(tk.Frame):
+    def __init__(self, parent, controller):
+        super().__init__(parent)
+        self.controller = controller
+
+        # Title #
+        how_to_title_lbl = Label(self, text = "Calibration Warning", font=Font(size=30, weight='bold'))
+        how_to_title_lbl.pack(pady=5)
+
+        # Warning #
+        instr_lbl = tk.Label(self, text=old_calibration_text, font=Font(size=20, slant='italic'))
+        instr_lbl.pack(pady=5)
+
+        # Back Button #
+        back_btn = tk.Button(self, text ='CALIBRATE', highlightbackground='blue',
+            font=Font(size=30, weight='bold'), padx=3, pady=5, borderwidth=10,
+            command=lambda: controller.show_frame(CalibrationPage))
+        back_btn.place(relx=0.4, rely=0.5, anchor='n')
+
+        # Proceed Button #
+        proceed_btn = tk.Button(self, text ='PROCEED', highlightbackground='green',
+            font=Font(size=30, weight='bold'), padx=3, pady=5, borderwidth=10,
+            command=lambda: controller.show_frame(RequestedBehaviorPage))
+        proceed_btn.place(relx=0.6, rely=0.5, anchor='n')
+
+class PreferredTasksPage(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
         self.controller = controller
         self.controller.bind("<KeyRelease>", self.moniter_keys, add="+")
 
         # Title #
-        title_lbl = Label(self, text = "Prefered Tasks", font=Font(size=30, weight='bold'))
+        title_lbl = Label(self, text = "Preferred Tasks", font=Font(size=30, weight='bold'))
         title_lbl.place(relx=0.5, rely=0.05, anchor='n')
 
-
         # Shift Instructions #
-        instr_lbl = tk.Label(self, text=prefered_task_text, font=Font(size=20, slant='italic'))
+        instr_lbl = tk.Label(self, text=preferred_task_text, font=Font(size=20, slant='italic'))
         instr_lbl.place(relx=0.5, rely=0.1, anchor='n')
 
         # Fixed Task Selection #
@@ -309,11 +370,11 @@ class PreferedTasksPage(tk.Frame):
                     'Tool Usage Tasks': (0.55, 0.2),
                     'Deformable Object Tasks': (0.55, 0.4)}
 
-        for key in prefered_tasks.keys():
+        for key in preferred_tasks.keys():
             x_pos, y_pos = pos_dict[key]
             group_lbl = tk.Label(self, text=key + ":", font=Font(size=20, underline=True))
             group_lbl.place(relx=x_pos, rely=y_pos)
-            for i, task in enumerate(prefered_tasks[key]):
+            for i, task in enumerate(preferred_tasks[key]):
                 task_ckbox = tk.Checkbutton(self, text=task, font=Font(size=15), variable=BooleanVar())
                 task_ckbox.place(relx=x_pos + 0.01, rely=y_pos + (i + 1) * 0.04)
 
@@ -335,51 +396,11 @@ class PreferedTasksPage(tk.Frame):
 
         # Toggle Camera View
         if event.keysym in ['Shift_L', 'Shift_R']:
-            self.controller.frames[CameraPage].set_home_frame(PreferedTasksPage)
+            self.controller.frames[CameraPage].set_home_frame(PreferredTasksPage)
             self.controller.show_frame(CameraPage, wait=True)
 
     def initialize_page(self):
         self.notes_txt.focus()
-
-class NoisePage(tk.Frame):
-    def __init__(self, parent, controller):
-        super().__init__(parent)
-        self.controller = controller
-        self.action_noise = IntVar()
-        self.noise_str = StringVar()
-        self.max_amount = 100
-
-        # Title #
-        title_lbl = Label(self, text = "Action Noise", font=Font(size=30, weight='bold'))
-        title_lbl.place(relx=0.5, rely=0.05, anchor='n')
-
-        # Shift Instructions #
-        instr_lbl = tk.Label(self, text=noise_text, font=Font(size=20, slant='italic'))
-        instr_lbl.place(relx=0.5, rely=0.1, anchor='n')
-
-        # Slider #
-        scale = Scale(self, from_=0, to=self.max_amount, orient=HORIZONTAL, length=500,
-            variable=self.action_noise, command=self.update_info)
-        scale.place(relx=0.5, rely=0.4, anchor=CENTER)
-
-        # Noise Visualizer #
-        noise_lbl = tk.Label(self, textvariable=self.noise_str, font=Font(size=20, slant='italic'))
-        noise_lbl.place(relx=0.5, rely=0.35, anchor='n')
-
-        # Back Button #
-        back_btn = tk.Button(self, text ='BACK', highlightbackground='red',
-            font=Font(size=30, weight='bold'), padx=3, pady=5, borderwidth=10,
-            command=lambda: controller.show_frame(RequestedBehaviorPage))
-        back_btn.place(relx=0.5, rely=0.7, anchor=CENTER)
-
-        # Initialize String #
-        self.update_info(None)
-
-    def update_info(self, e):
-        noise = self.action_noise.get()
-        self.controller.info['action_noise'] = noise / self.max_amount
-        self.noise_str.set('{0}%'.format(noise))
-
 
 class SceneConfigurationPage(tk.Frame):
     def __init__(self, parent, controller):
@@ -397,28 +418,28 @@ class SceneConfigurationPage(tk.Frame):
         # Button Box #
         bx, by = 0.12, 0.045
         box_lbl = tk.Button(self, text =' ' * 25, highlightbackground='blue',
-            font=Font(slant='italic', weight='bold'), padx=20, pady=55)
+            font=Font(slant='italic', weight='bold'), padx=12, pady=40)
         box_lbl.place(relx=bx, rely=by, anchor='n')
 
-        # Instructions Button #
-        instructions_btn = tk.Button(self, text="Instructions", font=Font(weight="bold"), padx=10,
-            command=lambda: controller.show_frame(InstructionsPage))
-        instructions_btn.place(relx=bx, rely=by + 0.005, anchor='n')
+        # # Instructions Button #
+        # instructions_btn = tk.Button(self, text="Instructions", font=Font(weight="bold"), padx=10,
+        #     command=lambda: controller.show_frame(InstructionsPage))
+        # instructions_btn.place(relx=bx, rely=by + 0.005, anchor='n')
 
         # Task Ideas Button #
-        ideas_btn = tk.Button(self, text="Task Ideas", font=Font(weight="bold"), padx=15)
+        ideas_btn = tk.Button(self, text="Task Ideas", font=Font(weight="bold"), height=1, width=16)
         ideas_btn.bind("<Button-1>", lambda e: webbrowser.open_new(task_ideas_link))
-        ideas_btn.place(relx=bx, rely=by + 0.035, anchor='n')
+        ideas_btn.place(relx=bx, rely=by + 0.005, anchor='n')
 
-        # Prefered Tasks Button #
-        prefered_tasks_btn = tk.Button(self, text="Prefered Tasks", font=Font(weight="bold"),
-            command=lambda: controller.show_frame(PreferedTasksPage))
-        prefered_tasks_btn.place(relx=bx, rely=by + 0.065, anchor='n')
+        # Preferred Tasks Button #
+        preferred_tasks_btn = tk.Button(self, text="Preferred Tasks", font=Font(weight="bold"),
+            height=1, width=16, command=lambda: controller.show_frame(PreferredTasksPage))
+        preferred_tasks_btn.place(relx=bx, rely=by + 0.035, anchor='n')
 
         # Franka Website Button #
-        franka_btn = tk.Button(self, text="Franka Website", font=Font(weight="bold"))
+        franka_btn = tk.Button(self, text="Franka Website", font=Font(weight="bold"), height=1, width=16)
         franka_btn.bind("<Button-1>", lambda e: webbrowser.open_new(franka_website))
-        franka_btn.place(relx=bx, rely=by + 0.095, anchor='n')
+        franka_btn.place(relx=bx, rely=by + 0.065, anchor='n')
 
         # Shift Instructions #
         instr_lbl = tk.Label(self, text=shift_text, font=Font(size=20, slant='italic'))
@@ -426,10 +447,10 @@ class SceneConfigurationPage(tk.Frame):
 
         # Fixed Task Selection #
         self.task_dict = defaultdict(BooleanVar)
-        pos_dict = {'Articulated Tasks': (0.05, 0.2),
-                    'Free Object Tasks': (0.05, 0.4),
-                    'Tool Usage Tasks': (0.55, 0.2),
-                    'Deformable Object Tasks': (0.55, 0.4)}
+        pos_dict = {'Articulated Tasks': (0.005, 0.2),
+                    'Free Object Tasks': (0.005, 0.4),
+                    'Tool Usage Tasks': (0.51, 0.2),
+                    'Deformable Object Tasks': (0.51, 0.4)}
 
         for key in all_tasks.keys():
             x_pos, y_pos = pos_dict[key]
@@ -441,22 +462,28 @@ class SceneConfigurationPage(tk.Frame):
 
         # Free Response Tasks #
         group_lbl = tk.Label(self, text=freewrite_text, font=Font(size=20, underline=True))
-        group_lbl.place(relx=0.05, rely=0.6)
+        group_lbl.place(relx=0.01, rely=0.6)
         
         self.task_txt = tk.Text(self, height=15, width=65, font=Font(size=15))
-        self.task_txt.place(relx=0.05, rely=0.64)
+        self.task_txt.place(relx=0.02, rely=0.64)
+
+        # Ready Button #
+        collect_btn = tk.Button(self, text ='COLLECT', highlightbackground='green',
+            font=Font(size=30, weight='bold'), height=1, width=8, borderwidth=10,
+            command=self.finish_setup)
+        collect_btn.place(relx=0.7, rely=0.65)
+
+        # Calibrate Button #
+        calibrate_btn = tk.Button(self, text ='CALIBRATE', highlightbackground='blue',
+            font=Font(size=30, weight='bold'), height=1, width=8, borderwidth=10,
+            command=lambda: self.controller.show_frame(CalibrationPage))
+        calibrate_btn.place(relx=0.7, rely=0.75)
 
         # Practice Button #
         practice_btn = tk.Button(self, text ='PRACTICE', highlightbackground='red',
-            font=Font(size=30, weight='bold'), padx=3, pady=5, borderwidth=10,
+            font=Font(size=30, weight='bold'), height=1, width=8, borderwidth=10,
             command=self.practice_robot)
-        practice_btn.place(relx=0.6, rely=0.75)
-
-        # Ready Button #
-        ready_btn = tk.Button(self, text ='DONE', highlightbackground='green',
-            font=Font(size=30, weight='bold'), padx=3, pady=5, borderwidth=10,
-            command=self.finish_setup)
-        ready_btn.place(relx=0.8, rely=0.75)
+        practice_btn.place(relx=0.7, rely=0.85)
 
     def moniter_keys(self, event):
         if self.controller.curr_frame != self: return
@@ -475,13 +502,25 @@ class SceneConfigurationPage(tk.Frame):
         self.controller.info['new_tasks'] = self.get_new_tasks()
 
     def finish_setup(self):
+        # Check tasks are filled out
         fixed_tasks = self.controller.info['fixed_tasks']
         new_tasks = self.controller.info['new_tasks']
         if len(fixed_tasks) + len(new_tasks) == 0:
             self.task_txt.delete('1.0', END)
             self.task_txt.insert(1.0, no_tasks_text)
-        else:
-            self.controller.show_frame(RequestedBehaviorPage)
+            return
+
+        # Check that cameras are calibrated
+        calib_info_dict = self.controller.robot.check_calibration_info()
+        if len(calib_info_dict['missing']) > 0:
+            self.controller.show_frame(IncompleteCalibration)
+            return
+        if len(calib_info_dict['old']) > 0:
+            self.controller.show_frame(OldCalibration)
+            return
+
+        # If everything is okay, proceed
+        self.controller.show_frame(RequestedBehaviorPage)
 
     def get_new_tasks(self):
         new_tasks = self.task_txt.get("1.0", END).replace('\n', "")
@@ -512,39 +551,29 @@ class RequestedBehaviorPage(tk.Frame):
         task_lbl = Label(self, textvariable=self.task_text, font=Font(size=30))
         task_lbl.place(relx=0.5, rely=0.4, anchor='center')
 
-        # Resample Button #
-        resample_btn = tk.Button(self, text ='RESAMPLE', highlightbackground='red',
-            font=Font(size=30, weight='bold'), padx=3, pady=5, borderwidth=10,
-            command=self.initialize_page)
-        resample_btn.place(relx=0.44, rely=0.7)
-
         # Instructions #
-        instr_lbl = tk.Label(self, text="Press 'A' on the controller to begin", font=Font(size=20, slant='italic'))
+        instr_lbl = tk.Label(self, text="Press 'A' to begin, or 'B' to resample", font=Font(size=20, slant='italic'))
         instr_lbl.place(relx=0.5, rely=0.1, anchor='n')
 
-        # Bounding Box #
-        bx, by = 0.12, 0.045
-        box_lbl = tk.Button(self, text =' ' * 25, highlightbackground='blue',
-            font=Font(slant='italic', weight='bold') , padx=50, pady=39)
-        box_lbl.place(relx=bx, rely=by, anchor='n')
+        # Resample Button #
+        resample_btn = tk.Button(self, text ='RESAMPLE', highlightbackground='blue',
+            font=Font(size=30, weight='bold'), padx=3, pady=5, borderwidth=10,
+            command=lambda: self.resample(None))
+        resample_btn.place(relx=0.5, rely=0.7)
 
-        # Noise Button #
-        noise_btn = tk.Button(self, text="Adjust Action Noise", font=Font(weight="bold"), padx=10,
-            command=lambda: self.controller.show_frame(NoisePage))
-        noise_btn.place(relx=bx, rely=by + 0.005, anchor='n')
-
-        # Replay Button #
-        replay_btn = tk.Button(self, text="Replay Last Trajectory", font=Font(weight="bold"),
-            command=self.replay_traj)
-        replay_btn.place(relx=bx, rely=by + 0.035, anchor='n')
-
-        # Return Button #
-        return_btn = tk.Button(self, text="Scene Configuration", font=Font(weight="bold"), padx=8,
-            command=lambda: self.controller.show_frame(SceneConfigurationPage))
-        return_btn.place(relx=bx, rely=by + 0.065, anchor='n')
+        # Back Button #
+        back_btn = tk.Button(self, text ='BACK', highlightbackground='red',
+            font=Font(size=30, weight='bold'), padx=3, pady=5, borderwidth=10,
+            command=lambda: controller.show_frame(SceneConfigurationPage))
+        back_btn.place(relx=0.4, rely=0.7)
 
         # Update Based Off Activity #
-        controller.bind("<<KeyRelease-controller>>", self.start_trajectory, add="+")
+        controller.bind("<<KeyRelease-controllerA>>", self.start_trajectory, add="+")
+        controller.bind("<<KeyRelease-controllerB>>", self.resample, add="+")
+
+    def resample(self, e):
+        if self.controller.curr_frame != self: return
+        self.sample_new_task()
 
     def initialize_page(self):
         self.controller.frames[CameraPage].set_mode('traj')
@@ -587,11 +616,6 @@ class RequestedBehaviorPage(tk.Frame):
 
     def start_trajectory(self, event):
         if self.controller.curr_frame != self: return
-        self.controller.show_frame(CameraPage, wait=True)
-
-    def replay_traj(self):
-        if self.controller.robot.traj_data is None: return
-        self.controller.frames[CameraPage].set_mode('replay')
         self.controller.show_frame(CameraPage, wait=True)
 
     def keep_last_task(self):
@@ -724,11 +748,17 @@ class CameraPage(tk.Frame):
             self.controller.swap_img_order(self.clicked_id, i)
             self.clicked_id = None
 
-    def update_camera_feed(self, i, w_coeff=0.5, h_coeff=0.75):
+    def update_camera_feed(self, i, w_coeff=1.0, h_coeff=1.0):
         while True:
+            not_active = self.controller.curr_frame != self
+            not_ready = len(self.controller.camera_order) != len(self.controller.cam_ids)
+            if not_active or not_ready:
+                time.sleep(0.05)
+                continue
+
             w, h = max(self.winfo_width(), 100), max(self.winfo_height(), 100)
             img_w = int(w / self.n_cols * w_coeff)
-            img_h = int(h / self.n_cols * h_coeff)
+            img_h = int(h / self.n_rows * h_coeff)
 
             self.controller.set_img(i, widget=self.image_boxes[i], width=img_w, height=img_h)
 
@@ -742,8 +772,8 @@ class CameraPage(tk.Frame):
 
         if self.mode == 'live' and shift:
             self.controller.show_frame(self.home_frame, refresh_page=False)
-        if ('traj' in self.mode) and space:
-            self.end_trajectory()
+        # if ('traj' in self.mode) and space:
+        #     self.end_trajectory()
 
     def initialize_page(self):
 
@@ -773,11 +803,9 @@ class CameraPage(tk.Frame):
 
     def collect_trajectory(self):
         info = self.controller.info.copy()
-        action_noise = self.controller.info['action_noise']
         practice = self.mode == 'practice_traj'
-        self.controller.robot.set_action_noise(action_noise)
         self.controller.robot.collect_trajectory(info=info, practice=practice)
-        self.end_trajectory()
+        self.end_trajectory() #Is this okay?
 
     def update_timer(self, start_time):
         time_passed = time.time() - start_time
@@ -857,6 +885,131 @@ class EnlargedImagePage(tk.Frame):
 
     def update_camera_feed(self):
         while True:
-            #w, h = 250, 250
+            not_active = self.controller.curr_frame != self
+            not_ready = len(self.controller.camera_order) != len(self.controller.cam_ids)
+            if not_active or not_ready:
+                time.sleep(0.05)
+                continue
             w, h = max(self.winfo_width(), 250), max(self.winfo_height(), 250)
             self.controller.set_img(self.img_index, widget=self.image_box, width=w, height=h)
+
+class CalibrateCamera(tk.Frame):
+    def __init__(self, parent, controller, num_views=2):
+        super().__init__(parent)
+        self.controller = controller
+        self.relevant_indices = []
+        self.num_views = num_views
+        self.live = False
+
+        # Moniter Key Events #
+        self.controller.bind("<<KeyRelease-controllerA>>", self.press_A, add="+")
+        self.controller.bind("<<KeyRelease-controllerB>>", self.press_B, add="+")
+
+        # Page Variables #
+        self.title_str = StringVar()
+        self.instr_str = StringVar()
+        self.mode = 'live'
+
+        # Title #
+        title_lbl = Label(self, textvariable=self.title_str, font=Font(size=30, weight='bold'))
+        title_lbl.place(relx=0.5, rely=0.02, anchor='n')
+
+        # Instructions #
+        instr_lbl = tk.Label(self, textvariable=self.instr_str, font=Font(size=24, slant='italic'))
+        instr_lbl.place(relx=0.5, rely=0.06, anchor='n')
+
+        # Create Image Grid #
+        self.image_boxes = []
+        self.rowconfigure(0, weight=1)
+
+        for i in range(self.num_views):
+            self.columnconfigure(i, weight=1)
+            button = tk.Button(self, height=0, width=0)
+            button.grid(row=0, column=i, sticky='')
+            self.image_boxes.append(button)
+
+            camera_thread = threading.Thread(
+                target=lambda idx=i: self.update_camera_feed(idx))
+            camera_thread.daemon = True
+            camera_thread.start()
+
+        # Back Button #
+        self.back_btn = tk.Button(self, text ='BACK', highlightbackground='white',
+            font=Font(size=30, weight='bold'), padx=3, pady=5, borderwidth=10,
+            command=lambda: controller.show_frame(CalibrationPage))
+
+    def press_A(self, event):
+        if self.controller.curr_frame != self: return
+        if self.live: return
+
+        self.back_btn.place_forget()
+        traj_thread = threading.Thread(target=self.collect_trajectory)
+        traj_thread.daemon = True
+        traj_thread.start()
+
+    def press_B(self, event):
+        if self.controller.curr_frame != self: return
+        if self.live: return
+
+        self.controller.show_frame(CalibrationPage)
+
+    def collect_trajectory(self):
+        self.live = True
+        
+        cam_name = get_camera_name(self.cam_id)
+        self.title_str.set('Calibrating Camera: ' + cam_name)
+        self.instr_str.set("Press 'A' to begin camera calibration, and 'B' to terminate early")
+
+        success = self.controller.robot.calibrate_camera(self.cam_id)
+        self.end_trajectory(success)
+    
+    def end_trajectory(self, success):
+        self.live = False
+
+        if success:
+            time.sleep(0.1) # Prevents bug where robot doesnt wait to reset
+            self.controller.frames[CanRobotResetPage].set_next_page(CalibrationPage)
+            self.controller.show_frame(CanRobotResetPage)
+        else:
+            time.sleep(0.1) # Prevents bug where robot doesnt wait to reset
+            self.controller.frames[CanRobotResetPage].set_next_page(CalibrateCamera)
+            self.controller.show_frame(CanRobotResetPage)
+            self.title_str.set('CALIBRATION FAILED')
+            self.instr_str.set("Press 'A' to retry, or 'B' to go back to the calibration hub")
+            self.back_btn.place(relx=0.5, rely=0.85, anchor='n')
+
+    def set_camera_id(self, cam_id):
+        cam_name = get_camera_name(cam_id)
+        self.title_str.set('Camera View: ' + cam_name)
+        self.instr_str.set("Press 'A' to begin, or 'B' to go back to the calibration hub")
+        self.back_btn.place(relx=0.5, rely=0.85, anchor='n')
+        self.relevant_indices = []
+        self.cam_id = cam_id
+
+        while True:
+            new_relevant_indices = []
+            curr_cam_ids = self.controller.cam_ids.copy()
+
+            for i in range(len(curr_cam_ids)):
+                full_id = curr_cam_ids[i]
+                if cam_id in full_id: new_relevant_indices.append(i)
+
+            if len(new_relevant_indices) == self.num_views: break
+
+        self.relevant_indices = new_relevant_indices
+
+    def update_camera_feed(self, i, w_coeff=1.0, h_coeff=1.0):
+        while True:
+            not_active = self.controller.curr_frame != self
+            not_ready = len(self.relevant_indices) != self.num_views
+            if not_active or not_ready:
+                time.sleep(0.05)
+                continue
+
+            w, h = max(self.winfo_width(), 100), max(self.winfo_height(), 100)
+            img_w = int(w / self.num_views * w_coeff)
+            img_h = int(h / self.num_views * h_coeff)
+            index = self.relevant_indices[i]
+
+            self.controller.set_img(index, widget=self.image_boxes[i],
+                 width=img_w, height=img_h, use_camera_order=False)

@@ -15,7 +15,7 @@ import os
 def create_action_dict(action, action_space, delta, robot_state, ik_solver):
     assert action_space in ['cartesian', 'joint']
     assert delta in [True, False]
-    action_dict = {}
+    action_dict = {'robot_state': robot_state}
 
     if delta:
         action_dict['gripper_delta'] = action[-1]
@@ -117,11 +117,8 @@ class FrankaRobot:
         if delta: close_percentage += self.get_gripper_state()
         close_percentage = float(np.clip(close_percentage, 0, 1))
 
-        gripper_cmd = lambda: self._gripper.goto(width=self._max_gripper_width * (1 - close_percentage),
+        self._gripper.goto(width=self._max_gripper_width * (1 - close_percentage),
             speed=0.05, force=0.1, blocking=blocking)
-        
-        if blocking: gripper_cmd()
-        else: run_threaded_command(gripper_cmd)
 
     def get_joint_positions(self):
         return self._robot.get_joint_positions().tolist()

@@ -11,8 +11,6 @@ def vec_to_reorder_mat(vec):
         X[i, ind] = np.sign(vec[i])
     return X
 
-controller_off_message = '\n\nATTENTION: Controller is off! Press enter when you have turned it back on :)'
-
 class VRPolicy:
     def __init__(self,
                  right_controller: bool = True,
@@ -141,12 +139,12 @@ class VRPolicy:
 
     def get_info(self):
         return {
-            'save_episode': self._state['buttons']['A'],
-            'delete_episode': self._state['buttons']['B'],
+            'success': self._state['buttons']['A'],
+            'failure': self._state['buttons']['B'],
             'movement_enabled': self._state['movement_enabled'],
             'controller_on': self._state['controller_on']}
 
     def forward(self, obs_dict):
         if self._state['poses'] == {}: return np.zeros(7)
-        action = self._calculate_action(obs_dict['state_dict'])
+        action = self._calculate_action(obs_dict['robot_state'])
         return action

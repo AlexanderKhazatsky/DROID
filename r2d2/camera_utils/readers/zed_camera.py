@@ -1,7 +1,9 @@
-import numpy
+from copy import deepcopy
+from r2d2.misc.time import time_ms
+import numpy as np
 import time
 import cv2
-from copy import deepcopy
+import os
 
 try:
 	import pyzed.sl as sl
@@ -10,7 +12,6 @@ except ModuleNotFoundError:
 
 def gather_zed_cameras():
 	all_zed_cameras = []
-    
 	try: cameras = sl.Camera.get_device_list()
 	except NameError: return []
 
@@ -22,83 +23,123 @@ def gather_zed_cameras():
 
 class ZedCamera:
 	def __init__(self, camera):
-		init = sl.InitParameters()
-		# init.sdk_verbose = True
-		# init.depth_minimum_distance = 0.1
-		# init.depth_maximum_distance = 5
-		# init.depth_mode = sl.DEPTH_MODE.ULTRA
-		init.camera_resolution = sl.RESOLUTION.HD720
-		init.camera_fps = 15
-		init.set_from_serial_number(camera.serial_number)
+		self.serial_number = str(camera.serial_number)
+		# print('Opening Zed: ', self.serial_number)
 
+		self._extriniscs = {}
+		self._current_mode = None
+		self.set_trajectory_mode()
+		#print('Opened...')
+
+	### Camera Modes ###
+	def set_calibration_mode(self):
+		if self._current_mode == 'calibration': return
+		init = sl.InitParameters(
+			camera_resolution=sl.RESOLUTION.HD2K,
+			camera_fps=15)
+		self._configure_camera(init)
+		self._current_mode = 'calibration'
+
+	def set_trajectory_mode(self):
+		if self._current_mode == 'trajectory': return
+		init = sl.InitParameters(
+			depth_minimum_distance=0.1,
+			camera_resolution=sl.RESOLUTION.VGA,
+			camera_fps=100)
+		self._configure_camera(init)
+		self._current_mode = 'trajectory'
+
+	def _configure_camera(self, init_params):
+		# Set Camera #
+		init_params.set_from_serial_number(int(self.serial_number))
+		self._latency = 2.5 * (1 / init_params.camera_fps) * 1e3
+
+		# Close Existing Camera #
+		self.disable_camera()
+
+		# Initialize Readers #
 		self._cam = sl.Camera()
-		self._left_view = sl.Mat()
-		self._right_view = sl.Mat()
-		self._depth_view = sl.Mat()
-		self._serial_number = str(camera.serial_number)
+		self._left_img = sl.Mat()
+		self._right_img = sl.Mat()
+		self._left_depth = sl.Mat()
+		self._right_depth = sl.Mat()
+		self._left_pointcloud = sl.Mat()
+		self._right_pointcloud = sl.Mat()
 
-		print('Opening ZED: ', self._serial_number)
-
-		status = self._cam.open(init)
+		# Open Camera #
+		status = self._cam.open(init_params)
 		self._runtime = sl.RuntimeParameters()
 
-	def get_info(self):
-		return {'serial_number': self._serial_number}
+		# Save Intrinsics #
+		calib_params = self._cam.get_camera_information().camera_configuration.calibration_parameters
+		self._intrinsics = {
+			self.serial_number + '_left': self._process_intrinsics(calib_params.left_cam),
+			self.serial_number + '_right': self._process_intrinsics(calib_params.right_cam)}
 
-	def read_camera(self):
+	### Calibration Utilities ###
+	def _process_intrinsics(self, params):
+		intrinsics = {}
+		intrinsics['cameraMatrix'] = np.array([
+				[params.fx, 0, params.cx],
+				[0, params.fy, params.cy],
+				[0, 0, 1]])
+		intrinsics['distCoeffs'] = np.array(list(params.disto))
+		return intrinsics
+
+	def get_intrinsics(self):
+		return deepcopy(self._intrinsics)
+
+	### Recording Utilities ###
+	def start_recording(self, filename):
+		assert filename.endswith('.svo')
+		recording_param = sl.RecordingParameters(filename, sl.SVO_COMPRESSION_MODE.H265)
+		err = self._cam.enable_recording(recording_param)
+		assert err == sl.ERROR_CODE.SUCCESS
+
+	def stop_recording(self):
+		self._cam.disable_recording()
+
+	### Basic Camera Utilities ###
+	def read_camera(self, image=True, depth=False, pointcloud=False):
+		# Read Camera #
+		timestamp_dict = {self.serial_number +'_read_start': time_ms()}
 		err = self._cam.grab(self._runtime)
 		if err != sl.ERROR_CODE.SUCCESS: return None
+		timestamp_dict[self.serial_number + '_read_end'] = time_ms()
 
-		read_time = time.time()
-		self._cam.retrieve_image(self._left_view, sl.VIEW.LEFT)
-		self._cam.retrieve_image(self._right_view, sl.VIEW.RIGHT)
-		self._cam.retrieve_measure(self._depth_view, sl.MEASURE.DEPTH)
-
-		left_img = self._left_view.get_data().copy()
-		#left_img = cv2.cvtColor(left_img, cv2.COLOR_BGRA2BGR)
-
-		right_img = self._right_view.get_data().copy()
-		#right_img = cv2.cvtColor(right_img, cv2.COLOR_BGRA2BGR)
-
-		depth_img = self._depth_view.get_data().copy()
-
-		img_dict = {'rgb': left_img, 'depth': right_img, 'stereo_rgb': right_img}
+		# Benchmark Latency #
+		received_time = self._cam.get_timestamp(sl.TIME_REFERENCE.IMAGE).get_milliseconds()
+		timestamp_dict[self.serial_number + '_frame_received'] = received_time
+		timestamp_dict[self.serial_number + '_estimated_capture'] = received_time - self._latency
 		
-		return img_dict, read_time
+		# Return Data #
+		data_dict = {}
 
-	# def read_camera(self):
-	# 	err = self._cam.grab(self._runtime)
-	# 	if err != sl.ERROR_CODE.SUCCESS: return None
-
-	# 	read_time = time.time()
-	# 	self._cam.retrieve_image(self._left_view, sl.VIEW.LEFT)
-	# 	self._cam.retrieve_image(self._right_view, sl.VIEW.RIGHT)
-	# 	self._cam.retrieve_measure(self._depth_view, sl.MEASURE.DEPTH)
-
-	# 	left_img = self._left_view.get_data().copy()[:,:,:3]
-	# 	#left_img = cv2.resize(left_img, dsize=(128, 96), interpolation=cv2.INTER_AREA)
-	# 	#left_img = cv2.cvtColor(left_img, cv2.COLOR_BGR2RGB)
-
-	# 	right_img = self._right_view.get_data().copy()[:,:,:3]
-	# 	#right_img = cv2.resize(right_img, dsize=(128, 96), interpolation=cv2.INTER_AREA)
-	# 	#right_img = cv2.cvtColor(right_img, cv2.COLOR_BGR2RGB)
-
-	# 	depth_img = self._depth_view.get_data().copy()
-	# 	#depth_img = cv2.applyColorMap(cv2.convertScaleAbs(depth_img, alpha=0.03), cv2.COLORMAP_JET)
-	# 	#depth_img = cv2.resize(depth_img, dsize=(128, 96), interpolation=cv2.INTER_AREA)
-	# 	#depth_img = cv2.cvtColor(depth_img, cv2.COLOR_BGR2RGB)
-
-	# 	dict_1 = {'array': left_img, 'shape': left_img.shape, 'type': 'rgb',
-	# 		'read_time': read_time, 'serial_number': self._serial_number + '_left'}
-	# 	dict_2 = {'array': right_img,  'shape': right_img.shape, 'type': 'rgb',
-	# 		'read_time': read_time, 'serial_number': self._serial_number + '_right'}
-	# 	dict_3 = {'array': depth_img,  'shape': depth_img.shape, 'type': 'depth',
-	# 		'read_time': read_time, 'serial_number': self._serial_number + '_depth'}
-
-	# 	fake_dict = deepcopy(dict_1)
-	# 	fake_dict['serial_number'] += '_copy'
+		if image:
+			self._cam.retrieve_image(self._left_img, sl.VIEW.LEFT)
+			self._cam.retrieve_image(self._right_img, sl.VIEW.RIGHT)
+			data_dict['image'] = {
+				self.serial_number + '_left': self._left_img.get_data().copy(),
+				self.serial_number + '_right': self._right_img.get_data().copy()}
+		if depth:
+			self._cam.retrieve_measure(self._left_depth, sl.MEASURE.DEPTH)
+			self._cam.retrieve_measure(self._right_depth, sl.MEASURE.DEPTH_RIGHT)
+			data_dict['depth'] = {
+				self.serial_number + '_left': self._left_depth.get_data().copy(),
+				self.serial_number + '_right': self._right_depth.get_data().copy()}
+		if pointcloud:
+			self._cam.retrieve_measure(self._left_pointcloud, sl.MEASURE.XYZRGBA)
+			self._cam.retrieve_measure(self._right_pointcloud, sl.MEASURE.XYZRGBA_RIGHT)
+			data_dict['pointcloud'] = {
+				self.serial_number + '_left': self._left_pointcloud.get_data().copy(),
+				self.serial_number + '_right': self._right_pointcloud.get_data().copy()}
 		
-	# 	return [dict_1, dict_2, fake_dict]
+		return data_dict, timestamp_dict
 
 	def disable_camera(self):
-		self._cam.close()
+		if self._current_mode == 'disabled': return
+		if hasattr(self, '_cam'): self._cam.close()
+		self._current_mode = 'disabled'
+
+	def is_running(self):
+		return self._current_mode != 'disabled'
