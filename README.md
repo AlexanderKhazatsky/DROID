@@ -35,7 +35,9 @@ conda activate polymetis-local
 
 Start the server:
 
-```python python scripts/server/run_server.py```
+```python
+python scripts/server/run_server.py
+```
 
 ### Client Machine
 After activating your conda environment, try collecting a trajectory:
