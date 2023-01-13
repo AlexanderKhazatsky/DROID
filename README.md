@@ -3,7 +3,9 @@
 The repository provides the code for contributing to and using the R2D2 dataset.
 
 NOTE: This repository has two dependencies listed below. If you are setting this up on the robot NUC, (1) is required. If you are setting this up on the control workstation, (2) is required:
+
 (1) https://github.com/facebookresearch/fairo
+
 (2) https://github.com/rail-berkeley/oculus_reader
 
 ## Setup Guide
