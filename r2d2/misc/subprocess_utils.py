@@ -2,6 +2,7 @@ from collections import defaultdict
 import multiprocessing
 import subprocess
 import threading
+import time
 
 def run_terminal_command(command):
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stdin=subprocess.PIPE, shell=True,

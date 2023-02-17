@@ -41,7 +41,7 @@ def pose_diff(target, source, degrees=False):
     return result
 
 ### Additions ###
-def quat_add(delta, source):
+def add_quats(delta, source):
     result = R.from_quat(target) * R.from_quat(source)
     return result.as_quat()
 

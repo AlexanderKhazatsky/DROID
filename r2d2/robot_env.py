@@ -2,7 +2,8 @@ from r2d2.camera_utils.wrappers.multi_camera_wrapper import MultiCameraWrapper
 from r2d2.calibration.calibration_utils import load_calibration_info
 from r2d2.misc.transformations import change_pose_frame
 from r2d2.misc.server_interface import ServerInterface
-from r2d2.misc.parameters import robot_ip, hand_camera_id
+from r2d2.camera_utils.info import camera_type_dict
+from r2d2.misc.parameters import nuc_ip, hand_camera_id
 from r2d2.misc.time import time_ms
 from copy import deepcopy
 import numpy as np
@@ -12,78 +13,71 @@ import gym
 
 class RobotEnv(gym.Env):
     
-    def __init__(self):
+    def __init__(self, action_space='cartesian_velocity', camera_kwargs={}):
         
         # Initialize Gym Environment
         super().__init__()
 
-        # Physics
-        self.max_lin_vel = 2.0
-        self.max_rot_vel = 2.0
-        self.max_gripper_vel = 4.0
-        self.DoF = 6
-        self.hz = 15
+        # Define Action Space #
+        assert action_space in ['cartesian_position', 'joint_position', 'cartesian_velocity', 'joint_velocity']
+        self.action_space = action_space
+        self.check_action_range = 'velocity' in action_space
 
         # Robot Configuration
-        self.reset_joints = np.array([0., -np.pi/4,  0, -3/4 * np.pi, 0,  np.pi/2, 0.])
-        if robot_ip is None:
+        self.reset_joints = np.array([0, -1/5 * np.pi, 0, -4/5 * np.pi,  0, 3/5 * np.pi, 0.])
+        self.randomize_low = np.array([-0.1, -0.2, -0.1, -0.3, -0.3, -0.3])
+        self.randomize_high = np.array([0.1, 0.2, 0.1, 0.3, 0.3, 0.3])
+        self.DoF = 7 if ('cartesian' in action_space) else 8
+        self.control_hz = 15
+
+        if nuc_ip is None:
             from franka.robot import FrankaRobot
             self._robot = FrankaRobot()
         else:
-            self._robot = ServerInterface(ip_address=robot_ip)
+            self._robot = ServerInterface(ip_address=nuc_ip)
 
         # Create Cameras
-        self.camera_reader = MultiCameraWrapper()
+        self.camera_reader = MultiCameraWrapper(camera_kwargs)
         self.calibration_dict = load_calibration_info()
+        self.camera_type_dict = camera_type_dict
 
         # Reset Robot
         self.reset()
 
     def step(self, action):
         # Check Action
-        assert len(action) == (self.DoF + 1)
-        assert (action.max() <= 1) and (action.min() >= -1)
+        assert len(action) == self.DoF
+        if self.check_action_range:
+            assert (action.max() <= 1) and (action.min() >= -1)
 
         # Update Robot
-        action = self._limit_velocity(action)
-        action_info = self.update_robot(action, action_space='cartesian', delta=True)
+        action_info = self.update_robot(action, action_space=self.action_space)
 
         # Return Action Info
         return action_info
 
-    def _limit_velocity(self, action):
-        """Scales down the linear and angular magnitudes of the action"""
-        lin_vel, rot_vel, gripper_vel = action[:3], action[3:6], action[6]
-        
-        lin_vel_norm = np.linalg.norm(lin_vel)
-        rot_vel_norm = np.linalg.norm(rot_vel)
-        gripper_vel_norm = np.linalg.norm(gripper_vel)
-        
-        if lin_vel_norm > 1: lin_vel = lin_vel / lin_vel_norm
-        if rot_vel_norm > 1: rot_vel = rot_vel / rot_vel_norm
-        if gripper_vel_norm > 1: gripper_vel = gripper_vel / gripper_vel_norm
-        
-        lin_vel = lin_vel * self.max_lin_vel / self.hz
-        rot_vel = rot_vel * self.max_rot_vel / self.hz
-        gripper_vel = gripper_vel * self.max_gripper_vel / self.hz
+    def reset(self, randomize=False):
+        self._robot.update_gripper(0, velocity=False, blocking=True)
 
-        return np.concatenate([lin_vel, rot_vel, [gripper_vel]])
+        if randomize: noise = np.random.uniform(low=self.randomize_low, high=self.randomize_high)
+        else: noise = None
 
-    def reset(self, joints=None):
-        if joints is None: joints = self.reset_joints
-        self._robot.update_gripper(0, delta=False, blocking=True)
-        self._robot.update_joints(joints, delta=False, blocking=True)
+        self._robot.update_joints(self.reset_joints, velocity=False, blocking=True, cartesian_noise=noise)
 
-    def update_robot(self, action, action_space='cartesian', delta=True, blocking=False):
-        action_info = self._robot.update_command(action, action_space=action_space, delta=delta, blocking=blocking)
+    def update_robot(self, action, action_space='cartesian_velocity', blocking=False):
+        action_info = self._robot.update_command(action, action_space=action_space, blocking=blocking)
         return action_info
 
-    def read_cameras(self, image=True, depth=False, pointcloud=False):
-        return self.camera_reader.read_cameras(image=True, depth=False, pointcloud=False)
+    def create_action_dict(self, action):
+        return self._robot.create_action_dict(action)
+
+    def read_cameras(self):
+        return self.camera_reader.read_cameras()
 
     def get_state(self):
-        timestamp_dict = {'read_start': time_ms()}
-        state_dict = self._robot.get_robot_state()
+        read_start = time_ms()
+        state_dict, timestamp_dict = self._robot.get_robot_state()
+        timestamp_dict['read_start'] = read_start
         timestamp_dict['read_end'] = time_ms()
         return state_dict, timestamp_dict
 
@@ -92,27 +86,27 @@ class RobotEnv(gym.Env):
         extrinsics = deepcopy(self.calibration_dict)
         for cam_id in self.calibration_dict:
             if hand_camera_id not in cam_id: continue
-            gripper_pose = state_dict['ee_state'][:6]
+            gripper_pose = state_dict['cartesian_position']
             extrinsics[cam_id + '_gripper_offset'] = extrinsics[cam_id]
             extrinsics[cam_id] = change_pose_frame(extrinsics[cam_id], gripper_pose)
         return extrinsics
 
-    def get_observation(self, robot_state=True, camera_extrinsics=True, image=True, depth=False, pointcloud=False):
-        read_cameras = any([image, depth, pointcloud])
+    def get_observation(self):
         obs_dict = {'timestamp': {}}
 
-        if robot_state:
-            state_dict, timestamp_dict = self.get_state()
-            obs_dict['robot_state'] = state_dict
-            obs_dict['timestamp']['robot_state'] = timestamp_dict
-        if read_cameras:
-            camera_obs, camera_timestamp = self.read_cameras(
-                image=image, depth=depth, pointcloud=pointcloud)
-            obs_dict.update(camera_obs)
-            obs_dict['timestamp']['cameras'] = camera_timestamp
-        if camera_extrinsics:
-            assert robot_state
-            extrinsics = self.get_camera_extrinsics(state_dict)
-            obs_dict['camera_extrinsics'] = extrinsics
+        # Robot State #
+        state_dict, timestamp_dict = self.get_state()
+        obs_dict['robot_state'] = state_dict
+        obs_dict['timestamp']['robot_state'] = timestamp_dict
+
+        # Camera Readings #
+        camera_obs, camera_timestamp = self.read_cameras()
+        obs_dict.update(camera_obs)
+        obs_dict['timestamp']['cameras'] = camera_timestamp
+
+        # Camera Info #
+        obs_dict['camera_type'] = deepcopy(self.camera_type_dict)
+        extrinsics = self.get_camera_extrinsics(state_dict)
+        obs_dict['camera_extrinsics'] = extrinsics
 
         return obs_dict

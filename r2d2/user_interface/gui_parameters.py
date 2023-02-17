@@ -1,13 +1,8 @@
 # IMPORTANT VARIABLES #
 new_task_prob = 0.1
-compositional_task_prob = 0.
-scene_change_prob = 0. #0.1
-move_robot_frequency = 10 #300
-
-# new_task_prob = 0.1
-# compositional_task_prob = 0.3
-# scene_change_prob = 0.3 #0.1
-# move_robot_frequency = 10 #300
+compositional_task_prob = 0.1
+scene_change_prob = 0.2
+move_robot_frequency = 50
 
 task_weights = {
 	'Press button': 1,
@@ -28,9 +23,7 @@ task_weights = {
 
 # LOW PRIORITY VARIABLES #
 reset_hold_time = 5
-reset_duration = 5
 
 # Links #
 task_ideas_link = 'https://docs.google.com/document/d/1HCthaZrzdlnAxBYd4vCkXHYLTvm94SurF68xtgyJl4s/edit?usp=sharing'
 debugging_link = 'https://docs.google.com/document/d/1y6NJgLyHbJUwBxdUxahp6LDZ0cCGDDyIgAfMwECCU14/edit?usp=sharing'
-franka_website = 'https://172.16.0.8/desk/'

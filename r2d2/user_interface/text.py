@@ -9,7 +9,7 @@ all_tasks = {
  'Free Object Tasks':
 	['Move object into or out of container (ex: drawer, clothes hamper, plate, trashcan, washer)',
 	 'Move lid on or off of container (ex: pot, cup, pill bottle)',
-	 'Move object to a new position and orientation (ex: grasping, relocating, flipping, turning)',
+	 'Move object to a new position and orientation (ex: grasping, relocating, flipping)',
 	],
 
  'Tool Usage Tasks':
@@ -61,8 +61,6 @@ compositional_tasks = [
 	lambda t1, t2, t3: 'Do any three tasks consecutively.\n\nSuggested tasks:\
 		\n* {0}\n* {1}\n* {2}'.format(t1, t2, t3),
 ]
-
-#"Do something 'irreversable' (ex: drop an object, move an object out of camera view,"]
 
 how_to_text ="\
 1. Move the robot to a desired location (remember to unlock + relock wheels) \n\n\

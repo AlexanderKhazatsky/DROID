@@ -15,15 +15,29 @@ Install the necesary packages:
 
 ```bash
 pip install -e .
+
+# Done like this to avoid dependency issues
+pip install dm-robotics-moma==0.4.0 --no-deps
+pip install dm-robotics-transformations==0.4.0 --no-deps
+pip install dm-robotics-agentflow==0.4.0 --no-deps
+pip install dm-robotics-geometry==0.4.0 --no-deps
+pip install dm-robotics-manipulation==0.4.0 --no-deps
+pip install dm-robotics-controllers==0.4.0 --no-deps
 ```
+
+Regardless of the machine, go into r2d2/misc/parameters.py, and:
+- Set robot_ip to match the IP address of your robot
+- Set nuc_ip to match the IP address of your NUC
+
 If you are setting this up on the robot NUC:
 - In r2d2/misc/parameters.py, set "sudo_password" to your machine's corresponding sudo password. Sudo access is needed to launch the robot. The rest of the parameters can be ignored for now.
 
 If you are setting this up on the control workstation:
 - Go into r2d2/misc/parameters.py
-- Make sure that robot_ip matches the NUC’s wired connection
+- Set robot_ip to match the IP address of your robot
+- Set nuc_ip to match the IP address of your NUC
 - Update the Charuco board parameters to match yours. If you ordered it through calib.io, the parameters should be on the board.
-- With the cameras plugged in, launch the GUI, and go to the calibration page. Clicking the camera ID’s will show you which view they correspond to. Update hand_camera_id parameters.py with the correct value, and optionally name each camera by filling in the camera_names dictionary.
+- With the cameras plugged in, launch the GUI, and go to the calibration page. Clicking the camera ID’s will show you which view they correspond to. Update hand_camera_id, varied_3rd_person_camera_id, and fixed_3rd_person_camera_id values in parameters.py with the correct camera ID for each camera.
 
 
 ## Usage

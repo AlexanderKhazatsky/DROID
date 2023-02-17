@@ -1,5 +1,19 @@
 import zerorpc
 import numpy as np
+import time
+
+def attempt_n_times(function_list, max_attempts, sleep_time=0.1):
+    if type(function_list) is not list:
+        function_list = list(function_list)
+    
+    for i in range(max_attempts):
+        try:
+            [f() for f in function_list]
+            return
+        except zerorpc.exceptions.RemoteError:
+            time.sleep(sleep_time)
+
+    raise RuntimeError
 
 class ServerInterface:
     def __init__(self, ip_address='127.0.0.1', launch=True):
@@ -7,8 +21,8 @@ class ServerInterface:
         self.establish_connection()
         
         if launch:
-            self.launch_controller()
-            self.launch_robot()
+            func_list = [self.launch_controller, self.launch_robot]
+            attempt_n_times(func_list, max_attempts=2)
 
     def establish_connection(self):
         self.server = zerorpc.Client(heartbeat=20)
@@ -23,18 +37,23 @@ class ServerInterface:
     def kill_controller(self):
         self.server.kill_controller()
 
-    def update_command(self, action, action_space='cartesian', delta=True, blocking=False):
-        action_dict = self.server.update_command(action.tolist(), action_space, delta, blocking)
+    def update_command(self, command, action_space='cartesian_velocity', blocking=False):
+        action_dict = self.server.update_command(command.tolist(), action_space, blocking)
         return action_dict
 
-    def update_pose(self, pose, delta=False, blocking=False):
-        self.server.update_pose(joints.tolist(), delta, blocking)
+    def create_action_dict(self, command, action_space='cartesian_velocity'):
+        action_dict = self.server.create_action_dict(command.tolist(), action_space)
+        return action_dict
 
-    def update_joints(self, joints, delta=False, blocking=False):
-        self.server.update_joints(joints.tolist(), delta, blocking)
+    def update_pose(self, command, velocity=True, blocking=False):
+        self.server.update_pose(command.tolist(), velocity, blocking)
 
-    def update_gripper(self, close_percentage, delta=True, blocking=False):
-        self.server.update_gripper(close_percentage, delta, blocking)
+    def update_joints(self, command, velocity=True, blocking=False, cartesian_noise=None):
+        if cartesian_noise is not None: cartesian_noise = cartesian_noise.tolist()
+        self.server.update_joints(command.tolist(), velocity, blocking, cartesian_noise)
+
+    def update_gripper(self, command, velocity=True, blocking=False):
+        self.server.update_gripper(command, velocity, blocking)
 
     def get_ee_pose(self):
         return np.array(self.server.get_ee_pose())

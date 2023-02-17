@@ -42,11 +42,6 @@ def update_calibration_info(cam_id, transformation):
 	with open(calib_info_filepath, "w") as jsonFile:
 		json.dump(calibration_info, jsonFile)
 
-def get_camera_name(cam_id):
-	if cam_id in camera_names:
-		return camera_names[cam_id]
-	return cam_id
-
 def check_calibration_info(required_ids, time_threshold=3600):
 	calibration_info = load_calibration_info(keep_time=True)
 	calibration_ids = list(calibration_info.keys())
@@ -56,9 +51,9 @@ def check_calibration_info(required_ids, time_threshold=3600):
 		if cam_id not in calibration_ids:
 			info_dict['missing'].append(cam_id)
 			continue
-
 		time_passed = time.time() - calibration_info[cam_id]['timestamp']
-		if time_passed > time_threshold: info_dict['old'].append(cam_id)
+		if time_passed > time_threshold:
+			info_dict['old'].append(cam_id)
 
 	return info_dict
 
@@ -81,25 +76,14 @@ def visualize_calibration(calibration_dict):
     plt.title('Calibration Visualization')
     plt.show()
 
-# def calibration_traj(t, pos_scale=0.1, angle_scale=0.2, hand_camera=False):
-# 	x = - 0.2 * np.sin(8*t) * pos_scale
-# 	y = np.sin(t) * pos_scale
-# 	z = 0.5 * np.sin(4*t) * pos_scale
-# 	a = - np.sin(4*t) * angle_scale
-# 	b = np.sin(3*t) * angle_scale
-# 	c = np.sin(2*t) * angle_scale
-# 	if hand_camera: value = np.array([z, y, -x, c/1.5, b/1.5, -a/1.5])
-# 	else: value = np.array([x, y, z, a, b, c])
-# 	return value
-
 def calibration_traj(t, pos_scale=0.1, angle_scale=0.2, hand_camera=False):
-	x = np.abs(np.sin(3*t)) * pos_scale
+	x = - np.abs(np.sin(3*t)) * pos_scale
 	y = -0.8 * np.sin(2*t) * pos_scale
 	z = 0.5 * np.sin(4*t) * pos_scale
 	a = - np.sin(4*t) * angle_scale
 	b = np.sin(3*t) * angle_scale
 	c = np.sin(2*t) * angle_scale
-	if hand_camera: value = np.array([z, y, x, c/1.5, b/1.5, -a/1.5])
+	if hand_camera: value = np.array([z, y, -x, c/1.5, b/1.5, -a/1.5])
 	else: value = np.array([x, y, z, a, b, c])
 	return value
 
