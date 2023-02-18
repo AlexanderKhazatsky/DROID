@@ -8,14 +8,14 @@ variant = dict(
     training_kwargs=dict(
         num_epochs=100,
         grad_steps_per_epoch=1000,
-        weight_decay=0.0,
-        lr=1e-4,
+        weight_decay=1e-4,  #here
+        lr=1e-3,  #here
     ),
 
     camera_kwargs=dict(
         hand_camera=dict(
             image=True, depth=False, pointcloud=False, concatenate_images=False,
-            resolution=(256, 256)),
+            resolution=(128, 128)),  #here
         fixed_camera=dict(
             image=False, depth=False, pointcloud=False, concatenate_images=False,
             resolution=(256, 256)),
@@ -28,16 +28,15 @@ variant = dict(
         timestep_filtering_kwargs=dict(
             action_space='cartesian_velocity',
             robot_state_keys=
-                ['cartesian_position', 'gripper_position', 'joint_positions', 'joint_velocities'],
-            camera_extrinsics=
-                ['varied_camera', 'fixed_camera'],
+                ['cartesian_position', 'gripper_position'],
+            camera_extrinsics=[],
         ),
 
         image_transform_kwargs=dict(
             remove_alpha=True,
             bgr_to_rgb=True,
             to_tensor=True,
-            augment=True,
+            augment=False, #here
         ),
     ),
 
@@ -75,7 +74,7 @@ variant = dict(
         num_state_layers=1,
         num_state_hidden=200,
 
-        num_policy_layers=4,
+        num_policy_layers=3,
         num_policy_hidden=200,
     ),
 )

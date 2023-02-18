@@ -70,11 +70,11 @@ def collect_trajectory(env, controller=None, policy=None, horizon=None, save_fil
 		sleep_left = (1 / env.control_hz) - (comp_time / 1000)
 		if sleep_left > 0: time.sleep(sleep_left)
 
-		# # Moniter Control Frequency #
-		# moniter_control_frequency = False
-		# if moniter_control_frequency:
-		# 	print('Sleep Left: ', sleep_left)
-		# 	print('Feasible Hz: ', (1000 / comp_time))
+		# Moniter Control Frequency #
+		moniter_control_frequency = False
+		if moniter_control_frequency:
+			print('Sleep Left: ', sleep_left)
+			print('Feasible Hz: ', (1000 / comp_time))
 
 		# Step Environment #
 		control_timestamps['control_start'] = time_ms()

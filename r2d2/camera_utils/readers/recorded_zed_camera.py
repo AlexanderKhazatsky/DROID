@@ -14,18 +14,9 @@ except ModuleNotFoundError:
 class RecordedZedCamera:
 	def __init__(self, filepath, serial_number):
 		# Save Parameters #
+		self.filepath = filepath
 		self.serial_number = serial_number
 		self._index = 0
-
-		# Set SVO path for playback
-		init_parameters = sl.InitParameters()
-		init_parameters.set_from_svo_file(filepath)
-
-		# Open the ZED
-		self._cam = sl.Camera()
-		status = self._cam.open(init_parameters)
-		if status != sl.ERROR_CODE.SUCCESS:
-			print('Zed Error: ' + repr(status))
 
 		# Initialize Readers #
 		self._sbs_img = sl.Mat()
@@ -41,17 +32,32 @@ class RecordedZedCamera:
 			concatenate_images=False, resolution=(0,0)
 		):
 
+		# Save Parameters #
 		self.image = image
 		self.depth = depth
 		self.pointcloud = pointcloud
 		self.concatenate_images = concatenate_images
 		self.resolution = sl.Resolution(*resolution)
 		self.skip_reading = not any([image, depth, pointcloud])
+		if self.skip_reading: return
+
+		# Set SVO path for playback
+		init_parameters = sl.InitParameters()
+		init_parameters.set_from_svo_file(self.filepath)
+
+		# Open the ZED
+		self._cam = sl.Camera()
+		status = self._cam.open(init_parameters)
+		if status != sl.ERROR_CODE.SUCCESS:
+			print('Zed Error: ' + repr(status))
 
 	def get_frame_count(self):
+		if self.skip_reading: return 0
 		return self._cam.get_svo_number_of_frames()
 
 	def set_frame_index(self, index):
+		if self.skip_reading: return
+
 		if index < self._index:
 			self._cam.set_svo_position(index)
 			self._index = index
@@ -61,7 +67,7 @@ class RecordedZedCamera:
 
 	def read_camera(self, ignore_data=False, timestamp=None):
 		# Skip if Read Unnecesary #
-		if self.skip_reading: {} 
+		if self.skip_reading: return {} 
 		
 		# Read Camera #
 		self._index += 1
@@ -106,4 +112,5 @@ class RecordedZedCamera:
 		return data_dict
 
 	def disable_camera(self):		
-		self._cam.close()
+		if hasattr(self, '_cam'):
+			self._cam.close()

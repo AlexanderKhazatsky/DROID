@@ -119,7 +119,10 @@ class ModelTrainer:
 		self.eval_statistics["test-epoch_duration"].append(time.time() - start_time)
 
 	def prepare_logdir(self):
-		if os.path.exists(self.log_dir): shutil.rmtree(self.log_dir)
+		if os.path.exists(self.log_dir):
+			response = input("Directory Exists - Enter 'overwrite' to continue\n")
+			if response == 'overwrite':	shutil.rmtree(self.log_dir)
+			else: raise RuntimeError
 
 		os.makedirs(self.log_dir)
 		os.makedirs(self.log_dir + 'graphs/')

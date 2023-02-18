@@ -17,12 +17,12 @@ Install the necesary packages:
 pip install -e .
 
 # Done like this to avoid dependency issues
-pip install dm-robotics-moma==0.4.0 --no-deps
-pip install dm-robotics-transformations==0.4.0 --no-deps
-pip install dm-robotics-agentflow==0.4.0 --no-deps
-pip install dm-robotics-geometry==0.4.0 --no-deps
-pip install dm-robotics-manipulation==0.4.0 --no-deps
-pip install dm-robotics-controllers==0.4.0 --no-deps
+pip install dm-robotics-moma==0.5.0 --no-deps
+pip install dm-robotics-transformations==0.5.0 --no-deps
+pip install dm-robotics-agentflow==0.5.0 --no-deps
+pip install dm-robotics-geometry==0.5.0 --no-deps
+pip install dm-robotics-manipulation==0.5.0 --no-deps
+pip install dm-robotics-controllers==0.5.0 --no-deps
 ```
 
 Regardless of the machine, go into r2d2/misc/parameters.py, and:
