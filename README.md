@@ -61,3 +61,8 @@ After activating your conda environment, try collecting a trajectory:
 ```python
 python scripts/tests/collect_trajectory.py
 ```
+
+To collect data, run:
+```python
+python scripts/main.py
+```
