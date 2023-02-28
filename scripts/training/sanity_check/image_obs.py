@@ -15,7 +15,13 @@ variant = dict(
     camera_kwargs=dict(
         hand_camera=dict(
             image=True, depth=False, pointcloud=False, concatenate_images=False,
-            resolution=(256, 256)),
+            resolution=(128, 128)),
+        fixed_camera=dict(
+            image=True, depth=False, pointcloud=False, concatenate_images=False,
+            resolution=(128, 128)),
+        varied_camera=dict(
+            image=True, depth=False, pointcloud=False, concatenate_images=False,
+            resolution=(128, 128)),
     ),
 
     data_processing_kwargs=dict(
@@ -36,8 +42,8 @@ variant = dict(
     data_loader_kwargs=dict(
         batch_size=4,
         prefetch_factor=1,
-        buffer_size=200,
-        num_workers=2,
+        buffer_size=100,
+        num_workers=1,
 
         data_filtering_kwargs=dict(
             train_p=0.9,

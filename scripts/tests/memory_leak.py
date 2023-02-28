@@ -48,9 +48,6 @@ timestep_filtering_kwargs=dict(
     action_space='cartesian_velocity',
     robot_state_keys=[],
     camera_extrinsics=[],
-    image_views=['hand_camera'],
-    depth_views=[],
-    pointcloud_views=[],
 )
 
 image_transform_kwargs=dict(
@@ -61,15 +58,15 @@ image_transform_kwargs=dict(
 )
 
 camera_kwargs=dict(
-    image=True,
-    depth=False,
-    pointcloud=False,
-
-    resolution_kwargs=dict(
-        hand_camera=(256, 256),
-        fixed_camera=(256, 256),
-        varied_camera=(256, 256),
-    ),
+    hand_camera=dict(
+        image=True, depth=False, pointcloud=False, concatenate_images=False,
+        resolution=(128, 128)),
+    fixed_camera=dict(
+        image=True, depth=False, pointcloud=False, concatenate_images=False,
+        resolution=(128, 128)),
+    varied_camera=dict(
+        image=True, depth=False, pointcloud=False, concatenate_images=False,
+        resolution=(128, 128)),
 )
 
 train_folderpaths, test_folderpaths = generate_train_test_split(**data_filtering_kwargs)
@@ -116,7 +113,7 @@ def single_reader_script():
     recording_folderpath = os.path.join(folderpath, 'recordings')
     all_filepaths = glob.glob(recording_folderpath + '/*.svo')
 
-    path = all_filepaths[0]
+    path = random.choice(all_filepaths)
 
     camera = RecordedZedCamera(path, serial_number='')
     camera.set_reading_parameters(resolution=(256, 256))

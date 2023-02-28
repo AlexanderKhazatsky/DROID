@@ -14,7 +14,10 @@ import os
 
 class FrankaRobot:
 
-    def launch_controller(self):        
+    def launch_controller(self):
+        try: self.kill_controller()
+        except: pass
+
         dir_path = os.path.dirname(os.path.realpath(__file__))
         self._robot_process = run_terminal_command(
             'echo ' + sudo_password + ' | sudo -S ' + 'bash ' + dir_path + '/launch_robot.sh')
@@ -32,7 +35,6 @@ class FrankaRobot:
     def kill_controller(self):
         self._robot_process.kill()
         self._gripper_process.kill()
-        time.sleep(5)
 
     def update_command(self, command, action_space='cartesian_velocity', blocking=False):
         action_dict = self.create_action_dict(command, action_space=action_space)
@@ -54,8 +56,6 @@ class FrankaRobot:
 
             if self._robot.is_running_policy():
                 self._robot.terminate_current_policy()
-                time.sleep(2)
-
             try: self._robot.move_to_ee_pose(pos, quat)
             except grpc.RpcError: pass
         else:
@@ -80,16 +80,15 @@ class FrankaRobot:
         def helper_non_blocking():
             if not self._robot.is_running_policy():
                 self._robot.start_cartesian_impedance()
-
             try: self._robot.update_desired_joint_positions(command)
             except grpc.RpcError: pass
 
         if blocking:
             if self._robot.is_running_policy():
                 self._robot.terminate_current_policy()
-                time.sleep(2)
             try: self._robot.move_to_joint_positions(command)
             except grpc.RpcError: pass
+            self._robot.start_cartesian_impedance()
         else:
             run_threaded_command(helper_non_blocking)
 
