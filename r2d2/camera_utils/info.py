@@ -14,8 +14,8 @@ camera_type_to_string_dict = {
 
 camera_name_dict = {
 	hand_camera_id: 'Hand Camera',
-	varied_3rd_person_camera_id: 'Varied Camera #1',
-	fixed_3rd_person_camera_id: 'Varied Camera #2',
+	varied_camera_1_id: 'Varied Camera #1',
+	varied_camera_2_id: 'Varied Camera #2',
 }
 
 def get_camera_name(cam_id):
