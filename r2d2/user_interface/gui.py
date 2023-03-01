@@ -962,14 +962,14 @@ class CalibrateCamera(tk.Frame):
         self.controller.show_frame(CalibrationPage)
 
     def collect_trajectory(self):
+        self.controller.robot.reset_robot()
         self.live = True
-        
+
         cam_name = get_camera_name(self.cam_id)
         self.title_str.set('Calibrating Camera: ' + cam_name)
         self.instr_str.set("Press 'A' to begin camera calibration, and 'B' to terminate early")
-
-        self.controller.robot.reset_robot()
-        success = self.controller.robot.calibrate_camera(self.cam_id)
+        success = self.controller.robot.calibrate_camera(self.cam_id, reset_robot=False)
+        
         self.end_trajectory(success)
     
     def end_trajectory(self, success):

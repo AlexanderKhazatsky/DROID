@@ -99,7 +99,7 @@ def collect_trajectory(env, controller=None, policy=None, horizon=None, save_fil
 			return controller_info
 
 def calibrate_camera(env, camera_id, controller, step_size=0.01, pause_time=0.5,
-		image_freq=10, obs_pointer=None, wait_for_controller=False):
+		image_freq=10, obs_pointer=None, wait_for_controller=False, reset_robot=True):
 	'''Returns true if calibration was successful, otherwise returns False
 	   3rd Person Calibration Instructions: Press A when board in aligned with the camera from 1 foot away.
 	   Hand Calibration Instructions: Press A when the hand camera is aligned with the board from 1 foot away.'''
@@ -117,7 +117,7 @@ def calibrate_camera(env, camera_id, controller, step_size=0.01, pause_time=0.5,
 	if hand_camera: calibrator = HandCameraCalibrator(intrinsics_dict)
 	else: calibrator = ThirdPersonCameraCalibrator(intrinsics_dict)
 
-	env.reset()
+	if reset_robot: env.reset()
 	controller.reset_state()
 
 	while True:

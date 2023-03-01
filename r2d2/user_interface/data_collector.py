@@ -84,12 +84,12 @@ class DataCollecter:
 			self.last_traj_path = os.path.join(self.success_logdir, info['time'])
 			os.rename(os.path.join(self.failure_logdir, info['time']), self.last_traj_path)
 
-	def calibrate_camera(self, cam_id):
+	def calibrate_camera(self, cam_id, reset_robot=True):
 		self.traj_running = True
 		self.env._robot.establish_connection()
 		success = tu.calibrate_camera(self.env, cam_id,
 			controller=self.controller, obs_pointer=self.obs_pointer,
-			wait_for_controller=True)
+			wait_for_controller=True, reset_robot=reset_robot)
 		self.traj_running = False
 		self.obs_pointer = {}
 		return success
