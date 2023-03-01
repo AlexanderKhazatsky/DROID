@@ -97,11 +97,11 @@ scene_changes = [
 	'Change the table height significantly (6+ inches)',
 	'Move the table position and angle slightly (1-6 square inches, 1-15 degrees)',
 	'Move the table position and angle significantly (6+ square inches, 15+ degrees)',
-	"Move the fixed camera's pose slightly (pertubation)",
-	'Move the non-fixed camera poses slightly (pertubation)',
-	'Move the non-fixed camera poses significantly (entirely new angle)',
+	"Move a varied camera's pose slightly (pertubation), and recalibrate",
+	"Move a varied camera's pose significantly (entirely new angle), and recalibrate",
 	"Add an object to the scene",
 	"Remove (if applicable) an object from the scene",
+	"If possible, change the lighting in the room (ex: dim a light, close a window)"
 ]
 
 noise_text = 'Use the slider to adjust the action noise'
