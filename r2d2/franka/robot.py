@@ -6,7 +6,7 @@ import grpc
 # UTILITY SPECIFIC IMPORTS
 from r2d2.misc.transformations import euler_to_quat, quat_to_euler, add_poses, pose_diff, add_quats
 from r2d2.misc.subprocess_utils import run_terminal_command, run_threaded_command
-from r2d2.misc.parameters import sudo_password
+from r2d2.misc.parameters import sudo_password, gripper_type
 import numpy as np
 import torch
 import time
@@ -17,18 +17,31 @@ class FrankaRobot:
     def launch_controller(self):
         try: self.kill_controller()
         except: pass
-
+        accepted_gripper_types = ['franka', 'robotiq']
+        assert gripper_type in accepted_gripper_types, f"Invalid gripper_type specified in r2d2.misc.parameters! Must be one of the following: {accepted_gripper_types}"
         dir_path = os.path.dirname(os.path.realpath(__file__))
+        print('Launching robot...')
         self._robot_process = run_terminal_command(
             'echo ' + sudo_password + ' | sudo -S ' + 'bash ' + dir_path + '/launch_robot.sh')
+        print('Launching gripper...')
         self._gripper_process = run_terminal_command(
             'echo ' + sudo_password + ' | sudo -S ' + 'bash ' + dir_path + '/launch_gripper.sh')
         self._server_launched = True
-        time.sleep(5)
+        if gripper_type == 'franka':
+            sleep_time = 20 # Franka seems to take longer to launch
+        else: # 'robotiq'
+            sleep_time = 5
+        for i in range(sleep_time):
+            print(f'Waiting for robot and gripper launch to finish... {i+1} / {sleep_time}')
+            time.sleep(1)
 
     def launch_robot(self):
         self._robot = RobotInterface(ip_address="localhost")
         self._gripper = GripperInterface(ip_address="localhost")
+        if gripper_type == 'franka':
+            self._curr_gripper_state = None
+            self._last_grasp_time = time.time()
+            self._franka_gripper_cooldown = 1 # cannot send open/close commands more than once per sec if using franka gripper
         self._max_gripper_width = self._gripper.metadata.max_width
         self._ik_solver = RobotIKSolver()
 
@@ -38,9 +51,12 @@ class FrankaRobot:
 
     def update_command(self, command, action_space='cartesian_velocity', blocking=False):
         action_dict = self.create_action_dict(command, action_space=action_space)
-        
+
         self.update_joints(action_dict['joint_position'], velocity=False, blocking=blocking)
-        self.update_gripper(action_dict['gripper_position'], velocity=False, blocking=blocking)
+        if gripper_type == 'franka':
+            self.update_gripper(action_dict['gripper_action'], velocity=False, blocking=blocking)
+        else: # 'robotiq'
+            self.update_gripper(action_dict['gripper_position'], velocity=False, blocking=blocking)
 
         return action_dict
 
@@ -92,14 +108,29 @@ class FrankaRobot:
         else:
             run_threaded_command(helper_non_blocking)
 
-    def update_gripper(self, command, velocity=True, blocking=False):
+    def _update_franka_gripper(self, command, blocking):
+        desired_gripper_state = 'close' if command < 0 else 'open'
+        time_since_last_grasp = time.time() - self._last_grasp_time
+        # Only send the grasp command if this is the first time grasping, or if the desired grasp state (open/close) is not the same as the current grasp state.
+        # Also, wait for the cooldowns to expire before sending commands (to not overwhelm the Franka gripper and cause it to bug out).
+        if self._curr_gripper_state is None or (desired_gripper_state != self._curr_gripper_state and time_since_last_grasp > self._franka_gripper_cooldown):
+            target_grasp_width = 0 if desired_gripper_state == 'close' else self._gripper.metadata.max_width # ranges between 0 and 0.08 for Franka gripper
+            self._gripper.grasp(speed=0.1, force=0.1, grasp_width=target_grasp_width, epsilon_inner=1, epsilon_outer=1, blocking=blocking)
+            self._curr_gripper_state = desired_gripper_state
+            self._last_grasp_time = time.time()
+
+    def _update_robotiq_gripper(self, command, velocity, blocking):
         if velocity:
             gripper_delta = self._ik_solver.gripper_velocity_to_delta(command)
             command = gripper_delta + self.get_gripper_position()
-        
         command = float(np.clip(command, 0, 1))
-        self._gripper.goto(width=self._max_gripper_width * (1 - command),
-            speed=0.05, force=0.1, blocking=blocking)
+        self._gripper.goto(width=self._max_gripper_width * (1 - command), speed=0.1, force=0.1, blocking=blocking)
+
+    def update_gripper(self, command, velocity=True, blocking=False):
+        if gripper_type == 'franka':
+            self._update_franka_gripper(command=command, blocking=blocking)
+        else: # 'robotiq'
+            self._update_robotiq_gripper(command=command, velocity=velocity, blocking=blocking)
 
     def add_noise_to_joints(self, original_joints, cartesian_noise):
         original_joints = torch.Tensor(original_joints)
@@ -172,6 +203,10 @@ class FrankaRobot:
             gripper_delta = action_dict['gripper_position'] - robot_state['gripper_position']
             gripper_velocity = self._ik_solver.gripper_delta_to_velocity(gripper_delta)
             action_dict['gripper_delta'] = gripper_velocity
+
+        # If using the Franka gripper (not Robotiq), overwrite the gripper action as a binary (open/close) value.
+        if gripper_type == 'franka':
+            action_dict['gripper_action'] = -1. if action[-1] < 0. else 1.
 
         if 'cartesian' in action_space:
             if velocity:

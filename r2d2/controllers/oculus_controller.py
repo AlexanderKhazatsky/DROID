@@ -1,3 +1,4 @@
+from r2d2.misc.parameters import gripper_type, operator_position
 from r2d2.misc.transformations import quat_to_euler, euler_to_quat, quat_diff, rmat_to_quat, pose_diff
 from r2d2.misc.subprocess_utils import run_threaded_command
 from oculus_reader.reader import OculusReader
@@ -23,6 +24,9 @@ class VRPolicy:
                  gripper_action_gain: float = 3,
                  rmat_reorder: list = [-2, -1, -3, 4]):
 
+        accepted_operator_positions = ['front', 'back']
+        assert operator_position in accepted_operator_positions, f"Invalid operator_position specified in r2d2.misc.parameters! Must be one of the following: {accepted_operator_positions}"
+
         self.oculus_reader = OculusReader()
         self.vr_to_global_mat = np.eye(4)
         self.max_lin_vel = max_lin_vel
@@ -32,6 +36,7 @@ class VRPolicy:
         self.pos_action_gain = pos_action_gain
         self.rot_action_gain = rot_action_gain
         self.gripper_action_gain = gripper_action_gain
+        rmat_reorder = [2, 1, -3, 4] if operator_position == 'front' else  [-2, -1, -3, 4]
         self.global_to_env_mat = vec_to_reorder_mat(rmat_reorder)
         self.controller_id = 'r' if right_controller else 'l'
         self.reset_orientation = True
@@ -139,6 +144,11 @@ class VRPolicy:
 
         # Update Action
         action = np.concatenate([lin_vel, rot_vel, [gripper_vel]])
+
+        # If using the Franka gripper (not Robotiq), overwrite the gripper action as a binary (open/close) value.
+        if gripper_type == 'franka':
+            action[-1] = 1. if self.vr_state['gripper'] < 0.5 else -1.
+
         return action.clip(-1, 1)
 
     def get_info(self):

@@ -2,6 +2,8 @@
 nuc_ip = '172.16.0.1'
 robot_ip = '172.16.0.8'
 sudo_password = 'robot'
+gripper_type = 'robotiq' # 'franka' or 'robotiq'
+operator_position = 'back' # 'front' or 'back'
 
 # Camera ID's #
 hand_camera_id = '19824535'
