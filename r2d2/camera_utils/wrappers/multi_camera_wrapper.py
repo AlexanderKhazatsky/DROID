@@ -1,5 +1,7 @@
+from r2d2.camera_utils.readers.realsense_camera import gather_realsense_cameras
 from r2d2.camera_utils.readers.zed_camera import gather_zed_cameras
 from r2d2.camera_utils.info import get_camera_type
+from r2d2.misc.parameters import camera_type
 from collections import defaultdict
 import random
 import os
@@ -9,8 +11,13 @@ class MultiCameraWrapper:
 	def __init__(self, camera_kwargs={}):
 
 		# Open Cameras #
-		zed_cameras = gather_zed_cameras()
-		self.camera_dict = {cam.serial_number: cam for cam in zed_cameras}
+		accepted_camera_types = ['realsense', 'zed']
+		assert camera_type in accepted_camera_types, f"Invalid camera_type specified in r2d2.misc.parameters! Must be one of the following: {accepted_camera_types}"
+		if camera_type == 'realsense':
+			cameras = gather_realsense_cameras()
+		else: # 'zed'
+			cameras = gather_zed_cameras()
+		self.camera_dict = {cam.serial_number: cam for cam in cameras}
 
 		# Set Correct Parameters #
 		for cam_id in self.camera_dict.keys():

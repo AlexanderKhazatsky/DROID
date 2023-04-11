@@ -5,7 +5,8 @@ sudo_password = 'robot'
 gripper_type = 'robotiq' # 'franka' or 'robotiq'
 operator_position = 'back' # 'front' or 'back'
 
-# Camera ID's #
+# Camera Params #
+camera_type = 'zed' # 'realsense' or 'zed'
 hand_camera_id = '19824535'
 varied_camera_1_id = '23404442'
 varied_camera_2_id = '29838012'
