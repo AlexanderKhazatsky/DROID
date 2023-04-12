@@ -1,23 +1,24 @@
-from torch.nn import functional as F
 import torch
-import numpy as np
 import torch.utils.data
 from torch import nn
-import torch.nn as nn
+from torch.nn import functional as F
+
 
 class Residual(nn.Module):
     def __init__(self, in_channels, num_hiddens, num_residual_hiddens):
         super(Residual, self).__init__()
         self._block = nn.Sequential(
-
             nn.ReLU(True),
-            nn.Conv2d(in_channels=in_channels,
+            nn.Conv2d(
+                in_channels=in_channels,
                 out_channels=num_residual_hiddens,
-                kernel_size=3, stride=1, padding=1, bias=False),
+                kernel_size=3,
+                stride=1,
+                padding=1,
+                bias=False,
+            ),
             nn.ReLU(True),
-            nn.Conv2d(in_channels=num_residual_hiddens,
-                out_channels=num_hiddens,
-                kernel_size=1, stride=1, bias=False)
+            nn.Conv2d(in_channels=num_residual_hiddens, out_channels=num_hiddens, kernel_size=1, stride=1, bias=False),
         )
 
     def forward(self, x):
@@ -25,13 +26,12 @@ class Residual(nn.Module):
 
 
 class ResidualStack(nn.Module):
-    def __init__(self, in_channels, num_hiddens, num_residual_layers,
-            num_residual_hiddens):
+    def __init__(self, in_channels, num_hiddens, num_residual_layers, num_residual_hiddens):
         super(ResidualStack, self).__init__()
         self._num_residual_layers = num_residual_layers
         self._layers = nn.ModuleList(
-            [Residual(in_channels, num_hiddens, num_residual_hiddens)
-             for _ in range(self._num_residual_layers)])
+            [Residual(in_channels, num_hiddens, num_residual_hiddens) for _ in range(self._num_residual_layers)]
+        )
 
     def forward(self, x):
         for i in range(self._num_residual_layers):
@@ -40,30 +40,23 @@ class ResidualStack(nn.Module):
 
 
 class Encoder(nn.Module):
-    def __init__(self, in_channels, num_hiddens, num_residual_layers,
-            num_residual_hiddens, embedding_dim):
+    def __init__(self, in_channels, num_hiddens, num_residual_layers, num_residual_hiddens, embedding_dim):
         super(Encoder, self).__init__()
 
-        self._conv_1 = nn.Conv2d(in_channels=in_channels,
-            out_channels=num_hiddens // 2,
-            kernel_size=4,
-            stride=2, padding=1)
-        self._conv_2 = nn.Conv2d(in_channels=num_hiddens // 2,
-            out_channels=num_hiddens,
-            kernel_size=4,
-            stride=2, padding=1)
-        self._conv_3 = nn.Conv2d(in_channels=num_hiddens,
-            out_channels=num_hiddens,
-            kernel_size=3,
-            stride=1, padding=1)
-        self._residual_stack = ResidualStack(in_channels=num_hiddens,
+        self._conv_1 = nn.Conv2d(
+            in_channels=in_channels, out_channels=num_hiddens // 2, kernel_size=4, stride=2, padding=1
+        )
+        self._conv_2 = nn.Conv2d(
+            in_channels=num_hiddens // 2, out_channels=num_hiddens, kernel_size=4, stride=2, padding=1
+        )
+        self._conv_3 = nn.Conv2d(in_channels=num_hiddens, out_channels=num_hiddens, kernel_size=3, stride=1, padding=1)
+        self._residual_stack = ResidualStack(
+            in_channels=num_hiddens,
             num_hiddens=num_hiddens,
             num_residual_layers=num_residual_layers,
-            num_residual_hiddens=num_residual_hiddens)
-        self._final_conv = nn.Conv2d(in_channels=num_hiddens,
-            out_channels=embedding_dim,
-            kernel_size=1,
-            stride=1)
+            num_residual_hiddens=num_residual_hiddens,
+        )
+        self._final_conv = nn.Conv2d(in_channels=num_hiddens, out_channels=embedding_dim, kernel_size=1, stride=1)
 
     def forward(self, inputs):
         batch_size = inputs.shape[0]
@@ -82,26 +75,22 @@ class Encoder(nn.Module):
 
         return x.view(batch_size, -1)
 
+
 class ImagePolicy(nn.Module):
     def __init__(
-            self,
-            
-            embedding_dim=1,
-            num_encoder_hiddens=128,
-            num_residual_layers=3,
-            num_residual_hiddens=64,
-            representation_size=100,
-
-            num_camera_layers=4,
-            num_camera_hidden=400,
-
-            num_state_layers=4,
-            num_state_hidden=400,
-
-            num_policy_layers=4,
-            num_policy_hidden=400,
-            ):
-            
+        self,
+        embedding_dim=1,
+        num_encoder_hiddens=128,
+        num_residual_layers=3,
+        num_residual_hiddens=64,
+        representation_size=100,
+        num_camera_layers=4,
+        num_camera_hidden=400,
+        num_state_layers=4,
+        num_state_hidden=400,
+        num_policy_layers=4,
+        num_policy_hidden=400,
+    ):
         super(ImagePolicy, self).__init__()
 
         self.representation_size = representation_size
@@ -126,18 +115,25 @@ class ImagePolicy(nn.Module):
     def create_camera_encoder(self, input_dim):
         network = nn.ModuleList([])
 
-        encoder = Encoder(input_dim[1],
+        encoder = Encoder(
+            input_dim[1],
             self.num_encoder_hiddens,
             self.num_residual_layers,
             self.num_residual_hiddens,
-            self.embedding_dim)
+            self.embedding_dim,
+        )
         network.append(encoder)
 
         fake_input = torch.zeros(input_dim)
         output_size = encoder(fake_input).shape[1]
 
-        fc_layers = self.create_fully_connected(output_size, self.representation_size,
-            self.num_camera_layers, self.num_camera_hidden, output_activation=nn.LeakyReLU)
+        fc_layers = self.create_fully_connected(
+            output_size,
+            self.representation_size,
+            self.num_camera_layers,
+            self.num_camera_hidden,
+            output_activation=nn.LeakyReLU,
+        )
         network.extend(fc_layers)
 
         return nn.Sequential(*network)
@@ -155,7 +151,7 @@ class ImagePolicy(nn.Module):
             curr_layer = nn.Linear(in_dim, out_dim)
             nn.init.xavier_uniform_(curr_layer.weight, gain=1)
             curr_layer.bias.data.uniform_(-1e-3, 1e-3)
-            
+
             hidden_layers.append(curr_layer)
             hidden_layers.append(curr_activation)
 
@@ -164,9 +160,9 @@ class ImagePolicy(nn.Module):
         return hidden_layers
 
     def initialize_networks(self, timestep):
-        camera_dict = timestep['observation']['camera']
-        state = timestep['observation']['state']
-        actions = timestep['action']
+        camera_dict = timestep["observation"]["camera"]
+        state = timestep["observation"]["state"]
+        actions = timestep["action"]
 
         # Create High Dimensional Networks #
         self.camera_encoder_dict = nn.ModuleDict({})
@@ -174,18 +170,25 @@ class ImagePolicy(nn.Module):
             self.camera_encoder_dict[obs_type] = nn.ModuleDict({})
 
             for cam_type in camera_dict[obs_type]:
-                self.camera_encoder_dict[obs_type][cam_type] = \
-                    self.create_camera_encoder(camera_dict[obs_type][cam_type][0].shape)
+                self.camera_encoder_dict[obs_type][cam_type] = self.create_camera_encoder(
+                    camera_dict[obs_type][cam_type][0].shape
+                )
 
         # Create State Network #
-        state_encoder_network = self.create_fully_connected(state.shape[1], self.representation_size,
-                self.num_state_layers, self.num_state_hidden, output_activation=nn.LeakyReLU)
+        state_encoder_network = self.create_fully_connected(
+            state.shape[1],
+            self.representation_size,
+            self.num_state_layers,
+            self.num_state_hidden,
+            output_activation=nn.LeakyReLU,
+        )
         self.state_encoder_network = nn.Sequential(*state_encoder_network)
 
         # Create Policy Network #
         latent = self.encode_timestep(timestep)
-        policy_network = self.create_fully_connected(latent.shape[1], actions.shape[1],
-            self.num_policy_layers, self.num_policy_hidden, output_activation=nn.Tanh)
+        policy_network = self.create_fully_connected(
+            latent.shape[1], actions.shape[1], self.num_policy_layers, self.num_policy_hidden, output_activation=nn.Tanh
+        )
         self.policy_network = nn.Sequential(*policy_network)
 
         # Mark As Initialized #
@@ -196,14 +199,14 @@ class ImagePolicy(nn.Module):
             self.initialize_networks(timestep)
 
         action = self.forward(timestep)
-        bc_loss = self.loss(action, timestep['action'])
+        bc_loss = self.loss(action, timestep["action"])
         return bc_loss
 
     def encode_timestep(self, timestep):
         # Process Timestep #
-        camera_dict = timestep['observation']['camera']
-        state = timestep['observation']['state']
-        batch_size = state.shape[0]
+        camera_dict = timestep["observation"]["camera"]
+        state = timestep["observation"]["state"]
+        state.shape[0]
         latent_list = []
 
         # Encode State Observations #
@@ -214,7 +217,7 @@ class ImagePolicy(nn.Module):
         # Encode Camera Observations #
         sorted_obs_type_keys = sorted(camera_dict.keys())
         camera_latent = []
-        
+
         for obs_type in sorted_obs_type_keys:
             sorted_cam_type_keys = sorted(camera_dict[obs_type].keys())
             obs_type_latent = []
@@ -252,5 +255,5 @@ class ImagePolicy(nn.Module):
 
         # Pass Through Policy #
         action = self.policy_network(latent)
-        
+
         return action

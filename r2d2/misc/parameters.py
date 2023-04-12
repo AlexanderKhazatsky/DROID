@@ -1,16 +1,17 @@
+from cv2 import aruco
+
 # Robot Params #
-nuc_ip = ''
-robot_ip = ''
-sudo_password = ''
-robot_serial_number = ''
+nuc_ip = ""
+robot_ip = ""
+sudo_password = ""
+robot_serial_number = ""
 
 # Camera ID's #
-hand_camera_id = ''
-varied_camera_1_id = ''
-varied_camera_2_id = ''
+hand_camera_id = ""
+varied_camera_1_id = ""
+varied_camera_2_id = ""
 
 # Charuco Board Params #
-from cv2 import aruco
 CHARUCOBOARD_ROWCOUNT = 9
 CHARUCOBOARD_COLCOUNT = 14
 CHARUCOBOARD_CHECKER_SIZE = 0.020
