@@ -43,8 +43,9 @@ class MultiCameraWrapper:
 
 	### Data Storing Functions ###
 	def start_recording(self, recording_folderpath):
+		file_suffix = '.TODO' if camera_type == 'realsense' else '.svo'
 		for cam in self.camera_dict.values():
-			filepath = os.path.join(recording_folderpath, cam.serial_number + '.svo')
+			filepath = os.path.join(recording_folderpath, cam.serial_number + file_suffix)
 			cam.start_recording(filepath)
 
 	def stop_recording(self):
