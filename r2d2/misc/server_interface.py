@@ -10,10 +10,10 @@ def attempt_n_times(function_list, max_attempts, sleep_time=0.1):
         try:
             [f() for f in function_list]
             return
-        except zerorpc.exceptions.RemoteError:
-            time.sleep(sleep_time)
-
-    raise RuntimeError
+        except zerorpc.exceptions.RemoteError as err:
+            last_attempt = i == (max_attempts - 1)
+            if last_attempt: raise err
+            else: time.sleep(sleep_time)
 
 class ServerInterface:
     def __init__(self, ip_address='127.0.0.1', launch=True):

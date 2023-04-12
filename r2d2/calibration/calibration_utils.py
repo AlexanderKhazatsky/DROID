@@ -408,7 +408,7 @@ class ThirdPersonCameraCalibrator(CharucoDetector):
 		return lin_success and rot_success
 
 class HandCameraCalibrator(CharucoDetector):
-	def __init__(self, camera, lin_error_threshold=1e-4, rot_error_threshold=1e-2, train_percentage=0.7, **kwargs):
+	def __init__(self, camera, lin_error_threshold=1e-3, rot_error_threshold=1e-2, train_percentage=0.7, **kwargs):
 		self.lin_error_threshold = lin_error_threshold
 		self.rot_error_threshold = rot_error_threshold
 		self.train_percentage = train_percentage

@@ -107,7 +107,8 @@ scene_changes = [
 noise_text = 'Use the slider to adjust the action noise'
 task_suggestions_text = 'Suggestions are organized below by room'
 use_checkboxes_text = 'Use the checkboxes to keep track of your progress'
-missing_name_text = 'Please enter your full name :)'
+missing_name_text = 'Enter your first AND last name'
+missing_building_text = 'Enter a building name'
 move_robot_text = 'MANDATORY: Move the robot setup to an entirely new location'
 preferred_task_text = 'Use the checkboxes below to keep track of your progress'
 no_tasks_text = 'There are no tasks to sample. Please click or enter some :)'
@@ -116,6 +117,7 @@ shift_text = "Press 'Shift' to toggle camera feed"
 controller_off_msg = "Place it on your head to wake it up. When ready, press space to continue :)"
 missing_calibration_text = 'You must finish calibrating all cameras in order to proceed'
 old_calibration_text = "You have cameras that haven't been calibrated in over an hour. Are you sure you want to continue?"
+old_scene_text = "You haven't marked a scene change in over an hour. Are you sure you want to continue?"
 color_spectrum_explantion = 'Blue: Camera has not been calibrated in over an hour\n\nRed: Camera has never been calibrated'
 
 camera_page_title = {

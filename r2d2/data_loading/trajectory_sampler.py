@@ -1,4 +1,4 @@
-from r2d2.training.processing.timestep_processing import TimestepProcesser
+from r2d2.data_processing.timestep_processing import TimestepProcesser
 from r2d2.trajectory_utils.misc import load_trajectory
 import numpy as np
 import random
@@ -50,7 +50,7 @@ def generate_train_test_split(filter_func=None, remove_failures=True, train_p=0.
 def collect_data_folderpaths(filter_func=None, remove_failures=True):
 	# Prepare Data Folder #
 	dir_path = os.path.dirname(os.path.realpath(__file__))
-	data_dir = os.path.join(dir_path, '../../../data')
+	data_dir = os.path.join(dir_path, '../../data')
 	if remove_failures: data_dir = os.path.join(data_dir, 'success')
 	
 	# Collect #
@@ -62,14 +62,14 @@ def collect_data_folderpaths(filter_func=None, remove_failures=True):
 
 class TrajectorySampler:
 
-	def __init__(self, all_folderpaths,
+	def __init__(self, all_folderpaths, recording_prefix='',
 			traj_loading_kwargs={}, timestep_filtering_kwargs={},
 			image_transform_kwargs={}, camera_kwargs={},
 		):
 
 		self._all_folderpaths = all_folderpaths
+		self.recording_prefix = recording_prefix
 		self.traj_loading_kwargs = traj_loading_kwargs
-
 		self.timestep_processer = TimestepProcesser(**timestep_filtering_kwargs,
 			image_transform_kwargs=image_transform_kwargs)
 		self.camera_kwargs = camera_kwargs
@@ -86,7 +86,7 @@ class TrajectorySampler:
 		folderpath = self._all_folderpaths[traj_ind]
 		
 		filepath = os.path.join(folderpath, 'trajectory.h5')
-		recording_folderpath = os.path.join(folderpath, 'recordings')
+		recording_folderpath = os.path.join(folderpath, 'recordings', self.recording_prefix)
 		if not os.path.exists(recording_folderpath): recording_folderpath = None
 
 		traj_samples = load_trajectory(filepath, recording_folderpath=recording_folderpath,

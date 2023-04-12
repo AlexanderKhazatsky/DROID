@@ -2,9 +2,7 @@ from r2d2.misc.parameters import hand_camera_id
 from r2d2.misc.time import time_ms
 from copy import deepcopy
 import numpy as np
-import time
 import cv2
-import os
 
 try:
 	import pyzed.sl as sl
@@ -22,67 +20,75 @@ def gather_zed_cameras():
 
 	return all_zed_cameras
 
+resize_func_map = {'cv2': cv2.resize, None: None}
+
 class ZedCamera:
 	def __init__(self, camera):
 		# Save Parameters #
 		self.serial_number = str(camera.serial_number)
 		self.is_hand_camera = self.serial_number == hand_camera_id
-
-		print('Opening Zed: ', self.serial_number)
-		self._extriniscs = {}
 		self._current_mode = None
+		self._extriniscs = {}
+
+		# Open Camera #
+		print('Opening Zed: ', self.serial_number)
+		self._configure_camera()
 
 	def set_reading_parameters(self,
 			image=True, depth=False, pointcloud=False,
-			concatenate_images=False, resolution=(0,0)
+			concatenate_images=False, resolution=(0,0),
+			resize_func=None,
 		):
 
 		# Non-Permenant Values #
 		self.traj_image = image
 		self.traj_concatenate_images = concatenate_images
-		self.traj_resolution = sl.Resolution(*resolution)
+		self.traj_resolution = resolution
 
 		# Permenant Values #
 		self.depth = depth
 		self.pointcloud = pointcloud
+		self.resize_func = resize_func_map[resize_func]
 
 	### Camera Modes ###
 	def set_calibration_mode(self):
-		if self._current_mode == 'calibration': return
-		init = sl.InitParameters(
-			camera_resolution=sl.RESOLUTION.HD1080,
-			camera_fps=15)
-		self._configure_camera(init)
-		self._current_mode = 'calibration'
-		
 		self.image = True
 		self.concatenate_images = False
-		self.resolution = sl.Resolution(0,0)
 		self.skip_reading = False
+		self._current_mode = 'calibration'
+		self.zed_resolution = sl.Resolution(0,0)
+		self.resizer_resolution = (0,0)
 
 	def set_trajectory_mode(self):
-		if self._current_mode == 'trajectory': return
-		
-		if self.is_hand_camera:
-			init = sl.InitParameters(
-				depth_minimum_distance=0.1,
-				camera_resolution=sl.RESOLUTION.VGA,
-				camera_fps=60)
-		else:
-			init = sl.InitParameters(
-				depth_minimum_distance=0.1,
-				camera_resolution=sl.RESOLUTION.HD720,
-				camera_fps=60)
-
-		self._configure_camera(init)
-		self._current_mode = 'trajectory'
-
 		self.image = self.traj_image
 		self.concatenate_images = self.traj_concatenate_images
-		self.resolution = self.traj_resolution
 		self.skip_reading = not any([self.image, self.depth, self.pointcloud])
+		self._current_mode = 'trajectory'
 
-	def _configure_camera(self, init_params):
+		if self.resize_func is None:
+			self.zed_resolution = sl.Resolution(*self.traj_resolution)
+			self.resizer_resolution = (0,0)
+		else:
+			self.zed_resolution = sl.Resolution(0,0)
+			self.resizer_resolution = self.traj_resolution
+
+	def _configure_camera(self):
+		# Define Parameters #
+		init_params = sl.InitParameters(
+			depth_minimum_distance=0.1,
+			camera_resolution=sl.RESOLUTION.HD720,
+			camera_fps=60)
+		# if self.is_hand_camera:
+		# 	init_params = sl.InitParameters(
+		# 		depth_minimum_distance=0.1,
+		# 		camera_resolution=sl.RESOLUTION.VGA,
+		# 		camera_fps=60)
+		# else:
+		# 	init_params = sl.InitParameters(
+		# 		depth_minimum_distance=0.1,
+		# 		camera_resolution=sl.RESOLUTION.HD720,
+		# 		camera_fps=60)
+
 		# Set Camera #
 		init_params.set_from_serial_number(int(self.serial_number))
 		self.latency = int(2.5 * (1e3 / init_params.camera_fps))
@@ -134,6 +140,11 @@ class ZedCamera:
 		self._cam.disable_recording()
 
 	### Basic Camera Utilities ###
+	def _process_frame(self, frame):
+		frame = deepcopy(frame.get_data())
+		if self.resizer_resolution == (0,0): return frame
+		return self.resize_func(frame, self.resizer_resolution)
+
 	def read_camera(self):
 		# Skip if Read Unnecesary #
 		if self.skip_reading: {}, {}
@@ -154,26 +165,26 @@ class ZedCamera:
 
 		if self.image:
 			if self.concatenate_images:
-				self._cam.retrieve_image(svo_image, sl.VIEW.SIDE_BY_SIDE, resolution=self.resolution)
-				data_dict['image'] = {self.serial_number: self._sbs_img.get_data().copy()}
+				self._cam.retrieve_image(self._sbs_img, sl.VIEW.SIDE_BY_SIDE, resolution=self.zed_resolution)
+				data_dict['image'] = {self.serial_number: self._process_frame(self._sbs_img)}
 			else:
-				self._cam.retrieve_image(self._left_img, sl.VIEW.LEFT, resolution=self.resolution)
-				self._cam.retrieve_image(self._right_img, sl.VIEW.RIGHT, resolution=self.resolution)
+				self._cam.retrieve_image(self._left_img, sl.VIEW.LEFT, resolution=self.zed_resolution)
+				self._cam.retrieve_image(self._right_img, sl.VIEW.RIGHT, resolution=self.zed_resolution)
 				data_dict['image'] = {
-					self.serial_number + '_left': self._left_img.get_data().copy(),
-					self.serial_number + '_right': self._right_img.get_data().copy()}
-		if self.depth:
-			self._cam.retrieve_measure(self._left_depth, sl.MEASURE.DEPTH, resolution=self.resolution)
-			self._cam.retrieve_measure(self._right_depth, sl.MEASURE.DEPTH_RIGHT, resolution=self.resolution)
-			data_dict['depth'] = {
-				self.serial_number + '_left': self._left_depth.get_data().copy(),
-				self.serial_number + '_right': self._right_depth.get_data().copy()}
-		if self.pointcloud:
-			self._cam.retrieve_measure(self._left_pointcloud, sl.MEASURE.XYZRGBA, resolution=self.resolution)
-			self._cam.retrieve_measure(self._right_pointcloud, sl.MEASURE.XYZRGBA_RIGHT, resolution=self.resolution)
-			data_dict['pointcloud'] = {
-				self.serial_number + '_left': self._left_pointcloud.get_data().copy(),
-				self.serial_number + '_right': self._right_pointcloud.get_data().copy()}
+					self.serial_number + '_left': self._process_frame(self._left_img),
+					self.serial_number + '_right': self._process_frame(self._right_img)}
+		# if self.depth:
+		# 	self._cam.retrieve_measure(self._left_depth, sl.MEASURE.DEPTH, resolution=self.resolution)
+		# 	self._cam.retrieve_measure(self._right_depth, sl.MEASURE.DEPTH_RIGHT, resolution=self.resolution)
+		# 	data_dict['depth'] = {
+		# 		self.serial_number + '_left': self._left_depth.get_data().copy(),
+		# 		self.serial_number + '_right': self._right_depth.get_data().copy()}
+		# if self.pointcloud:
+		# 	self._cam.retrieve_measure(self._left_pointcloud, sl.MEASURE.XYZRGBA, resolution=self.resolution)
+		# 	self._cam.retrieve_measure(self._right_pointcloud, sl.MEASURE.XYZRGBA_RIGHT, resolution=self.resolution)
+		# 	data_dict['pointcloud'] = {
+		# 		self.serial_number + '_left': self._left_pointcloud.get_data().copy(),
+		# 		self.serial_number + '_right': self._right_pointcloud.get_data().copy()}
 		
 		return data_dict, timestamp_dict
 

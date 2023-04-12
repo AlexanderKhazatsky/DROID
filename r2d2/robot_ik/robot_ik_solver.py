@@ -63,7 +63,7 @@ class RobotIKSolver:
 		gripper_vel_norm = np.linalg.norm(gripper_velocity)
 
 		if gripper_vel_norm > 1:
-				gripper_velocity = gripper_velocity / gripper_vel_norm
+			gripper_velocity = gripper_velocity / gripper_vel_norm
 
 		gripper_delta = gripper_velocity * self.max_gripper_delta
 

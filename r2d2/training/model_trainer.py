@@ -1,4 +1,4 @@
-from r2d2.training.data_loading.data_loader import create_train_test_data_loader
+from r2d2.data_loading.data_loader import create_train_test_data_loader
 from r2d2.training.models.policy_network import ImagePolicy
 from collections import OrderedDict, defaultdict
 import matplotlib.pyplot as plt

@@ -1,6 +1,7 @@
 from r2d2.calibration.calibration_utils import check_calibration_info, load_calibration_info
+from r2d2.misc.version_control.loader import load_version_info
 import r2d2.trajectory_utils.misc as tu
-from r2d2.misc.parameters import hand_camera_id
+from r2d2.misc.parameters import hand_camera_id, robot_serial_number, r2d2_version
 from datetime import date
 from copy import deepcopy
 import h5py
@@ -57,8 +58,11 @@ class DataCollecter:
 
 	def collect_trajectory(self, info=None, practice=False, reset_robot=True):
 		self.last_traj_name = time.asctime().replace(" ", "_")
+		
 		if info is None: info = {}
 		info['time'] = self.last_traj_name
+		info['robot_serial_number'] = robot_serial_number
+		info['version_number'] = r2d2_version
 
 		if practice or (not self.save_data):
 			save_filepath = None

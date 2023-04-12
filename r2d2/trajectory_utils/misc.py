@@ -61,8 +61,11 @@ def collect_trajectory(env, controller=None, policy=None, horizon=None, save_fil
 
 		# Get Action #
 		control_timestamps['policy_start'] = time_ms()
-		if policy is None: action = controller.forward(obs)
-		else: action = policy.forward(obs)
+		if policy is None:
+			action, controller_action_info = controller.forward(obs, include_info=True)
+		else:
+			action = policy.forward(obs)
+			controller_action_info = {}
 
 		# Regularize Control Frequency #
 		control_timestamps['sleep_start'] = time_ms()
@@ -71,15 +74,16 @@ def collect_trajectory(env, controller=None, policy=None, horizon=None, save_fil
 		if sleep_left > 0: time.sleep(sleep_left)
 
 		# Moniter Control Frequency #
-		moniter_control_frequency = False
-		if moniter_control_frequency:
-			print('Sleep Left: ', sleep_left)
-			print('Feasible Hz: ', (1000 / comp_time))
+		# moniter_control_frequency = True
+		# if moniter_control_frequency:
+		# 	print('Sleep Left: ', sleep_left)
+		# 	print('Feasible Hz: ', (1000 / comp_time))
 
 		# Step Environment #
 		control_timestamps['control_start'] = time_ms()
 		if skip_action: action_info = env.create_action_dict(np.zeros_like(action))
 		else: action_info = env.step(action)
+		action_info.update(controller_action_info)
 
 		# Save Data #
 		control_timestamps['step_end'] = time_ms()
@@ -127,10 +131,11 @@ def calibrate_camera(env, camera_id, controller, step_size=0.01, pause_time=0.5,
 
 		# Get Observation #
 		state, _ = env.get_state()
-		cam_obs, _ = camera.read_camera()
+		cam_obs, _ = env.read_cameras()
 
-		for cam_id in cam_obs['image']:
-			cam_obs['image'][cam_id] = calibrator.augment_image(cam_id, cam_obs['image'][cam_id])
+		for full_cam_id in cam_obs['image']:
+			if camera_id not in full_cam_id: continue
+			cam_obs['image'][full_cam_id] = calibrator.augment_image(full_cam_id, cam_obs['image'][full_cam_id])
 		if obs_pointer is not None: obs_pointer.update(cam_obs)
 
 		# Get Action #
@@ -171,15 +176,16 @@ def calibrate_camera(env, camera_id, controller, step_size=0.01, pause_time=0.5,
 		# Collect Observations #
 		if take_picture: time.sleep(pause_time)
 		state, _ = env.get_state()
-		cam_obs, _ = camera.read_camera()
+		cam_obs, _ = env.read_cameras()
 
 		# Add Sample + Augment Images #
-		for cam_id in cam_obs['image']:
-			cam_obs['image'][cam_id] = calibrator.augment_image(cam_id, cam_obs['image'][cam_id])
+		for full_cam_id in cam_obs['image']:
+			if camera_id not in full_cam_id: continue
+			cam_obs['image'][full_cam_id] = calibrator.augment_image(full_cam_id, cam_obs['image'][full_cam_id])
 			if not take_picture: continue
-			img = deepcopy(cam_obs['image'][cam_id])
+			img = deepcopy(cam_obs['image'][full_cam_id])
 			pose = state['cartesian_position'].copy()
-			calibrator.add_sample(cam_id, img, pose)
+			calibrator.add_sample(full_cam_id, img, pose)
 
 		# Update Obs Pointer #
 		if obs_pointer is not None: obs_pointer.update(cam_obs)
@@ -201,15 +207,16 @@ def calibrate_camera(env, camera_id, controller, step_size=0.01, pause_time=0.5,
 		i += 1
 
 	# SAVE INTO A JSON
-	for cam_id in cam_obs['image']:
-		success = calibrator.is_calibration_accurate(cam_id)
+	for full_cam_id in cam_obs['image']:
+		if camera_id not in full_cam_id: continue
+		success = calibrator.is_calibration_accurate(full_cam_id)
 		if not success: return False
-		transformation = calibrator.calibrate(cam_id)
-		update_calibration_info(cam_id, transformation)
+		transformation = calibrator.calibrate(full_cam_id)
+		update_calibration_info(full_cam_id, transformation)
 
 	return True
 
-def replay_trajectory(env, filepath=None,assert_replayable_keys=['cartesian_position', 'gripper_position', 'joint_positions']):
+def replay_trajectory(env, filepath=None, assert_replayable_keys=['cartesian_position', 'gripper_position', 'joint_positions']):
 	
 	print("WARNING: STATE 'CLOSENESS' FOR REPLAYABILITY HAS NOT BEEN CALIBRATED")
 	gripper_key = 'gripper_velocity' if 'velocity' in env.action_space else 'gripper_position'

@@ -1,15 +1,15 @@
-from r2d2.training.data_loading.dataset import TrajectoryDataset
-from r2d2.training.data_loading.trajectory_sampler import *
+from r2d2.data_loading.dataset import TrajectoryDataset
+from r2d2.data_loading.trajectory_sampler import *
 from torch.utils.data.datapipes.iter import Shuffler
 from torch.utils.data import DataLoader
 
 
-def create_dataloader(data_folderpaths,
+def create_dataloader(data_folderpaths, recording_prefix='MP4',
 		batch_size=32, num_workers=6, buffer_size=1000, prefetch_factor=2, traj_loading_kwargs={},
 		timestep_filtering_kwargs={}, camera_kwargs={}, image_transform_kwargs={},
 	):
 
-	traj_sampler = TrajectorySampler(data_folderpaths,
+	traj_sampler = TrajectorySampler(data_folderpaths, recording_prefix=recording_prefix, 
 		traj_loading_kwargs=traj_loading_kwargs, timestep_filtering_kwargs=timestep_filtering_kwargs,
 		image_transform_kwargs=image_transform_kwargs, camera_kwargs=camera_kwargs)
 	dataset = TrajectoryDataset(traj_sampler)

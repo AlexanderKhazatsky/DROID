@@ -6,8 +6,8 @@ variant = dict(
     use_gpu=True,
     seed=0,
 
-    policy_logdir='simple_bc/run1/id0/',
-    model_id=10,
+    policy_logdir='pen_cup_task/run3/id0/',
+    model_id=50,
 
     camera_kwargs=dict(),
     data_processing_kwargs=dict(

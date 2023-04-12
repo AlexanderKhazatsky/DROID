@@ -1,4 +1,4 @@
-from r2d2.training.processing.timestep_processing import TimestepProcesser
+from r2d2.data_processing.timestep_processing import TimestepProcesser
 import numpy as np
 import torch
 

@@ -20,6 +20,7 @@ from r2d2.camera_utils.info import get_camera_name
 from r2d2.user_interface.gui_parameters import *
 from r2d2.misc.parameters import robot_ip
 from r2d2.user_interface.text import *
+from r2d2.user_interface.misc import *
 
 
 class RobotGUI(tk.Tk):
@@ -56,7 +57,7 @@ class RobotGUI(tk.Tk):
         self.curr_frame = None
         for F in (LoginPage, RobotResetPage, CanRobotResetPage, ControllerOffPage, PreferredTasksPage,
                   SceneConfigurationPage, CameraPage, EnlargedImagePage, RequestedBehaviorPage, SceneChangesPage,
-                  CalibrationPage, CalibrateCamera, IncompleteCalibration, OldCalibration):
+                  CalibrationPage, CalibrateCamera, IncompleteCalibration, OldCalibration, OldScene):
             self.frames[F] = F(container, self)
             self.frames[F].grid(row=0, column=0, sticky="nsew")
 
@@ -160,18 +161,50 @@ class LoginPage(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
         self.controller = controller
+        self.curr_scene_id = None
+        self.gui_info = load_gui_info()
+        
+        # load name, building, and scene ID
 
         # Title #
-        title_lbl = Label(self, text = "Login Page", font=Font(size=30, weight='bold'))
-        title_lbl.place(relx=0.5, rely=0.1, anchor='n')
+        title_lbl = Label(self, text="Login Page", font=Font(size=30, weight='bold'))
+        title_lbl.place(relx=0.5, rely=0.05, anchor='n')
+        
+        # Warning #
+        self.warning_text = StringVar()
+        self.warning_text.set('Please use consistent spelling!')
+        instr_lbl = Label(self, textvariable=self.warning_text, font=Font(size=20))
+        instr_lbl.place(relx=0.5, rely=0.1, anchor='n')
 
         # Request Name #
         self.user = StringVar()
-        name_lbl = Label(self, text="Please Enter Your Full Name (Be Consistent!)", font=Font(size=15, underline=True))
-        name_lbl.place(relx=0.5, rely=0.32, anchor='n')
-        self.name_entry = tk.Entry(self, textvariable=self.user, font=Font(size=15))
-        self.name_entry.place(relx=0.5, rely=0.35, anchor='n')
+        if 'user' in self.gui_info: self.user.set(self.gui_info['user'])
+        name_lbl = Label(self, text="Full Name:", font=Font(size=15, underline=True))
+        name_lbl.place(relx=0.5, rely=0.22, anchor='n')
+        self.name_entry = tk.Entry(self, textvariable=self.user, width=35, font=Font(size=15))
+        self.name_entry.place(relx=0.5, rely=0.25, anchor='n')
 
+        # Request Building #
+        self.building = StringVar()
+        if 'building' in self.gui_info: self.building.set(self.gui_info['building'])
+        building_lbl = Label(self, text="Building:", font=Font(size=15, underline=True))
+        building_lbl.place(relx=0.5, rely=0.32, anchor='n')
+        self.building_entry = tk.Entry(self, textvariable=self.building, width=35, font=Font(size=15))
+        self.building_entry.place(relx=0.5, rely=0.35, anchor='n')
+
+        # New Scene Button #
+        scene_change_lbl = Label(self, text="Has The Scene Changed?", font=Font(size=15, underline=True))
+        scene_change_lbl.place(relx=0.5, rely=0.42, anchor='n')
+        
+        yes_btn = tk.Button(self, text ='Yes', highlightbackground='Red',
+            font=Font(size=15, weight='bold'), width=2, height=2, borderwidth=10,
+            command=self.click_yes)
+        yes_btn.place(relx=0.47, rely=0.45, anchor='n')
+
+        no_btn = tk.Button(self, text ='No', highlightbackground='Blue',
+            font=Font(size=15, weight='bold'), width=2, height=2, borderwidth=10,
+            command=self.click_no)
+        no_btn.place(relx=0.53, rely=0.45, anchor='n')
 
         # Begin Button #
         begin_btn = tk.Button(self, text ='BEGIN', highlightbackground='green',
@@ -179,18 +212,30 @@ class LoginPage(tk.Frame):
             command=self.check_completeness)
         begin_btn.place(relx=0.5, rely=0.8, anchor=CENTER)
 
+    def click_yes(self):
+        self.curr_scene_id = generate_scene_id()
+
+    def click_no(self):
+        self.curr_scene_id = self.gui_info['scene_id']
+
     def check_completeness(self):
         name = self.user.get()
-        num_words = len([x for x in name.split(' ') if x != ''])
-        correct_name = (num_words >= 2) and (missing_name_text not in name)
-        if correct_name:
-            self.controller.info['user'] = name
-            self.controller.show_frame(SceneConfigurationPage)
-        else:
+        building = self.building.get()
+        name_num_words = len([x for x in name.split(' ') if x != ''])
+        name_correct = (name_num_words >= 2) and (missing_name_text not in name)
+        building_correct = len(building) >= 3
+        if not name_correct:
             self.user.set(missing_name_text)
-
-    def initialize_page(self):
-        self.name_entry.focus()
+        elif not building_correct:
+            self.building.set(missing_building_text)
+        elif self.curr_scene_id is None:
+            self.warning_text.set('Please mark the scene as new or old')
+        else:
+            self.controller.info['user'] = name
+            self.controller.info['building'] = building
+            self.controller.info['scene_id'] = self.curr_scene_id
+            update_gui_info(user=name, building=building, scene_id=self.curr_scene_id)
+            self.controller.show_frame(SceneConfigurationPage)
 
 class RobotResetPage(tk.Frame):
     def __init__(self, parent, controller):
@@ -350,6 +395,31 @@ class OldCalibration(tk.Frame):
             command=lambda: controller.show_frame(RequestedBehaviorPage))
         proceed_btn.place(relx=0.6, rely=0.5, anchor='n')
 
+class OldScene(tk.Frame):
+    def __init__(self, parent, controller):
+        super().__init__(parent)
+        self.controller = controller
+
+        # Title #
+        how_to_title_lbl = Label(self, text = "Scene Warning", font=Font(size=30, weight='bold'))
+        how_to_title_lbl.pack(pady=5)
+
+        # Warning #
+        instr_lbl = tk.Label(self, text=old_scene_text, font=Font(size=20, slant='italic'))
+        instr_lbl.pack(pady=5)
+
+        # Back Button #
+        back_btn = tk.Button(self, text ='BACK', highlightbackground='blue',
+            font=Font(size=30, weight='bold'), padx=3, pady=5, borderwidth=10,
+            command=lambda: controller.show_frame(SceneConfigurationPage))
+        back_btn.place(relx=0.4, rely=0.5, anchor='n')
+
+        # Proceed Button #
+        proceed_btn = tk.Button(self, text ='PROCEED', highlightbackground='green',
+            font=Font(size=30, weight='bold'), padx=3, pady=5, borderwidth=10,
+            command=lambda: controller.show_frame(RequestedBehaviorPage))
+        proceed_btn.place(relx=0.6, rely=0.5, anchor='n')
+
 class PreferredTasksPage(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
@@ -466,19 +536,25 @@ class SceneConfigurationPage(tk.Frame):
         collect_btn = tk.Button(self, text ='COLLECT', highlightbackground='green',
             font=Font(size=30, weight='bold'), height=1, width=8, borderwidth=10,
             command=self.finish_setup)
-        collect_btn.place(relx=0.7, rely=0.65)
-
-        # Calibrate Button #
-        calibrate_btn = tk.Button(self, text ='CALIBRATE', highlightbackground='blue',
-            font=Font(size=30, weight='bold'), height=1, width=8, borderwidth=10,
-            command=lambda: self.controller.show_frame(CalibrationPage))
-        calibrate_btn.place(relx=0.7, rely=0.75)
+        collect_btn.place(relx=0.75, rely=0.68)
 
         # Practice Button #
         practice_btn = tk.Button(self, text ='PRACTICE', highlightbackground='red',
             font=Font(size=30, weight='bold'), height=1, width=8, borderwidth=10,
             command=self.practice_robot)
-        practice_btn.place(relx=0.7, rely=0.85)
+        practice_btn.place(relx=0.75, rely=0.82)
+
+        # New Scene Button #
+        new_scene_btn = tk.Button(self, text ='NEW SCENE', highlightbackground='black',
+            font=Font(size=30, weight='bold'), height=1, width=8, borderwidth=10,
+            command=self.mark_new_scene)
+        new_scene_btn.place(relx=0.55, rely=0.68)
+
+        # Calibrate Button #
+        calibrate_btn = tk.Button(self, text ='CALIBRATE', highlightbackground='blue',
+            font=Font(size=30, weight='bold'), height=1, width=8, borderwidth=10,
+            command=lambda: self.controller.show_frame(CalibrationPage))
+        calibrate_btn.place(relx=0.55, rely=0.82)
 
     def moniter_keys(self, event):
         if self.controller.curr_frame != self: return
@@ -497,7 +573,7 @@ class SceneConfigurationPage(tk.Frame):
         self.controller.info['new_tasks'] = self.get_new_tasks()
 
     def finish_setup(self):
-        # Check tasks are filled out
+        # Check tasks are filled out #
         fixed_tasks = self.controller.info['fixed_tasks']
         new_tasks = self.controller.info['new_tasks']
         if len(fixed_tasks) + len(new_tasks) == 0:
@@ -505,7 +581,7 @@ class SceneConfigurationPage(tk.Frame):
             self.task_txt.insert(1.0, no_tasks_text)
             return
 
-        # Check that cameras are calibrated
+        # Check that cameras are calibrated #
         calib_info_dict = self.controller.robot.check_calibration_info(remove_hand_camera=True)
         if len(calib_info_dict['missing']) > 0:
             self.controller.show_frame(IncompleteCalibration)
@@ -514,8 +590,20 @@ class SceneConfigurationPage(tk.Frame):
             self.controller.show_frame(OldCalibration)
             return
 
+        # Check that scene isn't stale #
+        last_scene_change = load_gui_info()['scene_id_timestamp']
+        stale_scene = (time.time() - last_scene_change) > 3600
+        if stale_scene:
+            self.controller.show_frame(OldScene)
+            return
+
         # If everything is okay, proceed
         self.controller.show_frame(RequestedBehaviorPage)
+
+    def mark_new_scene(self):
+        new_scene_id = generate_scene_id()
+        self.controller.info['scene_id'] = new_scene_id
+        update_gui_info(scene_id=new_scene_id)
 
     def get_new_tasks(self):
         new_tasks = self.task_txt.get("1.0", END).replace('\n', "")
@@ -552,16 +640,16 @@ class RequestedBehaviorPage(tk.Frame):
 
         # Change Status Box #
         bx, by = 0.15, 0.045
-        box_lbl = tk.Button(self, text =' ' * 45, highlightbackground='black', pady=26)
+        box_lbl = tk.Button(self, text =' ' * 48, highlightbackground='black', pady=26)
         box_lbl.place(relx=bx, rely=by, anchor='n')
         
-        success_btn = tk.Button(self, text="Mark Last Trajectory As Success", font=Font(weight="bold"),
-            highlightbackground='green', height=1, width=30)
+        success_btn = tk.Button(self, text="Relabel Last Trajectory As Success", font=Font(weight="bold"),
+            highlightbackground='green', height=1, width=32)
         success_btn.bind("<Button-1>", lambda e: self.change_trajectory_status(True))
         success_btn.place(relx=bx, rely=by + 0.005, anchor='n')
 
-        failure_btn = tk.Button(self, text="Mark Last Trajectory As Failure", font=Font(weight="bold"),
-            highlightbackground='red', height=1, width=30)
+        failure_btn = tk.Button(self, text="Relabel Last Trajectory As Failure", font=Font(weight="bold"),
+            highlightbackground='red', height=1, width=32)
         failure_btn.bind("<Button-1>", lambda e: self.change_trajectory_status(False))
         failure_btn.place(relx=bx, rely=by + 0.035, anchor='n')
 
@@ -995,20 +1083,10 @@ class CalibrateCamera(tk.Frame):
         self.relevant_indices = []
         self.cam_id = cam_id
 
-        while True:
-            new_relevant_indices = []
-            curr_cam_ids = self.controller.cam_ids.copy()
-
-            for i in range(len(curr_cam_ids)):
-                full_id = curr_cam_ids[i]
-                if cam_id in full_id: new_relevant_indices.append(i)
-
-            enough = len(new_relevant_indices) == self.num_views
-            done = len(curr_cam_ids) == self.num_views
-            if enough and done: break
-            time.sleep(0.05)
-
-        self.relevant_indices = new_relevant_indices
+        curr_cam_ids = self.controller.cam_ids.copy()
+        for i in range(len(curr_cam_ids)):
+            full_id = curr_cam_ids[i]
+            if cam_id in full_id: self.relevant_indices.append(i)
 
     def update_camera_feed(self, i, w_coeff=1.0, h_coeff=1.0):
         while True:
@@ -1025,3 +1103,43 @@ class CalibrateCamera(tk.Frame):
 
             self.controller.set_img(index, widget=self.image_boxes[i],
                  width=img_w, height=img_h, use_camera_order=False)
+
+    # def set_camera_id(self, cam_id):
+    #     cam_name = get_camera_name(cam_id)
+    #     self.title_str.set('Camera View: ' + cam_name)
+    #     self.instr_str.set("Press 'A' to begin, or 'B' to go back to the calibration hub")
+    #     self.back_btn.place(relx=0.5, rely=0.85, anchor='n')
+    #     self.relevant_indices = []
+    #     self.cam_id = cam_id
+
+    #     while True:
+    #         new_relevant_indices = []
+    #         curr_cam_ids = self.controller.cam_ids.copy()
+
+    #         for i in range(len(curr_cam_ids)):
+    #             full_id = curr_cam_ids[i]
+    #             if cam_id in full_id: new_relevant_indices.append(i)
+
+    #         enough = len(new_relevant_indices) == self.num_views
+    #         done = len(curr_cam_ids) == self.num_views
+    #         print(len(curr_cam_ids))
+    #         if enough and done: break
+    #         time.sleep(0.05)
+
+    #     self.relevant_indices = new_relevant_indices
+
+    # def update_camera_feed(self, i, w_coeff=1.0, h_coeff=1.0):
+    #     while True:
+    #         not_active = self.controller.curr_frame != self
+    #         not_ready = len(self.relevant_indices) != self.num_views
+    #         if not_active or not_ready:
+    #             time.sleep(0.05)
+    #             continue
+
+    #         w, h = max(self.winfo_width(), 100), max(self.winfo_height(), 100)
+    #         img_w = int(w / self.num_views * w_coeff)
+    #         img_h = int(h / self.num_views * h_coeff)
+    #         index = self.relevant_indices[i]
+
+    #         self.controller.set_img(index, widget=self.image_boxes[i],
+    #              width=img_w, height=img_h, use_camera_order=False)

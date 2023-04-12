@@ -40,6 +40,7 @@ variant = dict(
     ),
 
     data_loader_kwargs=dict(
+        recording_prefix='SVO',
         batch_size=4,
         prefetch_factor=1,
         buffer_size=100,
