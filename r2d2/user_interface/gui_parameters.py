@@ -2,7 +2,7 @@
 new_task_prob = 0.1
 compositional_task_prob = 0.1
 scene_change_prob = 0.2
-move_robot_frequency = 50
+move_robot_frequency = 100
 
 task_weights = {
     "Press button": 1,
