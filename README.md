@@ -51,8 +51,7 @@ If you are setting this up on the robot NUC:
 
 If you are setting this up on the control workstation:
 - Go into r2d2/misc/parameters.py
-- Set robot_ip to match the IP address of your robot
-- Set nuc_ip to match the IP address of your NUC
+- Set robot_serial_number to match your robot's serial number (found on your franka website, under Settings -> Franka World -> Control S/N)
 - Update the Charuco board parameters to match yours. If you ordered it through calib.io, the parameters should be on the board.
 - With the cameras plugged in, launch the GUI, and go to the calibration page. Clicking the camera ID’s will show you which view they correspond to. Update hand_camera_id, varied_3rd_person_camera_id, and fixed_3rd_person_camera_id values in parameters.py with the correct camera ID for each camera.
 
