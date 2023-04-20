@@ -55,13 +55,12 @@ def collect_trajectory(
     # Prepare Data Writers If Necesary #
     if save_filepath:
         traj_writer = TrajectoryWriter(save_filepath, metadata=metadata, save_images=save_images)
-    if recording_folderpath:
-        env.camera_reader.start_recording(recording_folderpath)
 
     # Prepare For Trajectory #
     num_steps = 0
     if reset_robot:
         env.reset(randomize=randomize_reset)
+    start_recording = False
 
     # Begin! #
     while True:
@@ -107,10 +106,14 @@ def collect_trajectory(
         action_info.update(controller_action_info)
 
         # Save Data #
+        # Only start saving data when the teleoperator presses the movement_enabled button for the first time.
         control_timestamps["step_end"] = time_ms()
         obs["timestamp"]["control"] = control_timestamps
         timestep = {"observation": obs, "action": action_info}
-        if save_filepath:
+        if not start_recording and controller_info["movement_enabled"] and recording_folderpath:
+            env.camera_reader.start_recording(recording_folderpath)
+            start_recording = True
+        if save_filepath and start_recording:
             traj_writer.write_timestep(timestep)
 
         # Check Termination #

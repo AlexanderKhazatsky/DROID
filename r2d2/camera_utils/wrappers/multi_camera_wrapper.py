@@ -40,10 +40,10 @@ class MultiCameraWrapper:
 
     ### Data Storing Functions ###
     def start_recording(self, recording_folderpath):
-        subdir = os.path.join(recording_folderpath, 'SVO' if camera_type == 'zed' else 'TODO')
+        subdir = os.path.join(recording_folderpath, 'SVO' if camera_type == 'zed' else 'MP4')
         if not os.path.isdir(subdir):
             os.makedirs(subdir)
-        file_suffix = '.svo' if camera_type == 'zed' else '.TODO'
+        file_suffix = '.svo' if camera_type == 'zed' else '.mp4'
         for cam in self.camera_dict.values():
             filepath = os.path.join(subdir, cam.serial_number + file_suffix)
             cam.start_recording(filepath)

@@ -23,6 +23,7 @@ class RealSenseCamera:
 		self.latency = int(2.5 * (1e3 / self.fps)) # in milliseconds
 		self._config = rs.config()
 		self._current_mode = None
+		self.recording_video = False
 
 	def set_reading_parameters(self, image=True, depth=True, pointcloud=False, concatenate_images=False, resolution=(0,0)):
 		"""Sets the camera reading parameters."""
@@ -69,12 +70,19 @@ class RealSenseCamera:
 
 	### Recording Utilities ###
 	def start_recording(self, filename):
-		# TODO
-		pass
+		assert filename.endswith(".mp4")
+		# Create/Open the RGB and depth MP4 files we will write to.
+		video_codec = cv2.VideoWriter_fourcc(*"mp4v")
+		self.video_writer = cv2.VideoWriter(filename, fourcc=video_codec, fps=15, frameSize=(640, 480))
+		depth_filename = filename.split('.mp4')[0] + '_depth.mp4'
+		self.depth_video_writer = cv2.VideoWriter(depth_filename, fourcc=video_codec, fps=15, frameSize=(640, 480), isColor=False)
+		self.recording_video = True
 
 	def stop_recording(self):
-		# TODO
-		pass
+		# Close and save the RGB and depth MP4 files we wrote to.
+		self.video_writer.release()
+		self.depth_video_writer.release()
+		self.recording_video = False
 
 	def read_camera(self, enforce_same_dim=False):
 		"""Captures color and/or depth images. Returns the image data as well as read timestamps."""
@@ -86,12 +94,17 @@ class RealSenseCamera:
 			color_frame = frames.get_color_frame()
 			color_image = np.asanyarray(color_frame.get_data())
 			data_dict['image'] = {self.serial_number: color_image}
+			if self.recording_video:
+				self.video_writer.write(color_image)
 		if self.depth:
 			depth_frame = frames.get_depth_frame()
 			depth_image = np.asanyarray(depth_frame.get_data())
-			# # # Apply colormap on depth image (image must be converted to 8-bit per pixel first)
-			# depth_image = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=0.03), cv2.COLORMAP_JET)
+			# The original depth values are 16-bit unsigned integers between 0 and 65535, inclusive.
+			# We convert depth values to 8-bit unsigned integers between 0 and 255, inclusive.
+			depth_image = (depth_image * 255.0 / 1000.0).clip(0, 255).astype(np.uint8) # 1000 is a magic number
 			data_dict['depth'] = {self.serial_number: depth_image}
+			if self.recording_video:
+				self.depth_video_writer.write(depth_image)
 		return data_dict, timestamp_dict
 
 	def disable_camera(self):
