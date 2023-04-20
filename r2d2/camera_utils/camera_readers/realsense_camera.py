@@ -80,9 +80,10 @@ class RealSenseCamera:
 
 	def stop_recording(self):
 		# Close and save the RGB and depth MP4 files we wrote to.
-		self.video_writer.release()
-		self.depth_video_writer.release()
-		self.recording_video = False
+		if self.recording_video:
+			self.video_writer.release()
+			self.depth_video_writer.release()
+			self.recording_video = False
 
 	def read_camera(self, enforce_same_dim=False):
 		"""Captures color and/or depth images. Returns the image data as well as read timestamps."""
