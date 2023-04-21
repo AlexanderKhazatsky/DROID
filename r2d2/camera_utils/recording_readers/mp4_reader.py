@@ -16,9 +16,8 @@ class MP4Reader:
         # Open Video Reader #
         self._mp4_reader = cv2.VideoCapture(filepath)
         if not self._mp4_reader.isOpened():
-            import pdb; pdb.set_trace()
             print(filepath)
-            raise RuntimeError
+            raise RuntimeError("Corrupted MP4 File")
 
         # Load Recording Timestamps #
         timestamp_filepath = filepath[:-4] + "_timestamps.json"

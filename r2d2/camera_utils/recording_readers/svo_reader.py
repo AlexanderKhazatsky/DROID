@@ -108,7 +108,6 @@ class SVOReader:
         timestamp_error = (correct_timestamp is not None) and (correct_timestamp != received_time)
 
         if timestamp_error:
-            import pdb; pdb.set_trace()
             print("Timestamps did not match...")
             return None
 

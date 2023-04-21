@@ -44,6 +44,7 @@ def convert_svo_to_mp4(filepath, recording_folderpath):
     with open(timestamp_output_path, "w") as jsonFile:
         json.dump(received_timestamps, jsonFile)
 
+
 corrupted_traj = []
 all_folderpaths = collect_data_folderpaths()
 for folderpath in tqdm(all_folderpaths):
@@ -89,6 +90,6 @@ for folderpath in tqdm(all_folderpaths):
     if num_svo > num_mp4:
         corrupted_traj.append(folderpath)
 
-print('The following trajectories are corrupted: ')
+print("The following trajectories are corrupted: ")
 for folderpath in corrupted_traj:
     print(folderpath)

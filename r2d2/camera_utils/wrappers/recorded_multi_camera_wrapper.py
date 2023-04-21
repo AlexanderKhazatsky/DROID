@@ -21,7 +21,7 @@ class RecordedMultiCameraWrapper:
         for f in all_filepaths:
             serial_number = f.split("/")[-1][:-4]
             cam_type = get_camera_type(serial_number)
-            curr_cam_kwargs = camera_kwargs.get(cam_type, {})
+            camera_kwargs.get(cam_type, {})
 
             if f.endswith(".svo"):
                 Reader = SVOReader
@@ -43,7 +43,7 @@ class RecordedMultiCameraWrapper:
             cam_type = camera_type_dict[cam_id]
             curr_cam_kwargs = self.camera_kwargs.get(cam_type, {})
             self.camera_dict[cam_id].set_reading_parameters(**curr_cam_kwargs)
-            
+
             timestamp = timestamp_dict.get(cam_id + "_frame_received", None)
             if index is not None:
                 self.camera_dict[cam_id].set_frame_index(index)
