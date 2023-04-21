@@ -10,9 +10,22 @@ resize_func_map = {"cv2": cv2.resize, None: None}
 class MP4Reader:
     def __init__(self, filepath, serial_number):
         # Save Parameters #
-        self.filepath = filepath
         self.serial_number = serial_number
         self._index = 0
+
+        # Open Video Reader #
+        self._mp4_reader = cv2.VideoCapture(filepath)
+        if not self._mp4_reader.isOpened():
+            import pdb; pdb.set_trace()
+            print(filepath)
+            raise RuntimeError
+
+        # Load Recording Timestamps #
+        timestamp_filepath = filepath[:-4] + "_timestamps.json"
+        if not os.path.isfile(timestamp_filepath):
+            self._recording_timestamps = []
+        with open(timestamp_filepath, "r") as jsonFile:
+            self._recording_timestamps = json.load(jsonFile)
 
     def set_reading_parameters(
         self,
@@ -29,19 +42,6 @@ class MP4Reader:
         self.skip_reading = not image
         if self.skip_reading:
             return
-
-        # Open Video Reader #
-        self._mp4_reader = cv2.VideoCapture(self.filepath)
-        if not self._mp4_reader.isOpened():
-            print(self.filepath)
-            return  # raise RuntimeError
-
-        # Load Recording Timestamps #
-        timestamp_filepath = self.filepath[:-4] + "_timestamps.json"
-        if not os.path.isfile(timestamp_filepath):
-            self._recording_timestamps = []
-        with open(timestamp_filepath, "r") as jsonFile:
-            self._recording_timestamps = json.load(jsonFile)
 
     def get_frame_resolution(self):
         width = self._mp4_reader.get(cv2.cv.CV_CAP_PROP_FRAME_WIDTH)

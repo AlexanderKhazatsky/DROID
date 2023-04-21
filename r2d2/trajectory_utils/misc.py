@@ -8,6 +8,7 @@ from PIL import Image
 
 from r2d2.calibration.calibration_utils import *
 from r2d2.camera_utils.wrappers.recorded_multi_camera_wrapper import RecordedMultiCameraWrapper
+from r2d2.camera_utils.info import camera_type_to_string_dict
 from r2d2.misc.parameters import *
 from r2d2.misc.time import time_ms
 from r2d2.misc.transformations import change_pose_frame
@@ -352,7 +353,8 @@ def load_trajectory(
         # If Applicable, Get Recorded Data #
         if read_recording_folderpath:
             timestamp_dict = timestep["observation"]["timestamp"]["cameras"]
-            camera_obs = camera_reader.read_cameras(index=i, timestamp_dict=timestamp_dict)
+            camera_type_dict = {k: camera_type_to_string_dict[v] for k, v in timestep["observation"]["camera_type"].items()}
+            camera_obs = camera_reader.read_cameras(index=i, camera_type_dict=camera_type_dict, timestamp_dict=timestamp_dict)
             camera_failed = camera_obs is None
 
             # Add Data To Timestep If Successful #

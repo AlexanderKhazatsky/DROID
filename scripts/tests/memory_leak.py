@@ -6,9 +6,9 @@ import psutil
 import pyzed.sl as sl
 from tqdm import tqdm
 
-from r2d2.camera_utils.readers.recorded_zed_camera import RecordedZedCamera
+from r2d2.camera_utils.recording_readers.svo_reader import SVOReader
 from r2d2.camera_utils.wrappers.recorded_multi_camera_wrapper import RecordedMultiCameraWrapper
-from r2d2.training.data_loading.trajectory_sampler import *
+from r2d2.data_loading.trajectory_sampler import *
 
 
 def example_script():
@@ -85,9 +85,9 @@ def traj_sampling_script():
 def load_random_traj_script():
     folderpath = random.choice(train_folderpaths)
     filepath = os.path.join(folderpath, "trajectory.h5")
-    recording_folderpath = os.path.join(folderpath, "recordings")
+    recording_folderpath = os.path.join(folderpath, "recordings/MP4")
 
-    load_trajectory(
+    samples = load_trajectory(
         filepath,
         recording_folderpath=recording_folderpath,
         read_cameras=True,
@@ -194,8 +194,8 @@ if __name__ == "__main__":
         curr_mem_usage = psutil.virtual_memory()[3]
         memory_usage.append(curr_mem_usage)
 
-        single_reader_script()
-        # load_random_traj_script()
+        #single_reader_script()
+        load_random_traj_script()
 
     try:
         plt.plot(memory_usage)

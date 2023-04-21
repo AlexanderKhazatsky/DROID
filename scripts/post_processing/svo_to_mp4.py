@@ -6,7 +6,7 @@ import cv2
 from tqdm import tqdm
 
 from r2d2.camera_utils.recording_readers.svo_reader import SVOReader
-from r2d2.training.data_loading.trajectory_sampler import collect_data_folderpaths
+from r2d2.data_loading.trajectory_sampler import collect_data_folderpaths
 
 
 def convert_svo_to_mp4(filepath, recording_folderpath):
@@ -44,7 +44,7 @@ def convert_svo_to_mp4(filepath, recording_folderpath):
     with open(timestamp_output_path, "w") as jsonFile:
         json.dump(received_timestamps, jsonFile)
 
-
+corrupted_traj = []
 all_folderpaths = collect_data_folderpaths()
 for folderpath in tqdm(all_folderpaths):
     recording_folderpath = os.path.join(folderpath, "recordings")
@@ -71,7 +71,24 @@ for folderpath in tqdm(all_folderpaths):
         serial_number = f.split("/")[-1][:-4]
         if not any([serial_number in f for f in mp4_filepaths]):
             files_to_convert.append(f)
+    for f in mp4_filepaths:
+        reader = cv2.VideoCapture(f)
+        if reader.isOpened():
+            reader.release()
+        else:
+            files_to_convert.append(f)
 
     # Convert Files #
     for f in files_to_convert:
         convert_svo_to_mp4(f, recording_folderpath)
+
+    # Check Success #
+    num_mp4 = len(glob.glob(mp4_folderpath + "/*.mp4"))
+    num_svo = len(svo_filepaths)
+
+    if num_svo > num_mp4:
+        corrupted_traj.append(folderpath)
+
+print('The following trajectories are corrupted: ')
+for folderpath in corrupted_traj:
+    print(folderpath)
