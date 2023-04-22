@@ -469,8 +469,12 @@ def visualize_trajectory(
         # If Applicable, Get Recorded Data #
         if recording_folderpath:
             timestamp_dict = timestep["observation"]["timestamp"]["cameras"]
-            camera_type_dict = {k: camera_type_to_string_dict[v] for k, v in timestep["observation"]["camera_type"].items()}
-            camera_obs = camera_reader.read_cameras(index=i, camera_type_dict=camera_type_dict, timestamp_dict=timestamp_dict)
+            camera_type_dict = {
+                k: camera_type_to_string_dict[v] for k, v in timestep["observation"]["camera_type"].items()
+            }
+            camera_obs = camera_reader.read_cameras(
+                index=i, camera_type_dict=camera_type_dict, timestamp_dict=timestamp_dict
+            )
             camera_failed = camera_obs is None
 
             # Add Data To Timestep #

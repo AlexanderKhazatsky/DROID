@@ -41,6 +41,7 @@ def convert_svo_to_mp4(filepath, recording_folderpath):
     # Close Everything #
     camera.disable_camera()
     video_writer.release()
+
     with open(timestamp_output_path, "w") as jsonFile:
         json.dump(received_timestamps, jsonFile)
 
@@ -72,7 +73,12 @@ for folderpath in tqdm(all_folderpaths):
         serial_number = f.split("/")[-1][:-4]
         if not any([serial_number in f for f in mp4_filepaths]):
             files_to_convert.append(f)
+
     for f in mp4_filepaths:
+        timestamp_filepath = f[:-4] + "_timestamps.json"
+        if not os.path.exists(timestamp_filepath):
+            files_to_convert.append(f)
+
         reader = cv2.VideoCapture(f)
         if reader.isOpened():
             reader.release()
