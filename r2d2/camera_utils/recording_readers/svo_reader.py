@@ -13,7 +13,6 @@ resize_func_map = {"cv2": cv2.resize, None: None}
 class SVOReader:
     def __init__(self, filepath, serial_number):
         # Save Parameters #
-        self.filepath = filepath
         self.serial_number = serial_number
         self._index = 0
 
@@ -25,6 +24,16 @@ class SVOReader:
         self._right_depth = sl.Mat()
         self._left_pointcloud = sl.Mat()
         self._right_pointcloud = sl.Mat()
+
+        # Set SVO path for playback
+        init_parameters = sl.InitParameters()
+        init_parameters.set_from_svo_file(filepath)
+
+        # Open the ZED
+        self._cam = sl.Camera()
+        status = self._cam.open(init_parameters)
+        if status != sl.ERROR_CODE.SUCCESS:
+            print("Zed Error: " + repr(status))
 
     def set_reading_parameters(
         self,
@@ -52,16 +61,6 @@ class SVOReader:
         self.skip_reading = not any([image, depth, pointcloud])
         if self.skip_reading:
             return
-
-        # Set SVO path for playback
-        init_parameters = sl.InitParameters()
-        init_parameters.set_from_svo_file(self.filepath)
-
-        # Open the ZED
-        self._cam = sl.Camera()
-        status = self._cam.open(init_parameters)
-        if status != sl.ERROR_CODE.SUCCESS:
-            print("Zed Error: " + repr(status))
 
     def get_frame_resolution(self):
         camera_info = self._cam.get_camera_information().camera_configuration

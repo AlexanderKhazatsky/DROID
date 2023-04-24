@@ -2,7 +2,7 @@ import json
 
 from r2d2.training.model_trainer import exp_launcher
 
-task_label_filepath = "/home/sasha/Desktop/R2D2/scripts/labeling/task_label_filepath.json"
+task_label_filepath = "/home/sasha/R2D2/scripts/labeling/task_label_filepath.json"
 with open(task_label_filepath, "r") as jsonFile:
     task_labels = json.load(jsonFile)
 
@@ -22,14 +22,6 @@ variant = dict(
         weight_decay=1e-4,
         lr=1e-4,
     ),
-    # camera_kwargs=dict(
-    #     hand_camera=dict(
-    #         image=True, depth=False, pointcloud=False, concatenate_images=False,
-    #         resolution=(128, 128)),
-    #     varied_camera=dict(
-    #         image=True, depth=False, pointcloud=False, concatenate_images=False,
-    #         resolution=(128, 128)),
-    # ),
     camera_kwargs=dict(
         hand_camera=dict(image=True, concatenate_images=False, resolution=(128, 128), resize_func="cv2"),
         varied_camera=dict(image=False, concatenate_images=False, resolution=(128, 128), resize_func="cv2"),
@@ -51,8 +43,8 @@ variant = dict(
         recording_prefix="MP4",
         batch_size=4,
         prefetch_factor=1,
-        buffer_size=200,
-        num_workers=2,
+        buffer_size=1000,
+        num_workers=4,
         data_filtering_kwargs=dict(
             train_p=0.9,
             remove_failures=True,
