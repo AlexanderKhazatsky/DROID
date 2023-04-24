@@ -123,7 +123,7 @@ camera_page_title = {
 
 camera_page_instr = {
     "live": "Click two images to swap them, or double click one image to enlarge it (click again to return)",
-    "traj": "Press 'A' to save the trajectory, or 'B' to start over",
+    "traj": "Press 'A' to mark a success, or 'B' to mark a failure",
     "replay": "Would you like to save or delete this trajectory?",
     "practice_traj": "Press 'A' or 'B' to end the trial run",
 }
