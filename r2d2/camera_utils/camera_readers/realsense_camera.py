@@ -101,7 +101,11 @@ class RealSenseCamera:
 			depth_frame = frames.get_depth_frame()
 			depth_image = np.asanyarray(depth_frame.get_data())
 			# The original depth values are 16-bit unsigned integers between 0 and 65535, inclusive.
-			# We convert depth values to 8-bit unsigned integers between 0 and 255, inclusive.
+			# We convert depth values to 8-bit unsigned integers between 0 and 255, inclusive, as follows:
+			#   Say we only care about depth values 0 to 1000 and want to clip values larger than 1000 (assuming
+			#   that 1000 is usually the max value we observe in our application).
+			#   Then we can use the calculation y = (x * 255.0 / 1000.0).clip(0, 255).
+			#   To see how this works, plug in x = 0 and x = 1000. Then y = 0 and y = 255. Any x > 1000 gets clipped.
 			depth_image = (depth_image * 255.0 / 1000.0).clip(0, 255).astype(np.uint8) # 1000 is a magic number
 			data_dict['depth'] = {self.serial_number: depth_image}
 			if self.recording_video:
