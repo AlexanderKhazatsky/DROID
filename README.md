@@ -25,6 +25,10 @@ pip install dm-robotics-manipulation==0.5.0 --no-deps
 pip install dm-robotics-controllers==0.5.0 --no-deps
 ```
 
+If you are using miniconda instead of anaconda:
+- Go into r2d2/franka, then open launch_gripper.sh and launch_robot.sh
+- In both files, change the word anaconda to miniconda, and save it
+
 Regardless of the machine, go into r2d2/misc/parameters.py, and:
 - Set robot_ip to match the IP address of your robot
 - Set nuc_ip to match the IP address of your NUC
