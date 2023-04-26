@@ -59,13 +59,9 @@ class FrankaRobot:
 
             pos = torch.Tensor(command[:3])
             quat = torch.Tensor(euler_to_quat(command[3:6]))
-
-            if self._robot.is_running_policy():
-                self._robot.terminate_current_policy()
-            try:
-                self._robot.move_to_ee_pose(pos, quat)
-            except grpc.RpcError:
-                pass
+            curr_joints = self._robot.get_joint_positions()
+            desired_joints = self._robot.solve_inverse_kinematics(pos, quat, curr_joints)
+            self.update_joints(desired_joints, velocity=False, blocking=True)
         else:
             if not velocity:
                 curr_pose = self.get_ee_pose()
@@ -98,9 +94,11 @@ class FrankaRobot:
             if self._robot.is_running_policy():
                 self._robot.terminate_current_policy()
             try:
-                self._robot.move_to_joint_positions(command)
+                time_to_go = self.adaptive_time_to_go(command)
+                self._robot.move_to_joint_positions(command, time_to_go=time_to_go)
             except grpc.RpcError:
                 pass
+            
             self._robot.start_cartesian_impedance()
         else:
             run_threaded_command(helper_non_blocking)
@@ -171,6 +169,13 @@ class FrankaRobot:
         }
 
         return state_dict, timestamp_dict
+    
+    def adaptive_time_to_go(self, desired_joint_position, t_min=0, t_max=3):
+        curr_joint_position = self._robot.get_joint_positions()
+        displacement = desired_joint_position - curr_joint_position
+        time_to_go = self._robot._adaptive_time_to_go(displacement)
+        clamped_time_to_go = min(t_max, max(time_to_go, t_min))
+        return clamped_time_to_go
 
     def create_action_dict(self, action, action_space, robot_state=None):
         assert action_space in ["cartesian_position", "joint_position", "cartesian_velocity", "joint_velocity"]
