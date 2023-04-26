@@ -170,7 +170,7 @@ class FrankaRobot:
 
         return state_dict, timestamp_dict
     
-    def adaptive_time_to_go(self, desired_joint_position, t_min=0, t_max=3):
+    def adaptive_time_to_go(self, desired_joint_position, t_min=0, t_max=4):
         curr_joint_position = self._robot.get_joint_positions()
         displacement = desired_joint_position - curr_joint_position
         time_to_go = self._robot._adaptive_time_to_go(displacement)
