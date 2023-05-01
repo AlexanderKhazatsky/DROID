@@ -69,10 +69,6 @@ def collect_trajectory(
         controller_info = {} if (controller is None) else controller.get_info()
         skip_action = wait_for_controller and (not controller_info["movement_enabled"])
         control_timestamps = {"step_start": time_ms()}
-        # Only start saving data when the teleoperator presses the movement_enabled button for the first time.
-        if not start_recording and controller_info["movement_enabled"] and recording_folderpath:
-            env.camera_reader.start_recording(recording_folderpath)
-            start_recording = True
 
         # Get Observation #
         obs = env.get_observation()
@@ -116,6 +112,10 @@ def collect_trajectory(
         timestep = {"observation": obs, "action": action_info}
         if save_filepath and start_recording:
             traj_writer.write_timestep(timestep)
+        # Only start saving data when the teleoperator presses the movement_enabled button for the first time.
+        if not start_recording and controller_info["movement_enabled"] and recording_folderpath:
+            env.camera_reader.start_recording(recording_folderpath)
+            start_recording = True
 
         # Check Termination #
         num_steps += 1
