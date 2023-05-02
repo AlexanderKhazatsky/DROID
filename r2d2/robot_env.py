@@ -13,7 +13,7 @@ from r2d2.misc.transformations import change_pose_frame
 
 
 class RobotEnv(gym.Env):
-    def __init__(self, action_space="cartesian_velocity", camera_kwargs={}):
+    def __init__(self, action_space="cartesian_velocity", randomize_reset=True, camera_kwargs={}):
         # Initialize Gym Environment
         super().__init__()
 
@@ -23,10 +23,10 @@ class RobotEnv(gym.Env):
         self.check_action_range = "velocity" in action_space
 
         # Robot Configuration
-        self.reset_joints = np.array([0, -1 / 5 * np.pi, 0, -4 / 5 * np.pi, 0, 3 / 5 * np.pi, 0.0])
-        self.randomize_low = np.array([-0.1, -0.2, -0.1, -0.3, -0.3, -0.3])
-        self.randomize_high = np.array([0.1, 0.2, 0.1, 0.3, 0.3, 0.3])
-        self.DoF = 7 if ("cartesian" in action_space) else 8
+        self.reset_joints = np.array([0, 0, 0, -1.85,  0, 1.85, 0.8])
+        self.randomize_low = np.array([-0.05, -0.05, -0.05, -0.15, -0.15, -0.15])
+        self.randomize_high = np.array([0.05, 0.05, 0.05, 0.15, 0.15, 0.15])
+        self.DoF = 7 if ('cartesian' in action_space) else 8
         self.control_hz = 15
 
         if nuc_ip is None:
@@ -42,13 +42,14 @@ class RobotEnv(gym.Env):
         self.camera_type_dict = camera_type_dict
 
         # Reset Robot
+        self.randomize_reset = randomize_reset
         self.reset()
 
     def step(self, action):
         # Check Action
         assert len(action) == self.DoF
         if self.check_action_range:
-            assert (action.max() <= 1) and (action.min() >= -1)
+            assert (action.max() <= 1) and (action.min() >= -1), f'action: {action}'
 
         # Update Robot
         action_info = self.update_robot(action, action_space=self.action_space)
@@ -56,10 +57,10 @@ class RobotEnv(gym.Env):
         # Return Action Info
         return action_info
 
-    def reset(self, randomize=False):
+    def reset(self):
         self._robot.update_gripper(0, velocity=False, blocking=True)
 
-        if randomize:
+        if self.randomize_reset:
             noise = np.random.uniform(low=self.randomize_low, high=self.randomize_high)
         else:
             noise = None
