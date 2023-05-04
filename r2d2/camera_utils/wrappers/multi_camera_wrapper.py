@@ -26,9 +26,14 @@ class MultiCameraWrapper:
         return self.camera_dict[camera_id]
 
     def set_calibration_mode(self, cam_id):
+        for cam in self.camera_dict.values():
+            cam.disable_camera()
         self.camera_dict[cam_id].set_calibration_mode()
 
     def set_trajectory_mode(self):
+        for cam in self.camera_dict.values():
+            if cam.current_mode == 'calibration':
+                cam.disable_camera()
         for cam in self.camera_dict.values():
             cam.set_trajectory_mode()
 

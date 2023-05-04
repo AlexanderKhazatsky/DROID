@@ -1326,19 +1326,43 @@ class CalibrateCamera(tk.Frame):
             self.instr_str.set("Press 'A' to retry, or 'B' to go back to the calibration hub")
             self.back_btn.place(relx=0.5, rely=0.85, anchor="n")
 
+    # def set_camera_id(self, cam_id):
+    #     cam_name = get_camera_name(cam_id)
+    #     self.title_str.set("Camera View: " + cam_name)
+    #     self.instr_str.set("Press 'A' to begin, or 'B' to go back to the calibration hub")
+    #     self.back_btn.place(relx=0.5, rely=0.85, anchor="n")
+    #     self.relevant_indices = []
+    #     self.cam_id = cam_id
+
+    #     curr_cam_ids = self.controller.cam_ids.copy()
+    #     for i in range(len(curr_cam_ids)):
+    #         full_id = curr_cam_ids[i]
+    #         if cam_id in full_id:
+    #             self.relevant_indices.append(i)
+
     def set_camera_id(self, cam_id):
         cam_name = get_camera_name(cam_id)
-        self.title_str.set("Camera View: " + cam_name)
+        self.title_str.set('Camera View: ' + cam_name)
         self.instr_str.set("Press 'A' to begin, or 'B' to go back to the calibration hub")
-        self.back_btn.place(relx=0.5, rely=0.85, anchor="n")
+        self.back_btn.place(relx=0.5, rely=0.85, anchor='n')
         self.relevant_indices = []
         self.cam_id = cam_id
 
-        curr_cam_ids = self.controller.cam_ids.copy()
-        for i in range(len(curr_cam_ids)):
-            full_id = curr_cam_ids[i]
-            if cam_id in full_id:
-                self.relevant_indices.append(i)
+        while True:
+            new_relevant_indices = []
+            curr_cam_ids = self.controller.cam_ids.copy()
+
+            for i in range(len(curr_cam_ids)):
+                full_id = curr_cam_ids[i]
+                if cam_id in full_id: new_relevant_indices.append(i)
+
+            enough = len(new_relevant_indices) == self.num_views
+            done = len(curr_cam_ids) == self.num_views
+            print(len(curr_cam_ids))
+            if enough and done: break
+            time.sleep(0.05)
+
+        self.relevant_indices = new_relevant_indices
 
     def update_camera_feed(self, i, w_coeff=1.0, h_coeff=1.0):
         while True:
@@ -1355,42 +1379,19 @@ class CalibrateCamera(tk.Frame):
 
             self.controller.set_img(index, widget=self.image_boxes[i], width=img_w, height=img_h, use_camera_order=False)
 
-    # def set_camera_id(self, cam_id):
-    #     cam_name = get_camera_name(cam_id)
-    #     self.title_str.set('Camera View: ' + cam_name)
-    #     self.instr_str.set("Press 'A' to begin, or 'B' to go back to the calibration hub")
-    #     self.back_btn.place(relx=0.5, rely=0.85, anchor='n')
-    #     self.relevant_indices = []
-    #     self.cam_id = cam_id
-
-    #     while True:
-    #         new_relevant_indices = []
-    #         curr_cam_ids = self.controller.cam_ids.copy()
-
-    #         for i in range(len(curr_cam_ids)):
-    #             full_id = curr_cam_ids[i]
-    #             if cam_id in full_id: new_relevant_indices.append(i)
-
-    #         enough = len(new_relevant_indices) == self.num_views
-    #         done = len(curr_cam_ids) == self.num_views
-    #         print(len(curr_cam_ids))
-    #         if enough and done: break
-    #         time.sleep(0.05)
-
-    #     self.relevant_indices = new_relevant_indices
 
     # def update_camera_feed(self, i, w_coeff=1.0, h_coeff=1.0):
-    #     while True:
-    #         not_active = self.controller.curr_frame != self
-    #         not_ready = len(self.relevant_indices) != self.num_views
-    #         if not_active or not_ready:
-    #             time.sleep(0.05)
-    #             continue
+        # while True:
+        #     not_active = self.controller.curr_frame != self
+        #     not_ready = len(self.relevant_indices) != self.num_views
+        #     if not_active or not_ready:
+        #         time.sleep(0.05)
+        #         continue
 
-    #         w, h = max(self.winfo_width(), 100), max(self.winfo_height(), 100)
-    #         img_w = int(w / self.num_views * w_coeff)
-    #         img_h = int(h / self.num_views * h_coeff)
-    #         index = self.relevant_indices[i]
+            # w, h = max(self.winfo_width(), 100), max(self.winfo_height(), 100)
+            # img_w = int(w / self.num_views * w_coeff)
+            # img_h = int(h / self.num_views * h_coeff)
+            # index = self.relevant_indices[i]
 
     #         self.controller.set_img(index, widget=self.image_boxes[i],
     #              width=img_w, height=img_h, use_camera_order=False)

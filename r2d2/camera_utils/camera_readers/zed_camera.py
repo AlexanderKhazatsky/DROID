@@ -34,12 +34,8 @@ class ZedCamera:
         # Save Parameters #
         self.serial_number = str(camera.serial_number)
         self.is_hand_camera = self.serial_number == hand_camera_id
-        self._current_mode = None
+        self.current_mode = None
         self._extriniscs = {}
-
-        # Open Camera #
-        print("Opening Zed: ", self.serial_number)
-        self._configure_camera()
 
     def set_reading_parameters(
         self,
@@ -62,18 +58,33 @@ class ZedCamera:
 
     ### Camera Modes ###
     def set_calibration_mode(self):
+        # Only Proceed If Necesary
+        if self._current_mode == 'calibration': return
+
+        # Update Relevant Info #
         self.image = True
         self.concatenate_images = False
         self.skip_reading = False
-        self._current_mode = "calibration"
+        self.current_mode = "calibration"
         self.zed_resolution = sl.Resolution(0, 0)
         self.resizer_resolution = (0, 0)
 
+        # Activate High Resolution Mode #
+        init_params = sl.InitParameters(
+            depth_minimum_distance=0.1,
+            camera_resolution=sl.RESOLUTION.HD2K,
+            camera_fps=15)
+        self._configure_camera(init_params)
+
     def set_trajectory_mode(self):
+        # Only Proceed If Necesary
+        if self._current_mode == 'trajectory': return
+
+        # Update Relevant Info #
         self.image = self.traj_image
         self.concatenate_images = self.traj_concatenate_images
         self.skip_reading = not any([self.image, self.depth, self.pointcloud])
-        self._current_mode = "trajectory"
+        self.current_mode = "trajectory"
 
         if self.resize_func is None:
             self.zed_resolution = sl.Resolution(*self.traj_resolution)
@@ -82,20 +93,14 @@ class ZedCamera:
             self.zed_resolution = sl.Resolution(0, 0)
             self.resizer_resolution = self.traj_resolution
 
-    def _configure_camera(self):
-        # Define Parameters #
-        init_params = sl.InitParameters(depth_minimum_distance=0.1, camera_resolution=sl.RESOLUTION.HD720, camera_fps=60)
-        # if self.is_hand_camera:
-        # 	init_params = sl.InitParameters(
-        # 		depth_minimum_distance=0.1,
-        # 		camera_resolution=sl.RESOLUTION.VGA,
-        # 		camera_fps=60)
-        # else:
-        # 	init_params = sl.InitParameters(
-        # 		depth_minimum_distance=0.1,
-        # 		camera_resolution=sl.RESOLUTION.HD720,
-        # 		camera_fps=60)
+        # Activate Low Resolution Mode #
+        init_params = sl.InitParameters(
+            depth_minimum_distance=0.1,
+            camera_resolution=sl.RESOLUTION.HD720,
+            camera_fps=60)
+        self._configure_camera(init_params)
 
+    def _configure_camera(self, init_params):
         # Set Camera #
         init_params.set_from_serial_number(int(self.serial_number))
         self.latency = int(2.5 * (1e3 / init_params.camera_fps))
@@ -114,6 +119,7 @@ class ZedCamera:
         self._right_pointcloud = sl.Mat()
 
         # Open Camera #
+        print("Opening Zed: ", self.serial_number)
         self._cam.open(init_params)
         self._runtime = sl.RuntimeParameters()
 
@@ -154,7 +160,7 @@ class ZedCamera:
     def read_camera(self):
         # Skip if Read Unnecesary #
         if self.skip_reading:
-            {}, {}
+            return {}, {}
 
         # Read Camera #
         timestamp_dict = {self.serial_number + "_read_start": time_ms()}
@@ -198,11 +204,12 @@ class ZedCamera:
         return data_dict, timestamp_dict
 
     def disable_camera(self):
-        if self._current_mode == "disabled":
+        if self.current_mode == "disabled":
             return
         if hasattr(self, "_cam"):
+            print("Closing Zed: ", self.serial_number)
             self._cam.close()
-        self._current_mode = "disabled"
+        self.current_mode = "disabled"
 
     def is_running(self):
-        return self._current_mode != "disabled"
+        return self.current_mode != "disabled"
