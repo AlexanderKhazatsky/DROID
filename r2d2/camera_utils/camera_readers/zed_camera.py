@@ -58,8 +58,8 @@ class ZedCamera:
 
     ### Camera Modes ###
     def set_calibration_mode(self):
-        # Only Proceed If Necesary
-        if self._current_mode == 'calibration': return
+        # Only Proceed If Necesary #
+        if self.current_mode == 'calibration': return
 
         # Update Relevant Info #
         self.image = True
@@ -77,8 +77,8 @@ class ZedCamera:
         self._configure_camera(init_params)
 
     def set_trajectory_mode(self):
-        # Only Proceed If Necesary
-        if self._current_mode == 'trajectory': return
+        # Only Proceed If Necesary #
+        if self.current_mode == 'trajectory': return
 
         # Update Relevant Info #
         self.image = self.traj_image
