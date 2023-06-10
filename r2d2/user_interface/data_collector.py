@@ -33,6 +33,7 @@ class DataCollecter:
         _, full_cam_ids = self.get_camera_feed()
         self.num_cameras = len(full_cam_ids)
         self.full_cam_ids = full_cam_ids
+        self.advanced_calibration = False
 
         # Make Sure Log Directorys Exist #
         if save_traj_dir is None:
@@ -53,6 +54,14 @@ class DataCollecter:
     def get_user_feedback(self):
         info = self.controller.get_info()
         return deepcopy(info)
+
+    def enable_advanced_calibration(self):
+        self.advanced_calibration = True
+        self.env.camera_reader.enable_advanced_calibration()
+
+    def disable_advanced_calibration(self):
+        self.advanced_calibration = False
+        self.env.camera_reader.disable_advanced_calibration()
 
     def set_calibration_mode(self, cam_id):
         self.env.camera_reader.set_calibration_mode(cam_id)

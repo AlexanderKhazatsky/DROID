@@ -66,7 +66,7 @@ how_to_calibrate_text = (
     " person cameras, or place it on a table when calibrating the hand camera\n\n2. Once the trajectory starts, move the"
     " gripper such that the board is clearly visible by the camera (1-2 feet away)\n\n3. Press 'A' to begin the"
     " calibration trajectory, the GUI will inform you if calibration fails\n\nTip: You can name cameras in the"
-    " parameters file\n\nWarning: Button clicks here may take time..."
+    " parameters file\n\nWarning: 'Advanced Mode' has higher calibration success, but is slow and buggy!"
 )
 
 data_collection_text = (
