@@ -135,7 +135,9 @@ class ZedCamera:
         self._current_params = init_params
         sl_params = sl.InitParameters(**init_params)
         sl_params.set_from_serial_number(int(self.serial_number))
-        success = self._cam.open(sl_params)
+        status = self._cam.open(sl_params)
+        if status != sl.ERROR_CODE.SUCCESS:
+            raise RuntimeError('Camera Failed To Open')
 
         # Save Intrinsics #
         self.latency = int(2.5 * (1e3 / sl_params.camera_fps))
