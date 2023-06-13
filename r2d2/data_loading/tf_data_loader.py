@@ -52,19 +52,23 @@ def get_tf_dataloader(
     if cache:
         dataset = dataset.cache()
 
+    # do any trajectory-level transforms here (e.g. filtering, goal relabeling)
+
     # unbatch to get individual transitions
     dataset = dataset.unbatch()
 
     # process each transition
     dataset = dataset.map(_process_transition, num_parallel_calls=tf.data.AUTOTUNE)
 
-    dataset = dataset.repeat()
+    # do any transition-level transformations here (e.g. augmentations)
 
     # shuffle the dataset
     dataset = dataset.shuffle(shuffle_buffer_size)
 
+    dataset = dataset.repeat()
+
     # batch the dataset
-    dataset = dataset.batch(batch_size, num_parallel_calls=tf.data.AUTOTUNE, drop_remainder=True)
+    dataset = dataset.batch(batch_size, num_parallel_calls=tf.data.AUTOTUNE)
 
     # always prefetch last
     dataset = dataset.prefetch(tf.data.AUTOTUNE)

@@ -4,7 +4,7 @@ import os
 import tensorflow as tf
 from tqdm_multiprocess import TqdmMultiProcessPool
 import tqdm
-from absl import app, flags
+from absl import app, flags, logging
 import numpy as np
 
 """
@@ -108,7 +108,7 @@ def tensor_feature(value):
 
 
 def resize_and_encode(image, size):
-    return tf.io.encode_jpeg(tf.cast(tf.round(tf.image.resize(image, size)), tf.uint8))
+    return tf.io.encode_jpeg(tf.cast(tf.round(tf.image.resize(image, size, method="bicubic")), tf.uint8))
 
 
 FLAGS = flags.FLAGS
@@ -140,33 +140,22 @@ IMAGE_SIZE = (180, 320)
 
 
 def create_tfrecord(paths, output_path, tqdm_func, global_tqdm):
-    if tf.io.gfile.exists(output_path):
-        if FLAGS.overwrite:
-            global_tqdm.write(f"Deleting {output_path}")
-            tf.io.gfile.rmtree(output_path)
-        else:
-            global_tqdm.write(f"Skipping {output_path}, exists")
-            return
-
     writer = tf.io.TFRecordWriter(output_path)
-    pbar = tqdm_func(total=len(paths), desc=f"{output_path}", dynamic_ncols=True)
 
     for path in paths:
         h5_filepath = os.path.join(path, "trajectory.h5")
         recording_folderpath = os.path.join(path, "recordings", "MP4")
 
-        # this is really inefficient, we should really do frame skipping inside
-        # `load_trajectory` but I didn't want to mess with it for now
+        # this is really inefficient, should really do frame skipping inside `load_trajectory` but I didn't want to mess
+        # with it for now
         traj = load_trajectory(h5_filepath, recording_folderpath=recording_folderpath)
         traj = traj[::FRAMESKIP]
 
-        # each element of `traj` is a possibly nested dict; flatten them and
-        # make sure they all have the same keys
+        # each element of `traj` is a possibly nested dict; flatten them and make sure they all have the same keys
         traj_flat = [flatten(t) for t in traj]
         assert all(t.keys() == traj_flat[0].keys() for t in traj_flat)
 
-        # convert to a single dict of lists, processing images and discarding
-        # unwanted keys along the way
+        # convert to a single dict of lists, processing images and discarding unwanted keys along the way
         out = {}
         for key in traj_flat[0].keys():
             if key not in KEEP_KEYS:
@@ -179,14 +168,20 @@ def create_tfrecord(paths, output_path, tqdm_func, global_tqdm):
 
         writer.write(example.SerializeToString())
 
-        pbar.update(1)
         global_tqdm.update(1)
 
-    pbar.close()
     writer.close()
 
 
 def main(_):
+    if tf.io.gfile.exists(FLAGS.output_path):
+        if FLAGS.overwrite:
+            logging.info(f"Deleting {FLAGS.output_path}")
+            tf.io.gfile.rmtree(FLAGS.output_path)
+        else:
+            logging.info(f"{FLAGS.output_path} exists, exiting")
+            return
+
     all_paths = crawler(FLAGS.input_path)
     all_paths = [p for p in all_paths if os.path.exists(p + "/trajectory.h5") and os.path.exists(p + "/recordings/MP4")]
 
