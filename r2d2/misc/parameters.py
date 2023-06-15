@@ -4,7 +4,7 @@ from cv2 import aruco
 nuc_ip = ""
 robot_ip = ""
 sudo_password = ""
-robot_type = '' # 'panda' or 'FR3'
+robot_type = '' # 'panda' or 'fr3'
 robot_serial_number = ""
 
 # Camera ID's #
