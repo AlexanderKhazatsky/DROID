@@ -13,6 +13,7 @@ from r2d2.plotting.text import *
 # Define Data Crawler #
 num_demos = 0
 
+
 def data_crawler(dirname, func_list=None, ignore_failure=True):
     global num_demos
     subfolders = [f.path for f in os.scandir(dirname) if f.is_dir()]

@@ -16,6 +16,7 @@ dependencies = [
     'scipy',
     'zerorpc',
     'gym',
+    'pre-commit',
     'opencv-python==4.6.0.66',
     'opencv-contrib-python==4.6.0.66',
     'tqdm',

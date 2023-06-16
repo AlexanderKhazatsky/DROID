@@ -1,14 +1,20 @@
-import matplotlib.pyplot as plt
-from r2d2.plotting.analysis_func import *
+import os
 
+import matplotlib.pyplot as plt
+
+from r2d2.plotting.analysis_func import *
 from r2d2.plotting.misc import *
 from r2d2.plotting.text import *
 
 # Gather Graphical Data #
-data_path = None  #'/Volumes/R2D2_Drive/MyDrive/R2D2: Weekly Lab Data'
+data_path = "/Volumes/R2D2_Drive/MyDrive/R2D2: Weekly Lab Data/IPRL"
 dir_path = os.path.dirname(os.path.realpath(__file__))
-data_directory = os.path.join(dir_path, "../", "data") if data_path is None else data_path
-PLOT_FOLDERPATH = os.path.join(dir_path, "../", "plots")
+data_directory = os.path.join(dir_path, "../../", "data") if data_path is None else data_path
+PLOT_FOLDERPATH = os.path.join(dir_path, "../../", "plots")
+if not os.path.exists(PLOT_FOLDERPATH):
+    os.makedirs(PLOT_FOLDERPATH)
+
+# Run Data Crawler #
 data_crawler(data_directory, func_list=[analysis_func])
 
 # Prepare Cumulative Values #
