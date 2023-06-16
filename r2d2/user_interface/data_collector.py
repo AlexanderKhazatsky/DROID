@@ -75,7 +75,7 @@ class DataCollecter:
         if info is None:
             info = {}
         info["time"] = self.last_traj_name
-        info["robot_serial_number"] = '{0}-{1}'.format(robot_type, robot_serial_number)
+        info["robot_serial_number"] = "{0}-{1}".format(robot_type, robot_serial_number)
         info["version_number"] = r2d2_version
 
         if practice or (not self.save_data):

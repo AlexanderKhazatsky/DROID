@@ -1,7 +1,6 @@
 import os
 import random
 from collections import defaultdict
-import time
 
 from r2d2.camera_utils.camera_readers.zed_camera import gather_zed_cameras
 from r2d2.camera_utils.info import get_camera_type
@@ -36,9 +35,8 @@ class MultiCameraWrapper:
 
     def set_calibration_mode(self, cam_id):
         # If High Res Calibration, Only One Can Run #
-        close_all = any([cam.high_res_calibration for 
-            cam in self.camera_dict.values()])
-        
+        close_all = any([cam.high_res_calibration for cam in self.camera_dict.values()])
+
         if close_all:
             for curr_cam_id in self.camera_dict:
                 if curr_cam_id != cam_id:
@@ -48,9 +46,10 @@ class MultiCameraWrapper:
 
     def set_trajectory_mode(self):
         # If High Res Calibration, Close All #
-        close_all = any([cam.high_res_calibration and cam.current_mode == 'calibration'
-            for cam in self.camera_dict.values()])
-        
+        close_all = any(
+            [cam.high_res_calibration and cam.current_mode == "calibration" for cam in self.camera_dict.values()]
+        )
+
         if close_all:
             for cam in self.camera_dict.values():
                 cam.disable_camera()

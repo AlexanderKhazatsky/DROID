@@ -392,7 +392,6 @@ class CalibrationPage(tk.Frame):
         )
         back_btn.place(relx=0.5, rely=0.9, anchor="n")
 
-
         # Calibration Mode Buttons #
         self.standard_btn = tk.Button(
             self,

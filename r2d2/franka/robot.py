@@ -98,7 +98,7 @@ class FrankaRobot:
                 self._robot.move_to_joint_positions(command, time_to_go=time_to_go)
             except grpc.RpcError:
                 pass
-            
+
             self._robot.start_cartesian_impedance()
         else:
             run_threaded_command(helper_non_blocking)
@@ -169,7 +169,7 @@ class FrankaRobot:
         }
 
         return state_dict, timestamp_dict
-    
+
     def adaptive_time_to_go(self, desired_joint_position, t_min=0, t_max=4):
         curr_joint_position = self._robot.get_joint_positions()
         displacement = desired_joint_position - curr_joint_position

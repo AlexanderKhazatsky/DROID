@@ -5,7 +5,6 @@ import numpy as np
 
 from r2d2.misc.parameters import hand_camera_id
 from r2d2.misc.time import time_ms
-import time
 
 try:
     import pyzed.sl as sl
@@ -30,16 +29,13 @@ def gather_zed_cameras():
 resize_func_map = {"cv2": cv2.resize, None: None}
 
 standard_params = dict(
-    depth_minimum_distance=0.1,
-    camera_resolution=sl.RESOLUTION.HD720,
-    depth_stabilization=False,
-    camera_fps=60)
+    depth_minimum_distance=0.1, camera_resolution=sl.RESOLUTION.HD720, depth_stabilization=False, camera_fps=60
+)
 
 advanced_params = dict(
-    depth_minimum_distance=0.1,
-    camera_resolution=sl.RESOLUTION.HD2K,
-    depth_stabilization=False,
-    camera_fps=15)
+    depth_minimum_distance=0.1, camera_resolution=sl.RESOLUTION.HD2K, depth_stabilization=False, camera_fps=15
+)
+
 
 class ZedCamera:
     def __init__(self, camera):
@@ -137,7 +133,7 @@ class ZedCamera:
         sl_params.set_from_serial_number(int(self.serial_number))
         status = self._cam.open(sl_params)
         if status != sl.ERROR_CODE.SUCCESS:
-            raise RuntimeError('Camera Failed To Open')
+            raise RuntimeError("Camera Failed To Open")
 
         # Save Intrinsics #
         self.latency = int(2.5 * (1e3 / sl_params.camera_fps))
