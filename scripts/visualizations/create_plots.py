@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-from analysis_func import *
+from r2d2.plotting.analysis_func import *
 
 from r2d2.plotting.misc import *
 from r2d2.plotting.text import *
