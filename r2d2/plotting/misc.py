@@ -10,12 +10,8 @@ from scipy import stats
 from r2d2.plotting.misc import *
 from r2d2.plotting.text import *
 
-# Get Plot Folderpath #
-dir_path = os.path.dirname(os.path.realpath(__file__))
-
 # Define Data Crawler #
 num_demos = 0
-
 
 def data_crawler(dirname, func_list=None, ignore_failure=True):
     global num_demos
