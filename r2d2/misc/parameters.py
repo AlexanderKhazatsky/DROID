@@ -1,18 +1,22 @@
 from cv2 import aruco
 
 # Robot Params #
-nuc_ip = ""
-robot_ip = ""
-sudo_password = ""
-robot_serial_number = ""
-gripper_type = "" # 'franka' or 'robotiq'
-operator_position = "" # 'front' or 'back'
+# TODO: Revert all to blank strings before release.
+nuc_ip = '172.16.0.7'
+robot_ip = '172.16.0.11'
+sudo_password = ''
+if sudo_password == '':
+    raise ValueError('Must set sudo_password in r2d2/misc/parameters.py!')
+robot_serial_number = "295341-1326374"
+gripper_type = 'franka' # 'franka' or 'robotiq'
+operator_position = 'front' # 'front' or 'back'
 
 # Camera Params #
-camera_type = "" # 'realsense' or 'zed'
-hand_camera_id = ""
-varied_camera_1_id = ""
-varied_camera_2_id = ""
+# TODO: Revert all to blank strings before release.
+camera_type = 'realsense' # 'realsense' or 'zed'
+hand_camera_id = '138422074005'
+varied_camera_1_id = '23404442'
+varied_camera_2_id = '29838012'
 
 # Charuco Board Params #
 CHARUCOBOARD_ROWCOUNT = 9
