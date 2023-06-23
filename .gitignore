@@ -1,6 +1,7 @@
 *.pyc
 *.egg-info
 outputs/
+data*
 
 # Development files
 data/

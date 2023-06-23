@@ -13,7 +13,7 @@ from r2d2.misc.transformations import change_pose_frame
 
 
 class RobotEnv(gym.Env):
-    def __init__(self, action_space="cartesian_velocity", randomize_reset=True, camera_kwargs={}):
+    def __init__(self, action_space="cartesian_velocity", camera_kwargs={}):
         # Initialize Gym Environment
         super().__init__()
 
@@ -42,7 +42,6 @@ class RobotEnv(gym.Env):
         self.camera_type_dict = camera_type_dict
 
         # Reset Robot
-        self.randomize_reset = randomize_reset
         self.reset()
 
     def step(self, action):
@@ -57,10 +56,10 @@ class RobotEnv(gym.Env):
         # Return Action Info
         return action_info
 
-    def reset(self):
+    def reset(self, randomize=True):
         self._robot.update_gripper(0, velocity=False, blocking=True)
 
-        if self.randomize_reset:
+        if randomize:
             noise = np.random.uniform(low=self.randomize_low, high=self.randomize_high)
         else:
             noise = None
