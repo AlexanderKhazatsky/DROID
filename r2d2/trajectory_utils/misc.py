@@ -287,6 +287,8 @@ def replay_trajectory(
     horizon = traj_reader.length()
 
     for i in range(horizon):
+        control_timestamps = {"step_start": time_ms()}
+
         # Get HDF5 Data #
         timestep = traj_reader.read_timestep()
 
@@ -296,6 +298,7 @@ def replay_trajectory(
             init_gripper_position = timestep["observation"]["robot_state"]["gripper_position"]
             action = np.concatenate([init_joint_position, [init_gripper_position]])
             env.update_robot(action, action_space="joint_position", blocking=True)
+            input('Press Enter to continue...')
 
         # TODO: Assert Replayability #
         # robot_state = env.get_state()[0]
@@ -304,17 +307,23 @@ def replay_trajectory(
         # 	current = robot_state[key]
         # 	assert np.allclose(desired, current)
 
-        # Regularize Control Frequency #
-        time.sleep(1 / env.control_hz)
-
         # Get Action In Desired Action Space #
+        control_timestamps["policy_start"] = time_ms()
         arm_action = timestep["action"][env.action_space]
         gripper_action = timestep["action"][gripper_key]
         action = np.concatenate([arm_action, [gripper_action]])
         controller_info = timestep["observation"]["controller_info"]
         movement_enabled = controller_info.get("movement_enabled", True)
 
+        # Regularize Control Frequency #
+        control_timestamps["sleep_start"] = time_ms()
+        comp_time = time_ms() - control_timestamps["step_start"]
+        sleep_left = (1 / env.control_hz) - (comp_time / 1000)
+        if sleep_left > 0:
+            time.sleep(sleep_left)
+
         # Follow Trajectory #
+        control_timestamps["control_start"] = time_ms()
         if movement_enabled:
             env.step(action)
 
