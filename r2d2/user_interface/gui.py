@@ -736,14 +736,14 @@ class SceneConfigurationPage(tk.Frame):
             self.task_txt.insert(1.0, no_tasks_text)
             return
 
-        # Check that cameras are calibrated #
-        calib_info_dict = self.controller.robot.check_calibration_info(remove_hand_camera=True)
-        if len(calib_info_dict["missing"]) > 0:
-            self.controller.show_frame(IncompleteCalibration)
-            return
-        if len(calib_info_dict["old"]) > 0:
-            self.controller.show_frame(OldCalibration)
-            return
+        # # Check that cameras are calibrated #
+        # calib_info_dict = self.controller.robot.check_calibration_info(remove_hand_camera=True)
+        # if len(calib_info_dict["missing"]) > 0:
+        #     self.controller.show_frame(IncompleteCalibration)
+        #     return
+        # if len(calib_info_dict["old"]) > 0:
+        #     self.controller.show_frame(OldCalibration)
+        #     return
 
         # Check that scene isn't stale #
         last_scene_change = load_gui_info()["scene_id_timestamp"]
@@ -870,10 +870,7 @@ class RequestedBehaviorPage(tk.Frame):
             self.keep_task = False
 
     def sample_new_task(self):
-        if np.random.uniform() < compositional_task_prob:
-            task = self.sample_compositional_task()
-        else:
-            task = self.sample_single_task()
+        task = self.sample_single_task()
 
         self.controller.info["current_task"] = task
         self.task_text.set(task)
@@ -1085,7 +1082,7 @@ class CameraPage(tk.Frame):
                 time.sleep(0.05)
                 continue
 
-            w, h = max(self.winfo_width(), 100), max(self.winfo_height(), 100)
+            w, h = max(self.winfo_width()-400, 100), max(self.winfo_height()-400, 100)
             img_w = int(w / self.n_cols * w_coeff)
             img_h = int(h / self.n_rows * h_coeff)
 
@@ -1166,14 +1163,11 @@ class CameraPage(tk.Frame):
         # Check For Scene Changes #
         num_traj = self.controller.num_traj_saved
         move_robot = (num_traj % move_robot_frequency == 0) and (num_traj > 0)
-        scene_change = (np.random.uniform() < scene_change_prob) or move_robot
 
         # Move To Next Page
         time.sleep(0.1)  # Prevents bug where robot doesnt wait to reset
         if practice:
             post_reset_page = SceneConfigurationPage
-        elif scene_change:
-            post_reset_page = SceneChangesPage
         else:
             post_reset_page = RequestedBehaviorPage
         self.controller.frames[CanRobotResetPage].set_next_page(post_reset_page)
@@ -1226,7 +1220,7 @@ class EnlargedImagePage(tk.Frame):
             if not_active or not_ready:
                 time.sleep(0.05)
                 continue
-            w, h = max(self.winfo_width(), 250), max(self.winfo_height(), 250)
+            w, h = max(self.winfo_width()-400, 250), max(self.winfo_height()-400, 250)
             self.controller.set_img(self.img_index, widget=self.image_box, width=w, height=h)
 
 
@@ -1348,7 +1342,7 @@ class CalibrateCamera(tk.Frame):
                 time.sleep(0.05)
                 continue
 
-            w, h = max(self.winfo_width(), 100), max(self.winfo_height(), 100)
+            w, h = max(self.winfo_width()-400, 100), max(self.winfo_height()-400, 100)
             img_w = int(w / self.num_views * w_coeff)
             img_h = int(h / self.num_views * h_coeff)
             index = self.relevant_indices[i]
