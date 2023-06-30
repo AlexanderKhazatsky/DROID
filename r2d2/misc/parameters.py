@@ -7,6 +7,7 @@ robot_ip = '172.16.0.11'
 sudo_password = ''
 if sudo_password == '':
     raise ValueError('Must set sudo_password in r2d2/misc/parameters.py!')
+robot_type = "panda"  # 'panda' or 'fr3'
 robot_serial_number = "295341-1326374"
 gripper_type = 'franka' # 'franka' or 'robotiq'
 operator_position = 'front' # 'front' or 'back'
@@ -26,4 +27,4 @@ CHARUCOBOARD_MARKER_SIZE = 0.016
 ARUCO_DICT = aruco.Dictionary_get(aruco.DICT_5X5_100)
 
 # Code Version [DONT CHANGE] #
-r2d2_version = "1.1"
+r2d2_version = "1.3"

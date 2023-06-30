@@ -8,7 +8,7 @@ import h5py
 
 import r2d2.trajectory_utils.misc as tu
 from r2d2.calibration.calibration_utils import check_calibration_info
-from r2d2.misc.parameters import hand_camera_id, r2d2_version, robot_serial_number
+from r2d2.misc.parameters import hand_camera_id, r2d2_version, robot_serial_number, robot_type
 
 # Prepare Data Folder #
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -33,6 +33,7 @@ class DataCollecter:
         _, full_cam_ids = self.get_camera_feed()
         self.num_cameras = len(full_cam_ids)
         self.full_cam_ids = full_cam_ids
+        self.advanced_calibration = False
 
         # Make Sure Log Directorys Exist #
         if save_traj_dir is None:
@@ -54,6 +55,14 @@ class DataCollecter:
         info = self.controller.get_info()
         return deepcopy(info)
 
+    def enable_advanced_calibration(self):
+        self.advanced_calibration = True
+        self.env.camera_reader.enable_advanced_calibration()
+
+    def disable_advanced_calibration(self):
+        self.advanced_calibration = False
+        self.env.camera_reader.disable_advanced_calibration()
+
     def set_calibration_mode(self, cam_id):
         self.env.camera_reader.set_calibration_mode(cam_id)
 
@@ -66,7 +75,7 @@ class DataCollecter:
         if info is None:
             info = {}
         info["time"] = self.last_traj_name
-        info["robot_serial_number"] = robot_serial_number
+        info["robot_serial_number"] = "{0}-{1}".format(robot_type, robot_serial_number)
         info["version_number"] = r2d2_version
 
         if practice or (not self.save_data):

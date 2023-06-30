@@ -392,9 +392,45 @@ class CalibrationPage(tk.Frame):
         )
         back_btn.place(relx=0.5, rely=0.9, anchor="n")
 
+        # Calibration Mode Buttons #
+        self.standard_btn = tk.Button(
+            self,
+            text="Standard Mode",
+            highlightbackground="green",
+            font=Font(size=30, weight="bold"),
+            padx=3,
+            pady=5,
+            borderwidth=10,
+            command=lambda: self.change_calibration_mode(False),
+        )
+        self.standard_btn.place(relx=0.15, rely=0.02, anchor="n")
+
+        self.advanced_btn = tk.Button(
+            self,
+            text="Advanced Mode",
+            highlightbackground="red",
+            font=Font(size=30, weight="bold"),
+            padx=3,
+            pady=5,
+            borderwidth=10,
+            command=lambda: self.change_calibration_mode(True),
+        )
+        self.advanced_btn.place(relx=0.85, rely=0.02, anchor="n")
+
+    def change_calibration_mode(self, advanced_on):
+        if advanced_on:
+            self.controller.robot.enable_advanced_calibration()
+            self.standard_btn.configure(highlightbackground="red")
+            self.advanced_btn.configure(highlightbackground="green")
+        else:
+            self.controller.robot.disable_advanced_calibration()
+            self.standard_btn.configure(highlightbackground="green")
+            self.advanced_btn.configure(highlightbackground="red")
+
     def calibrate_camera(self, cam_id):
         self.controller.robot.set_calibration_mode(cam_id)
-        time.sleep(0.1)
+        long_wait = self.controller.robot.advanced_calibration
+        time.sleep(5.0 if long_wait else 0.1)
 
         self.controller.frames[CalibrateCamera].set_camera_id(cam_id)
         self.controller.show_frame(CalibrateCamera, wait=True)
@@ -1367,24 +1403,7 @@ class CalibrateCamera(tk.Frame):
 
     #         enough = len(new_relevant_indices) == self.num_views
     #         done = len(curr_cam_ids) == self.num_views
-    #         print(len(curr_cam_ids))
     #         if enough and done: break
     #         time.sleep(0.05)
 
     #     self.relevant_indices = new_relevant_indices
-
-    # def update_camera_feed(self, i, w_coeff=1.0, h_coeff=1.0):
-    #     while True:
-    #         not_active = self.controller.curr_frame != self
-    #         not_ready = len(self.relevant_indices) != self.num_views
-    #         if not_active or not_ready:
-    #             time.sleep(0.05)
-    #             continue
-
-    #         w, h = max(self.winfo_width(), 100), max(self.winfo_height(), 100)
-    #         img_w = int(w / self.num_views * w_coeff)
-    #         img_h = int(h / self.num_views * h_coeff)
-    #         index = self.relevant_indices[i]
-
-    #         self.controller.set_img(index, widget=self.image_boxes[i],
-    #              width=img_w, height=img_h, use_camera_order=False)

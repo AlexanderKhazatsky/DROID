@@ -22,8 +22,15 @@ class RealSenseCamera:
 		self.fps = 30
 		self.latency = int(2.5 * (1e3 / self.fps)) # in milliseconds
 		self._config = rs.config()
-		self._current_mode = None
+		self.high_res_calibration = False
+		self.current_mode = None
 		self.recording_video = False
+
+	def enable_advanced_calibration(self):
+		pass # function is called by multi_camera_wrapper but not needed for realsense
+
+	def disable_advanced_calibration(self):
+		pass # function is called by multi_camera_wrapper but not needed for realsense
 
 	def set_reading_parameters(self, image=True, depth=True, pointcloud=False, concatenate_images=False, resolution=(0,0)):
 		"""Sets the camera reading parameters."""
@@ -35,12 +42,12 @@ class RealSenseCamera:
 	def set_calibration_mode(self):
 		"""Sets the camera mode for camera calibration."""
 		self._configure_camera(image_width=1920, image_height=1080) # use high-resolution images for camera calibration
-		self._current_mode = 'calibration'
+		self.current_mode = 'calibration'
 
 	def set_trajectory_mode(self):
 		"""Sets the camera mode for normal trajectory recording."""
 		self._configure_camera(image_width=640, image_height=480)
-		self._current_mode = 'trajectory'
+		self.current_mode = 'trajectory'
 
 	def _configure_camera(self, image_width, image_height):
 		# Close Existing Camera #
@@ -114,11 +121,11 @@ class RealSenseCamera:
 
 	def disable_camera(self):
 		"""Turns off the camera."""
-		if self._current_mode in ['calibration', 'trajectory']:
+		if self.current_mode in ['calibration', 'trajectory']:
 			self._pipeline.stop()
 			self._config.disable_all_streams()
-			self._current_mode = 'disabled'
+			self.current_mode = 'disabled'
 
 	def is_running(self):
 		"""Checks whether the camera is enabled."""
-		return self._current_mode != 'disabled'
+		return self.current_mode != 'disabled'

@@ -66,7 +66,7 @@ how_to_calibrate_text = (
     " person cameras, or place it on a table when calibrating the hand camera\n\n2. Once the trajectory starts, move the"
     " gripper such that the board is clearly visible by the camera (1-2 feet away)\n\n3. Press 'A' to begin the"
     " calibration trajectory, the GUI will inform you if calibration fails\n\nTip: You can name cameras in the"
-    " parameters file\n\nWarning: Button clicks here may take time..."
+    " parameters file\n\nWarning: 'Advanced Mode' has higher calibration success, but is slow and buggy!"
 )
 
 data_collection_text = (
@@ -123,7 +123,7 @@ camera_page_title = {
 
 camera_page_instr = {
     "live": "Click two images to swap them, or double click one image to enlarge it (click again to return)",
-    "traj": "Press 'A' to save the trajectory, or 'B' to start over",
+    "traj": "Press 'A' to mark a success, or 'B' to mark a failure",
     "replay": "Would you like to save or delete this trajectory?",
     "practice_traj": "Press 'A' or 'B' to end the trial run",
 }
