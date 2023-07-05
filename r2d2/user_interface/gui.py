@@ -361,6 +361,8 @@ class CalibrationPage(tk.Frame):
         how_to_text_lbl = Label(self, text=how_to_calibrate_text, font=Font(size=18))
         how_to_text_lbl.pack(pady=20)
 
+        if controller.cam_ids == []:
+            raise ValueError('No cameras detected! Make sure all cameras are plugged in and not being used by another program.')
         longest_name = max([len(get_camera_name(cam_id)) for cam_id in controller.cam_ids])
 
         self.button_dict = {}
