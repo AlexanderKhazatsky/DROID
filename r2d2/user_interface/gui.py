@@ -1267,7 +1267,7 @@ class CalibrateCamera(tk.Frame):
         super().__init__(parent)
         self.controller = controller
         self.relevant_indices = []
-        self.num_views = num_views
+        self.num_views = 1 # TODO (Moo Jin): Remove hardcode? Right now just calibrating wrist camera.
         self.live = False
 
         # Moniter Key Events #
