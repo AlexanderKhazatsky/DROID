@@ -85,3 +85,8 @@ To collect data, run:
 ```python
 python scripts/main.py
 ```
+
+## Actions Monitor 🔎
+| **Workflow Name**            | **Description**                                        | **Status**                                                                                                                                                                                                                                                                      |
+|------------------------------|--------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| pre-commit    | Ensures that files all follow the same formatting.       | [![pre-commit](https://github.com/AlexanderKhazatsky/R2D2/actions/workflows/pre-commit.yaml/badge.svg)](https://github.com/AlexanderKhazatsky/R2D2/blob/main/.github/workflows/pre-commit.yaml)          |
