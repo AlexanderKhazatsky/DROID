@@ -8,6 +8,12 @@ NOTE: This repository has two dependencies listed below. If you are setting this
 
 (2) https://github.com/rail-berkeley/oculus_reader
 
+The above dependencies are automatically versioned and installed via git submodules. Once you clone this repository run the following command to ensure you have also installed the correct versions of these dependencies:
+
+```bash
+git submodule update --init --remote
+```
+
 ## Setup Guide
 Setup this repository on both the server and client machine (ie: NUC and workstation)
 
