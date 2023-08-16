@@ -1,17 +1,21 @@
-from r2d2.evaluation.eval_launcher import eval_launcher
+from r2d2.evaluation.eval_launcher_robomimic import eval_launcher
+import os
+
+CKPT_PATH = "" # add robomimic checkpoint here
 
 variant = dict(
     exp_name="policy_test",
     save_data=False,
     use_gpu=True,
     seed=0,
-    policy_logdir="pen_cup_task/run3/id0/",
+    policy_logdir="test",
     model_id=50,
     camera_kwargs=dict(),
     data_processing_kwargs=dict(
         timestep_filtering_kwargs=dict(),
         image_transform_kwargs=dict(),
     ),
+    ckpt_path=CKPT_PATH,
 )
 
 if __name__ == "__main__":

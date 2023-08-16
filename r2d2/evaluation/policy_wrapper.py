@@ -1,5 +1,6 @@
 import numpy as np
 import torch
+from collections import deque
 
 from r2d2.data_processing.timestep_processing import TimestepProcesser
 
@@ -61,3 +62,111 @@ class PolicyWrapper:
 
         # import pdb; pdb.set_trace()
         return np_action
+
+
+class PolicyWrapperRobomimic:
+    def __init__(self, policy, timestep_filtering_kwargs, image_transform_kwargs, eval_mode=True):
+        self.policy = policy
+
+        assert eval_mode is True
+
+        self.fs_wrapper = FrameStackWrapper(num_frames=10)
+        self.fs_wrapper.reset()
+        self.policy.start_episode()
+
+        self.timestep_processor = TimestepProcesser(
+            ignore_action=True, **timestep_filtering_kwargs, image_transform_kwargs=image_transform_kwargs
+        )
+
+    def forward(self, observation):
+        timestep = {"observation": observation}
+        processed_timestep = self.timestep_processor.forward(timestep)
+
+        im0 = processed_timestep["observation"]["camera"]["image"]["hand_camera"][0]
+
+        # # TODO: correctly infer camera images
+        # im1 = processed_timestep["observation"]["camera"]["image"]["varied_camera"][0]
+        # im2 = processed_timestep["observation"]["camera"]["image"]["varied_camera"][2]
+
+        obs = {
+            "robot_state/cartesian_position": np.array(observation["robot_state"]["cartesian_position"]),
+            "robot_state/gripper_position": np.array([observation["robot_state"]["gripper_position"]]),
+            "camera/image/hand_camera_image": im0,
+            # "camera/image/varied_camera_left_image": im1,
+            # "camera/image/varied_camera_right_image": im2,
+        }
+        
+        self.fs_wrapper.add_obs(obs)
+        obs_history = self.fs_wrapper.get_obs_history()
+        action = self.policy(obs_history)
+
+        # clip action
+        action = np.clip(action, a_min=-1, a_max=1)
+
+        return action
+
+    def reset(self):
+        self.fs_wrapper.reset()
+        self.policy.start_episode()
+    
+
+class FrameStackWrapper:
+    """
+    Wrapper for frame stacking observations during rollouts. The agent
+    receives a sequence of past observations instead of a single observation
+    when it calls @env.reset, @env.reset_to, or @env.step in the rollout loop.
+    """
+    def __init__(self, num_frames):
+        """
+        Args:
+            env (EnvBase instance): The environment to wrap.
+            num_frames (int): number of past observations (including current observation)
+                to stack together. Must be greater than 1 (otherwise this wrapper would
+                be a no-op).
+        """
+        self.num_frames = num_frames
+
+        ### TODO: add action padding option + adding action to obs to include action history in obs ###
+
+        # keep track of last @num_frames observations for each obs key
+        self.obs_history = None
+
+    def _set_initial_obs_history(self, init_obs):
+        """
+        Helper method to get observation history from the initial observation, by
+        repeating it.
+
+        Returns:
+            obs_history (dict): a deque for each observation key, with an extra
+                leading dimension of 1 for each key (for easy concatenation later)
+        """
+        self.obs_history = {}
+        for k in init_obs:
+            self.obs_history[k] = deque(
+                [init_obs[k][None] for _ in range(self.num_frames)], 
+                maxlen=self.num_frames,
+            )
+
+    def reset(self):
+        self.obs_history = None
+
+    def get_obs_history(self):
+        """
+        Helper method to convert internal variable @self.obs_history to a 
+        stacked observation where each key is a numpy array with leading dimension
+        @self.num_frames.
+        """
+        # concatenate all frames per key so we return a numpy array per key
+        if self.num_frames == 1:
+            return { k : np.concatenate(self.obs_history[k], axis=0)[0] for k in self.obs_history }
+        else:
+            return { k : np.concatenate(self.obs_history[k], axis=0) for k in self.obs_history }
+
+    def add_obs(self, obs):
+        if self.obs_history is None:
+            self._set_initial_obs_history(obs)
+
+        # update frame history
+        for k in obs:
+            # make sure to have leading dim of 1 for easy concatenation
+            self.obs_history[k].append(obs[k][None])
