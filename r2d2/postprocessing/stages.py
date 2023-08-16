@@ -106,6 +106,7 @@ def run_processing(
             )
             if not valid_parse:
                 errored_paths[outcome][rel_trajectory_dir] = "JSON Metadata Parse Error"
+                continue
 
             # Convert SVOs --> MP4s
             valid_convert, vid_paths = convert_mp4s(
