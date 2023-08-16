@@ -5,11 +5,11 @@ import torch
 from collections import OrderedDict
 from copy import deepcopy
 
-from r2d2.controllers.oculus_controller import VRPolicy
-from r2d2.evaluation.policy_wrapper import PolicyWrapperRobomimic
-from r2d2.robot_env import RobotEnv
-from r2d2.user_interface.data_collector import DataCollecter
-from r2d2.user_interface.gui import RobotGUI
+from droid.controllers.oculus_controller import VRPolicy
+from droid.evaluation.policy_wrapper import PolicyWrapperRobomimic
+from droid.robot_env import RobotEnv
+from droid.user_interface.data_collector import DataCollecter
+from droid.user_interface.gui import RobotGUI
 
 import robomimic.utils.file_utils as FileUtils
 import robomimic.utils.torch_utils as TorchUtils
