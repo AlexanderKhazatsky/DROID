@@ -108,6 +108,9 @@ class R2D2UploadConfig:
     # fmt: off
     lab: str                                        # Lab ID (all uppercase) -- e.g., "CLVR", "ILIAD", "REAL"
     data_dir: Path = Path("data")                   # Path to top-level directory with "success"/"failure" directories
+
+    # Stage Handling
+    do_index: bool = True                           # Whether to run an initial indexing pass prior to processing
     do_upload: bool = False                         # Whether to upload trajectories to S3 after full processing
 
     # Important :: Only update once you're sure *all* demonstrations prior to this date have been uploaded!
@@ -115,7 +118,7 @@ class R2D2UploadConfig:
     start_date: str = "2023-01-01"                  # Start indexing/processing/uploading demos starting from this date
 
     # Cache Parameters
-    cache_dir: Path = Path("postprocessing-cache")  # Relative path to `cache` directory; defaults to repository root
+    cache_dir: Path = Path("cache/postprocessing")  # Relative path to `cache` directory; defaults to repository root
     # fmt: on
 
 
@@ -124,6 +127,7 @@ def postprocess(cfg: R2D2UploadConfig) -> None:
     print(f"[*] Starting Data Processing & Upload for Lab `{cfg.lab}`")
 
     # Initialize Cache Data Structure --> Load Uploaded/Processed List from `cache_dir` (if exists)
+    #   => Note that in calls to each stage, cache is updated *in-place* (allows for the try/finally to work)
     cache = {
         "lab": cfg.lab,
         "start_date": cfg.start_date,
@@ -140,38 +144,32 @@ def postprocess(cfg: R2D2UploadConfig) -> None:
 
     # === Run Post-Processing Stages ===
     try:
-        # Stage 1 --> "Indexing"
         start_datetime = parse_datetime(cfg.start_date, mode="day")
-        indexed_uuids, errored_paths = run_indexing(
-            cfg.data_dir,
-            cfg.lab,
-            start_datetime,
-            aliases=REGISTERED_ALIASES,
-            members=REGISTERED_MEMBERS,
-            indexed_uuids=cache["indexed_uuids"],
-            errored_paths=cache["errored_paths"],
-        )
 
-        # Update Cache
-        cache["totals"]["indexed"] = sum(len(indexed_uuids[outcome]) for outcome in ["success", "failure"])
-        cache["totals"]["errored"] = sum(len(errored_paths[outcome]) for outcome in ["success", "failure"])
-        cache["indexed_uuids"], cache["errored_paths"] = indexed_uuids, errored_paths
+        # Stage 1 --> "Indexing"
+        if cfg.do_index:
+            run_indexing(
+                cfg.data_dir,
+                cfg.lab,
+                start_datetime,
+                aliases=REGISTERED_ALIASES,
+                members=REGISTERED_MEMBERS,
+                totals=cache["totals"],
+                indexed_uuids=cache["indexed_uuids"],
+                errored_paths=cache["errored_paths"],
+            )
 
         # Stage 2 --> "Processing"
-        processed_uuids, errored_paths = run_processing(
+        run_processing(
             cfg.data_dir,
             cfg.lab,
             aliases=REGISTERED_ALIASES,
             members=REGISTERED_MEMBERS,
+            totals=cache["totals"],
             indexed_uuids=cache["indexed_uuids"],
             processed_uuids=cache["processed_uuids"],
             errored_paths=cache["errored_paths"],
         )
-
-        # Update Cache
-        cache["totals"]["processed"] = sum(len(processed_uuids[outcome]) for outcome in ["success", "failure"])
-        cache["totals"]["errored"] = sum(len(errored_paths[outcome]) for outcome in ["success", "failure"])
-        cache["processed_uuids"], cache["errored_paths"] = processed_uuids, errored_paths
 
         # Stage 3 --> "Upload"
         if cfg.do_upload:

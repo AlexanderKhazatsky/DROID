@@ -37,9 +37,10 @@ def run_indexing(
     start_datetime: datetime,
     aliases: Dict[str, Tuple[str, str]],
     members: Dict[str, Dict[str, str]],
+    totals: Dict[str, int],
     indexed_uuids: Dict[str, Dict[str, str]],
     errored_paths: Dict[str, Dict[str, str]],
-) -> Tuple[Dict[str, Dict[str, str]], Dict[str, Dict[str, str]]]:
+) -> None:
     """Index data by iterating through each "success/ | failure/" --> <DAY>/ --> <TIMESTAMP>/ (specified trajectory)."""
     progress = tqdm(desc="[*] Stage 1 =>> Indexing")
     for outcome_dir, outcome in [(p, p.name) for p in [data_dir / "success", data_dir / "failure"]]:
@@ -58,6 +59,7 @@ def run_indexing(
                 user, user_id = parse_user(trajectory_dir, aliases, members)
                 if user is None or user_id is None:
                     errored_paths[outcome][str(trajectory_dir.relative_to(data_dir))] = "Missing/Invalid HDF5"
+                    totals["errored"] = sum(len(errored_paths[outcome]) for outcome in ["success", "failure"])
                     progress.update()
                     continue
 
@@ -67,15 +69,16 @@ def run_indexing(
                 # Verify SVO Files
                 if not validate_svo_existence(trajectory_dir):
                     errored_paths[outcome][str(trajectory_dir.relative_to(data_dir))] = "Missing SVO Files"
+                    sum(len(errored_paths[outcome]) for outcome in ["success", "failure"])
                     progress.update()
                     continue
 
                 # Otherwise -- we're good for indexing!
                 indexed_uuids[outcome][uuid] = str(trajectory_dir.relative_to(data_dir))
                 errored_paths[outcome].pop(str(trajectory_dir.relative_to(data_dir)), None)
+                totals["indexed"] = sum(len(indexed_uuids[outcome]) for outcome in ["success", "failure"])
+                totals["errored"] = sum(len(errored_paths[outcome]) for outcome in ["success", "failure"])
                 progress.update()
-
-    return indexed_uuids, errored_paths
 
 
 # === Stage 2 :: Processing ===
@@ -84,15 +87,16 @@ def run_processing(
     lab: str,
     aliases: Dict[str, Tuple[str, str]],
     members: Dict[str, Dict[str, str]],
+    totals: Dict[str, int],
     indexed_uuids: Dict[str, Dict[str, str]],
     processed_uuids: Dict[str, Dict[str, str]],
     errored_paths: Dict[str, Dict[str, str]],
+    process_batch_limit: int = 1000,
 ) -> Tuple[Dict[str, Dict[str, str]], Dict[str, Dict[str, str]]]:
     """Iterate through each trajectory in `indexed_uuids` and 1) extract JSON metadata and 2) convert SVO -> MP4."""
     for outcome in indexed_uuids:
-        for uuid, rel_trajectory_dir in tqdm(
-            indexed_uuids[outcome].items(), desc=f"[*] Stage 2 =>> `{outcome}/` Processing"
-        ):
+        uuid2trajectory_generator, counter = indexed_uuids[outcome].items(), 0
+        for uuid, rel_trajectory_dir in tqdm(uuid2trajectory_generator, desc=f"[*] Stage 2 =>> `{outcome}` Processing"):
             if uuid in processed_uuids[outcome]:
                 continue
 
@@ -106,6 +110,7 @@ def run_processing(
             )
             if not valid_parse:
                 errored_paths[outcome][rel_trajectory_dir] = "JSON Metadata Parse Error"
+                totals["errored"] = sum(len(errored_paths[outcome]) for outcome in ["success", "failure"])
                 continue
 
             # Convert SVOs --> MP4s
@@ -120,6 +125,7 @@ def run_processing(
             )
             if not valid_convert:
                 errored_paths[outcome][rel_trajectory_dir] = "Corrupted SVO / Failed Conversion"
+                totals["errored"] = sum(len(errored_paths[outcome]) for outcome in ["success", "failure"])
                 continue
 
             # Finalize Metadata Record
@@ -129,6 +135,7 @@ def run_processing(
             # Validate
             if not validate_metadata_record(metadata_record):
                 errored_paths[outcome][rel_trajectory_dir] = "Incomplete Metadata Record!"
+                totals["errored"] = sum(len(errored_paths[outcome]) for outcome in ["success", "failure"])
                 continue
 
             # Write JSON
@@ -138,5 +145,14 @@ def run_processing(
             # Otherwise --> we're good for processing!
             processed_uuids[outcome][uuid] = rel_trajectory_dir
             errored_paths[outcome].pop(rel_trajectory_dir, None)
+            totals["processed"] = sum(len(processed_uuids[outcome]) for outcome in ["success", "failure"])
+            totals["errored"] = sum(len(errored_paths[outcome]) for outcome in ["success", "failure"])
+            counter += 1
+
+            # Note :: ZED SDK has an unfortunate problem with segmentation faults after processing > 2000 videos.
+            #         Unfortunately, no good way to catch/handle a segfault from Python --> instead we just set
+            #         a max limit `process_batch_limit` and trust that caching works.
+            if counter > process_batch_limit:
+                return processed_uuids, errored_paths
 
     return processed_uuids, errored_paths
