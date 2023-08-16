@@ -52,7 +52,7 @@ compositional_tasks = [
     lambda: "Do anything you like that takes multiple steps to complete.",
     lambda t: "Do any task, and then reset the scene.\n\nSuggested task:\n* {0}".format(t),
     lambda t1, t2: "Do any two tasks consecutively.\n\nSuggested tasks:\n* {0}\n* {1}".format(t1, t2),
-    lambda t1, t2, t3: "Do any three tasks consecutively.\n\nSuggested tasks:		\n* {0}\n* {1}\n* {2}".format(t1, t2, t3),
+    lambda t1, t2, t3: "Do any three tasks consecutively.\n\nSuggested tasks:\n* {0}\n* {1}\n* {2}".format(t1, t2, t3),
 ]
 
 how_to_text = (

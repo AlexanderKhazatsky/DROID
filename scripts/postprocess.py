@@ -1,0 +1,198 @@
+"""
+postprocess.py
+
+Core script for processing & uploading collected demonstration data to the R2D2 Amazon S3 bucket.
+
+Performs the following:
+    - Checks for "cached" uploads in `R2D2/cache/<lab>-cache.json; avoids repetitive work.
+    - Parses out relevant metadata from each trajectory --> *errors* on "unexpected format" (fail-fast).
+    - Converts all SVO files to the relevant MP4s --> logs "corrupt" data (silent).
+    - Runs validation logic on all *new* demonstrations --> errors on "corrupt" data (fail-fast).
+    - Writes JSON metadata for all *new* demonstrations for easy data querying.
+    - Uploads each demonstration "day" data to Amazon S3 bucket and updates `R2D2/cache/<lab>-cache.json`.
+
+Note :: Must run on hardware with the ZED SDK; highly recommended to run this on the data collection laptop directly!
+
+Run from R2D2 directory root with: `python scripts/postprocess.py --lab <LAB_ID>
+"""
+import json
+import os
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Dict, Tuple
+
+import pyrallis
+
+from r2d2.postprocessing.parse import parse_datetime
+from r2d2.postprocessing.stages import run_indexing, run_processing
+from r2d2.postprocessing.util.validate import validate_user2id
+
+# Registry of known labs and associated users. Note that we canonicalize names as "<F>irst <L>ast".
+#   => We map each "name" to a unique ID (8 characters); when adding new users, make sure to pick a unique ID!
+#         + Simple ID generator --> python -c "import uuid; print(str(uuid.uuid4())[:8])"
+# fmt: off
+REGISTERED_MEMBERS: Dict[str, Dict[str, str]] = {
+    "CLVR": {
+        "Minho Heo": "236539bc",
+        "Sungjae Park": "13759f6e",
+    },
+
+    "GuptaLab": {
+        "Mohan Kumar": "553d1bd5",
+    },
+
+    "ILIAD": {
+        "Suneel Belkhale": "sbd7d2c6",
+        "Evelyn Choi": "7e97d04f",
+        "Joey Hejna": "j807b3f8",
+        "Sidd Karamcheti": "s43a277k",
+        "Yilin Wu": "7ae1bcff",
+    },
+
+    "IPRL": {
+        "Rishi Bedi": "c850f181",
+        "Marion Lepert": "7790ec0a",
+        "Daniel Morton": "edf28ef3",
+        "Jimmy Wu": "w026bb9b",
+    },
+
+    "IRIS": {
+        "Kaylee Burns": "y2a59979",
+        "Ethan Foster": "7dfa2da3",
+        "Alexander Khazatsky": "ef107c48",
+        "Emma Klemperer": "m8e51622",
+    },
+
+    "PennPAL": {
+        "Yunshuang Li": "acda9df3",
+        "Jason Ma": "c5f808b7",
+        "Vaidehi Som": "06b0ffa5",
+    },
+
+    "RAIL": {
+        "Christian Avina": "ah6fcd56",
+        "Samantha Huang": "d027f2ae",
+        "Caroline Johnson": "80edfcb1",
+        "Emi Tran": "t3d58310",
+        "Homer Walke": "eh61f232",
+    },
+
+    "REAL": {
+        "Glen Berseth": "9f2719b2",
+        "Paul Crouther": "abf65a9e",
+        "Kirsty Ellis": "4dbb5646",
+        "Cassandre Hamel": "b04f2af4",
+        "Amine Obeid": "75b7b0f9",
+        "Samy Rasmy": "a73643bb",
+        "Heng Wei": "4f8ca688",
+        "Albert Zhan": "de601749",
+    },
+}
+validate_user2id(REGISTERED_MEMBERS)
+
+# Try to be as consistent as possible using the "canonical" names in the dictionary above; however, for unavoidable
+# cases (e.g., unfortunate typos, using names/nicknames interchangeably), update the dictionary below!
+REGISTERED_ALIASES: Dict[str, Tuple[str, str]] = {
+    **{user: (lab, user) for lab, users in REGISTERED_MEMBERS.items() for user in users},
+
+    # Note: Add duplicates/typos below (follow format)!
+    **{
+        "Sasha Khazatsky": ("IRIS", "Alexander Khazatsky"),
+    }
+}
+# fmt: on
+
+
+@dataclass
+class R2D2UploadConfig:
+    # fmt: off
+    lab: str                                        # Lab ID (all uppercase) -- e.g., "CLVR", "ILIAD", "REAL"
+    data_dir: Path = Path("data")                   # Path to top-level directory with "success"/"failure" directories
+    do_upload: bool = False                         # Whether to upload trajectories to S3 after full processing
+
+    # Important :: Only update once you're sure *all* demonstrations prior to this date have been uploaded!
+    #   > If not running low on disk, leave alone!
+    start_date: str = "2023-01-01"                  # Start indexing/processing/uploading demos starting from this date
+
+    # Cache Parameters
+    cache_dir: Path = Path("postprocessing-cache")  # Relative path to `cache` directory; defaults to repository root
+    # fmt: on
+
+
+@pyrallis.wrap()
+def postprocess(cfg: R2D2UploadConfig) -> None:
+    print(f"[*] Starting Data Processing & Upload for Lab `{cfg.lab}`")
+
+    # Initialize Cache Data Structure --> Load Uploaded/Processed List from `cache_dir` (if exists)
+    cache = {
+        "lab": cfg.lab,
+        "start_date": cfg.start_date,
+        "totals": {"indexed": 0, "processed": 0, "uploaded": 0, "errored": 0},
+        "indexed_uuids": {"success": {}, "failure": {}},
+        "processed_uuids": {"success": {}, "failure": {}},
+        "uploaded_uuids": {"success": {}, "failure": {}},
+        "errored_paths": {"success": {}, "failure": {}},
+    }
+    os.makedirs(cfg.cache_dir, exist_ok=True)
+    if (cfg.cache_dir / f"{cfg.lab}-cache.json").exists():
+        with open(cfg.cache_dir / f"{cfg.lab}-cache.json", "r") as f:
+            cache = json.load(f)
+
+    # === Run Post-Processing Stages ===
+    try:
+        # Stage 1 --> "Indexing"
+        start_datetime = parse_datetime(cfg.start_date, mode="day")
+        indexed_uuids, errored_paths = run_indexing(
+            cfg.data_dir,
+            cfg.lab,
+            start_datetime,
+            aliases=REGISTERED_ALIASES,
+            members=REGISTERED_MEMBERS,
+            indexed_uuids=cache["indexed_uuids"],
+            errored_paths=cache["errored_paths"],
+        )
+
+        # Update Cache
+        cache["totals"]["indexed"] = sum(len(indexed_uuids[outcome]) for outcome in ["success", "failure"])
+        cache["totals"]["errored"] = sum(len(errored_paths[outcome]) for outcome in ["success", "failure"])
+        cache["indexed_uuids"], cache["errored_paths"] = indexed_uuids, errored_paths
+
+        # Stage 2 --> "Processing"
+        processed_uuids, errored_paths = run_processing(
+            cfg.data_dir,
+            cfg.lab,
+            aliases=REGISTERED_ALIASES,
+            members=REGISTERED_MEMBERS,
+            indexed_uuids=cache["indexed_uuids"],
+            processed_uuids=cache["processed_uuids"],
+            errored_paths=cache["errored_paths"],
+        )
+
+        # Update Cache
+        cache["totals"]["processed"] = sum(len(processed_uuids[outcome]) for outcome in ["success", "failure"])
+        cache["totals"]["errored"] = sum(len(errored_paths[outcome]) for outcome in ["success", "failure"])
+        cache["processed_uuids"], cache["errored_paths"] = processed_uuids, errored_paths
+
+        # Stage 3 --> "Upload"
+        if cfg.do_upload:
+            raise NotImplementedError("Work in Progress!")
+
+    finally:
+        # Dump `cache` on any interruption!
+        with open(cfg.cache_dir / f"{cfg.lab}-cache.json", "w") as f:
+            json.dump(cache, f, indent=2)
+
+        # Print Statistics
+        print(
+            "\n"
+            "[*] Terminated Post-Processing Script --> Summary:\n"
+            f"\t- Indexed:      {cache['totals']['indexed']}\n"
+            f"\t- Processed:    {cache['totals']['processed']}\n"
+            f"\t- Uploaded:     {cache['totals']['uploaded']}\n"
+            f"\t- Total Errors: {cache['totals']['errored']}\n\n"
+            f"[*] See `{cfg.lab}-cache.json` in {cfg.cache_dir} for more information!\n"
+        )
+
+
+if __name__ == "__main__":
+    postprocess()

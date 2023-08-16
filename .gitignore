@@ -132,3 +132,13 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Scratch
+scratch-reference/
+
+# MacOS
+.DS_Store
+
+# IDE Caches
+.idea/
+.vscode/
