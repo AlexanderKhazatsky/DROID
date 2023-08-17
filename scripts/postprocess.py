@@ -24,7 +24,7 @@ from typing import Dict, Tuple
 import pyrallis
 
 from r2d2.postprocessing.parse import parse_datetime
-from r2d2.postprocessing.stages import run_indexing, run_processing
+from r2d2.postprocessing.stages import run_indexing, run_processing, run_upload
 from r2d2.postprocessing.util.validate import validate_user2id
 
 # Registry of known labs and associated users. Note that we canonicalize names as "<F>irst <L>ast".
@@ -110,12 +110,18 @@ class R2D2UploadConfig:
     data_dir: Path = Path("data")                   # Path to top-level directory with "success"/"failure" directories
 
     # Stage Handling
-    do_index: bool = True                           # Whether to run an initial indexing pass prior to processing
-    do_upload: bool = False                         # Whether to upload trajectories to S3 after full processing
+    do_index: bool = False                          # Whether to run an initial indexing pass prior to processing stage
+    do_process: bool = False                        # Whether to run processing (can skip if just want to upload)
+    do_upload: bool = True                          # Whether to run uploading to S3
 
     # Important :: Only update once you're sure *all* demonstrations prior to this date have been uploaded!
     #   > If not running low on disk, leave alone!
     start_date: str = "2023-01-01"                  # Start indexing/processing/uploading demos starting from this date
+
+    # AWS/S3 Upload Credentials
+    credentials_json: Path = Path(                  # Path to JSON file with Access Key/Secret Key (don't push to git!)
+        "r2d2-credentials.json"
+    )
 
     # Cache Parameters
     cache_dir: Path = Path("cache/postprocessing")  # Relative path to `cache` directory; defaults to repository root
@@ -131,7 +137,8 @@ def postprocess(cfg: R2D2UploadConfig) -> None:
     cache = {
         "lab": cfg.lab,
         "start_date": cfg.start_date,
-        "totals": {"indexed": 0, "processed": 0, "uploaded": 0, "errored": 0},
+        "totals": {k: {"success": 0, "failure": 0} for k in ["scanned", "indexed", "processed", "uploaded", "errored"]},
+        "scanned_paths": {"success": {}, "failure": {}},
         "indexed_uuids": {"success": {}, "failure": {}},
         "processed_uuids": {"success": {}, "failure": {}},
         "uploaded_uuids": {"success": {}, "failure": {}},
@@ -140,7 +147,11 @@ def postprocess(cfg: R2D2UploadConfig) -> None:
     os.makedirs(cfg.cache_dir, exist_ok=True)
     if (cfg.cache_dir / f"{cfg.lab}-cache.json").exists():
         with open(cfg.cache_dir / f"{cfg.lab}-cache.json", "r") as f:
-            cache = json.load(f)
+            loaded_cache = json.load(f)
+
+            # Only replace cache on matched `start_date` --> not an ideal solution (cache invalidation is hard!)
+            if loaded_cache["start_date"] == cache["start_date"]:
+                cache = loaded_cache
 
     # === Run Post-Processing Stages ===
     try:
@@ -155,25 +166,40 @@ def postprocess(cfg: R2D2UploadConfig) -> None:
                 aliases=REGISTERED_ALIASES,
                 members=REGISTERED_MEMBERS,
                 totals=cache["totals"],
+                scanned_paths=cache["scanned_paths"],
                 indexed_uuids=cache["indexed_uuids"],
                 errored_paths=cache["errored_paths"],
             )
+        else:
+            print("[*] Stage 1 =>> Skipping Indexing!")
 
         # Stage 2 --> "Processing"
-        run_processing(
-            cfg.data_dir,
-            cfg.lab,
-            aliases=REGISTERED_ALIASES,
-            members=REGISTERED_MEMBERS,
-            totals=cache["totals"],
-            indexed_uuids=cache["indexed_uuids"],
-            processed_uuids=cache["processed_uuids"],
-            errored_paths=cache["errored_paths"],
-        )
+        if cfg.do_process:
+            run_processing(
+                cfg.data_dir,
+                cfg.lab,
+                aliases=REGISTERED_ALIASES,
+                members=REGISTERED_MEMBERS,
+                totals=cache["totals"],
+                indexed_uuids=cache["indexed_uuids"],
+                processed_uuids=cache["processed_uuids"],
+                errored_paths=cache["errored_paths"],
+            )
+        else:
+            print("[*] Stage 2 =>> Skipping Processing!")
 
         # Stage 3 --> "Upload"
         if cfg.do_upload:
-            raise NotImplementedError("Work in Progress!")
+            run_upload(
+                cfg.data_dir,
+                cfg.lab,
+                cfg.credentials_json,
+                totals=cache["totals"],
+                processed_uuids=cache["processed_uuids"],
+                uploaded_uuids=cache["uploaded_uuids"],
+            )
+        else:
+            print("[*] Stage 3 =>> Skipping Uploading!")
 
     finally:
         # Dump `cache` on any interruption!
@@ -182,12 +208,14 @@ def postprocess(cfg: R2D2UploadConfig) -> None:
 
         # Print Statistics
         print(
-            "\n"
             "[*] Terminated Post-Processing Script --> Summary:\n"
-            f"\t- Indexed:      {cache['totals']['indexed']}\n"
-            f"\t- Processed:    {cache['totals']['processed']}\n"
-            f"\t- Uploaded:     {cache['totals']['uploaded']}\n"
-            f"\t- Total Errors: {cache['totals']['errored']}\n\n"
+            f"\t- Scanned:      {sum(cache['totals']['scanned'].values())}\n"
+            f"\t- Indexed:      {sum(cache['totals']['indexed'].values())}\n"
+            f"\t- Processed:    {sum(cache['totals']['processed'].values())}\n"
+            f"\t- Uploaded:     {sum(cache['totals']['uploaded'].values())}\n"
+            f"\t- Total Errors: {sum(cache['totals']['errored'].values())}\n"
+            f"\t  -> Errors in `success/` [FIX IMMEDIATELY]: {cache['totals']['errored']['success']}\n"
+            f"\t  -> Errors in `failure/` [VERIFY]: {cache['totals']['errored']['failure']}\n\n"
             f"[*] See `{cfg.lab}-cache.json` in {cfg.cache_dir} for more information!\n"
         )
 

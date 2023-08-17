@@ -1,7 +1,7 @@
 """
 stages.py
 
-Encapsulates logic for the various postprocessing stages:
+Functions capturing logic for the various postprocessing stages:
     - Stage 1 :: "Indexing"  -->  Quickly iterate through all data, identifying formatting errors & naively counting
                                   total number of demonstrations to process/convert/upload.
 
@@ -23,6 +23,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, Tuple
 
+import boto3
 from tqdm import tqdm
 
 from r2d2.postprocessing.parse import parse_datetime, parse_timestamp, parse_trajectory, parse_user
@@ -37,7 +38,8 @@ def run_indexing(
     start_datetime: datetime,
     aliases: Dict[str, Tuple[str, str]],
     members: Dict[str, Dict[str, str]],
-    totals: Dict[str, int],
+    totals: Dict[str, Dict[str, int]],
+    scanned_paths: Dict[str, Dict[str, str]],
     indexed_uuids: Dict[str, Dict[str, str]],
     errored_paths: Dict[str, Dict[str, str]],
 ) -> None:
@@ -53,13 +55,20 @@ def run_indexing(
             if parse_datetime(day) < start_datetime:
                 continue
 
-            for trajectory_dir, _trajectory in [(p, p.name) for p in day_dir.iterdir() if p.is_dir()]:
+            for trajectory_dir in [p for p in day_dir.iterdir() if p.is_dir()]:
+                rel_trajectory_dir = str(trajectory_dir.relative_to(data_dir))
+
                 # Extract Timestamp (from `trajectory_dir`) and User, User ID (from `trajectory.h5`)
                 timestamp = parse_timestamp(trajectory_dir)
                 user, user_id = parse_user(trajectory_dir, aliases, members)
                 if user is None or user_id is None:
-                    errored_paths[outcome][str(trajectory_dir.relative_to(data_dir))] = "Missing/Invalid HDF5"
-                    totals["errored"] = sum(len(errored_paths[outcome]) for outcome in ["success", "failure"])
+                    scanned_paths[outcome][rel_trajectory_dir] = True
+                    errored_paths[outcome][rel_trajectory_dir] = (
+                        "[Indexing Error] Missing/Invalid HDF5! "
+                        "If the HDF5 is missing/corrupt, you can delete this trajectory!"
+                    )
+                    totals["scanned"][outcome] = len(scanned_paths[outcome])
+                    totals["errored"][outcome] = len(errored_paths[outcome])
                     progress.update()
                     continue
 
@@ -68,16 +77,23 @@ def run_indexing(
 
                 # Verify SVO Files
                 if not validate_svo_existence(trajectory_dir):
-                    errored_paths[outcome][str(trajectory_dir.relative_to(data_dir))] = "Missing SVO Files"
-                    sum(len(errored_paths[outcome]) for outcome in ["success", "failure"])
+                    scanned_paths[outcome][rel_trajectory_dir] = True
+                    errored_paths[outcome][rel_trajectory_dir] = (
+                        "[Indexing Error] Missing SVO Files! "
+                        "Ensure SVO files are in `<timestamp>/recordings/SVO/<serial>.svo, NOT in `recordings/*.svo`!"
+                    )
+                    totals["scanned"][outcome] = len(scanned_paths[outcome])
+                    totals["errored"][outcome] = len(errored_paths[outcome])
                     progress.update()
                     continue
 
                 # Otherwise -- we're good for indexing!
-                indexed_uuids[outcome][uuid] = str(trajectory_dir.relative_to(data_dir))
-                errored_paths[outcome].pop(str(trajectory_dir.relative_to(data_dir)), None)
-                totals["indexed"] = sum(len(indexed_uuids[outcome]) for outcome in ["success", "failure"])
-                totals["errored"] = sum(len(errored_paths[outcome]) for outcome in ["success", "failure"])
+                indexed_uuids[outcome][uuid] = rel_trajectory_dir
+                scanned_paths[outcome][rel_trajectory_dir] = True
+                errored_paths[outcome].pop(rel_trajectory_dir, None)
+                totals["scanned"][outcome] = len(scanned_paths[outcome])
+                totals["indexed"][outcome] = len(indexed_uuids[outcome])
+                totals["errored"][outcome] = len(errored_paths[outcome])
                 progress.update()
 
 
@@ -87,12 +103,12 @@ def run_processing(
     lab: str,
     aliases: Dict[str, Tuple[str, str]],
     members: Dict[str, Dict[str, str]],
-    totals: Dict[str, int],
+    totals: Dict[str, Dict[str, int]],
     indexed_uuids: Dict[str, Dict[str, str]],
     processed_uuids: Dict[str, Dict[str, str]],
     errored_paths: Dict[str, Dict[str, str]],
     process_batch_limit: int = 1000,
-) -> Tuple[Dict[str, Dict[str, str]], Dict[str, Dict[str, str]]]:
+) -> None:
     """Iterate through each trajectory in `indexed_uuids` and 1) extract JSON metadata and 2) convert SVO -> MP4."""
     for outcome in indexed_uuids:
         uuid2trajectory_generator, counter = indexed_uuids[outcome].items(), 0
@@ -109,8 +125,8 @@ def run_processing(
                 data_dir, trajectory_dir, uuid, lab, user, user_id, timestamp
             )
             if not valid_parse:
-                errored_paths[outcome][rel_trajectory_dir] = "JSON Metadata Parse Error"
-                totals["errored"] = sum(len(errored_paths[outcome]) for outcome in ["success", "failure"])
+                errored_paths[outcome][rel_trajectory_dir] = "[Processing Error] JSON Metadata Parse Error"
+                totals["errored"][outcome] = len(errored_paths[outcome])
                 continue
 
             # Convert SVOs --> MP4s
@@ -124,8 +140,8 @@ def run_processing(
                 metadata_record["ext2_cam_extrinsics"],
             )
             if not valid_convert:
-                errored_paths[outcome][rel_trajectory_dir] = "Corrupted SVO / Failed Conversion"
-                totals["errored"] = sum(len(errored_paths[outcome]) for outcome in ["success", "failure"])
+                errored_paths[outcome][rel_trajectory_dir] = "[Processing Error] Corrupted SVO / Failed Conversion"
+                totals["errored"][outcome] = len(errored_paths[outcome])
                 continue
 
             # Finalize Metadata Record
@@ -134,25 +150,68 @@ def run_processing(
 
             # Validate
             if not validate_metadata_record(metadata_record):
-                errored_paths[outcome][rel_trajectory_dir] = "Incomplete Metadata Record!"
-                totals["errored"] = sum(len(errored_paths[outcome]) for outcome in ["success", "failure"])
+                errored_paths[outcome][rel_trajectory_dir] = "[Processing Error] Incomplete Metadata Record!"
+                totals["errored"][outcome] = len(errored_paths[outcome])
                 continue
 
             # Write JSON
-            with open(trajectory_dir / "metadata.json", "w") as f:
+            with open(trajectory_dir / f"metadata_{uuid}.json", "w") as f:
                 json.dump(metadata_record, f)
 
             # Otherwise --> we're good for processing!
             processed_uuids[outcome][uuid] = rel_trajectory_dir
             errored_paths[outcome].pop(rel_trajectory_dir, None)
-            totals["processed"] = sum(len(processed_uuids[outcome]) for outcome in ["success", "failure"])
-            totals["errored"] = sum(len(errored_paths[outcome]) for outcome in ["success", "failure"])
+            totals["processed"][outcome] = len(processed_uuids[outcome])
+            totals["errored"][outcome] = len(errored_paths[outcome])
             counter += 1
 
             # Note :: ZED SDK has an unfortunate problem with segmentation faults after processing > 2000 videos.
             #         Unfortunately, no good way to catch/handle a segfault from Python --> instead we just set
             #         a max limit `process_batch_limit` and trust that caching works.
             if counter > process_batch_limit:
-                return processed_uuids, errored_paths
+                return
 
-    return processed_uuids, errored_paths
+
+# === Stage 3 :: Uploading ===
+def run_upload(
+    data_dir: Path,
+    lab: str,
+    credentials_json: Path,
+    totals: Dict[str, Dict[str, int]],
+    processed_uuids: Dict[str, Dict[str, str]],
+    uploaded_uuids: Dict[str, Dict[str, str]],
+    bucket_name: str = "r2d2-data",
+    prefix: str = "lab-uploads/",
+) -> None:
+    """Iterate through each successfully processed trajectory in `processed_uuids` and upload to S3."""
+    with open(credentials_json, "r") as f:
+        credentials = json.load(f)
+
+    # Initialize S3 Client from Credentials & Validate
+    client = boto3.client(
+        "s3", aws_access_key_id=credentials["AccessKeyID"], aws_secret_access_key=credentials["SecretAccessKey"]
+    )
+    response = client.head_bucket(Bucket=bucket_name)
+    assert (
+        response["ResponseMetadata"]["HTTPStatusCode"] == 200
+    ), "Problem connecting to S3 bucket; verify credentials JSON file!"
+
+    # Start Uploading
+    for outcome in processed_uuids:
+        uuid2trajectory_generator = processed_uuids[outcome].items()
+        for uuid, rel_trajectory_dir in tqdm(uuid2trajectory_generator, desc=f"[*] Stage 3 =>> `{outcome}` Uploading"):
+            if uuid in uploaded_uuids[outcome]:
+                continue
+
+            # Recursively walk through each file in the `trajectory_dir` and upload one at a time!
+            trajectory_dir = data_dir / rel_trajectory_dir
+            for child in tqdm(
+                list(trajectory_dir.rglob("*")), desc=f"     => Uploading `{rel_trajectory_dir}`", leave=False
+            ):
+                if child.is_file():
+                    s3_path = str(Path(prefix) / lab / child.relative_to(data_dir))
+                    client.upload_file(str(child), Bucket=bucket_name, Key=s3_path)
+
+            # If we've managed to upload all files without error, then we're good for uploading!
+            uploaded_uuids[outcome][uuid] = rel_trajectory_dir
+            totals["uploaded"][outcome] = len(uploaded_uuids[outcome])

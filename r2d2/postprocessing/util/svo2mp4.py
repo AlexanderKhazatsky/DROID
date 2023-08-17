@@ -138,7 +138,7 @@ def convert_mp4s(
     }
 
     if do_fuse:
-        # Build Fused File via FFMPEG
+        # Build Fused Left/Right MP4 Files via FFMPEG
         left, right = str(mp4_path / f"{left_serial}.mp4"), str(mp4_path / f"{right_serial}.mp4")
         subprocess.run(
             f"ffmpeg -y -i {left} -i {right} -vsync 2 -filter_complex hstack {mp4_path / 'fused.mp4'!s}",

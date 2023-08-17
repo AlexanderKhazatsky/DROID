@@ -135,6 +135,7 @@ dmypy.json
 
 # Scratch
 scratch-reference/
+clean.py
 
 # MacOS
 .DS_Store
@@ -142,3 +143,7 @@ scratch-reference/
 # IDE Caches
 .idea/
 .vscode/
+
+# AWS Credentials
+r2d2-credentials.json
+*credentials.json
