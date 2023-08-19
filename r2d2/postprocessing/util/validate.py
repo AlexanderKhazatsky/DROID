@@ -7,7 +7,9 @@ post-processing loop.
 
 It is up to the individual users to correct these errors/manually override them.
 """
+import os
 import re
+import shutil
 from datetime import datetime
 from pathlib import Path
 from typing import Dict
@@ -38,7 +40,19 @@ def validate_day_dir(day_dir: Path) -> bool:
 
 def validate_svo_existence(trajectory_dir: Path) -> bool:
     svo_path = trajectory_dir / "recordings" / "SVO"
-    return svo_path.exists() and (len(list(svo_path.iterdir())) == 3)
+    if svo_path.exists() and (len([p for p in svo_path.iterdir() if p.name.endswith(".svo")]) == 3):
+        return True
+
+    # Check Common Failure Mode --> files at `trajectory_dir / recordings / *.svo`
+    fallback_svo_path = trajectory_dir / "recordings"
+    if fallback_svo_path.exists() and (len([p for p in fallback_svo_path.iterdir() if p.name.endswith(".svo")]) == 3):
+        os.makedirs(svo_path, exist_ok=True)
+        svo_files = list([p for p in fallback_svo_path.iterdir() if p.name.endswith(".svo")])
+        for file in svo_files:
+            shutil.move(file, svo_path / file.name)
+        return len([p for p in svo_path.iterdir() if p.name.endswith(".svo")]) == 3
+
+    return False
 
 
 # === Metadata Record Validator ===

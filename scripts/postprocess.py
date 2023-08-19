@@ -110,8 +110,8 @@ class R2D2UploadConfig:
     data_dir: Path = Path("data")                   # Path to top-level directory with "success"/"failure" directories
 
     # Stage Handling
-    do_index: bool = False                          # Whether to run an initial indexing pass prior to processing stage
-    do_process: bool = False                        # Whether to run processing (can skip if just want to upload)
+    do_index: bool = True                           # Whether to run an initial indexing pass prior to processing stage
+    do_process: bool = True                         # Whether to run processing (can skip if just want to upload)
     do_upload: bool = True                          # Whether to run uploading to S3
 
     # Important :: Only update once you're sure *all* demonstrations prior to this date have been uploaded!

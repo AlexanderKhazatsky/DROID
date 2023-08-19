@@ -80,7 +80,7 @@ def run_indexing(
                     scanned_paths[outcome][rel_trajectory_dir] = True
                     errored_paths[outcome][rel_trajectory_dir] = (
                         "[Indexing Error] Missing SVO Files! "
-                        "Ensure SVO files are in `<timestamp>/recordings/SVO/<serial>.svo, NOT in `recordings/*.svo`!"
+                        "Ensure all 3 SVO files are in `<timestamp>/recordings/SVO/<serial>.svo!"
                     )
                     totals["scanned"][outcome] = len(scanned_paths[outcome])
                     totals["errored"][outcome] = len(errored_paths[outcome])
