@@ -133,7 +133,7 @@ These failures are logged during execution, and only reported in aggregate in th
 To get individual errors, look at your lab's cache file `cache/postprocessing/<lab>-cache.json`. Under the `totals`
 key, you'll see a JSON dictionary with the following:
 
-```json
+```
 {
     "totals": {
       ...
