@@ -107,7 +107,7 @@ def run_processing(
     indexed_uuids: Dict[str, Dict[str, str]],
     processed_uuids: Dict[str, Dict[str, str]],
     errored_paths: Dict[str, Dict[str, str]],
-    process_batch_limit: int = 1000,
+    process_batch_limit: int = 250,
 ) -> None:
     """Iterate through each trajectory in `indexed_uuids` and 1) extract JSON metadata and 2) convert SVO -> MP4."""
     for outcome in indexed_uuids:
@@ -169,6 +169,7 @@ def run_processing(
             #         Unfortunately, no good way to catch/handle a segfault from Python --> instead we just set
             #         a max limit `process_batch_limit` and trust that caching works.
             if counter > process_batch_limit:
+                print("[*] EXITING TO PREVENT SVO SEGFAULT!")
                 return
 
 

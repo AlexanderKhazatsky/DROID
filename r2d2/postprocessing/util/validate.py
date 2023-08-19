@@ -46,7 +46,7 @@ def validate_svo_existence(trajectory_dir: Path) -> bool:
     # Check Common Failure Mode --> files at `trajectory_dir / recordings / *.svo`
     fallback_svo_path = trajectory_dir / "recordings"
     if fallback_svo_path.exists() and (len([p for p in fallback_svo_path.iterdir() if p.name.endswith(".svo")]) == 3):
-        os.makedirs(svo_path, exist_ok=True)
+        os.makedirs(svo_path, exist_ok=False)
         svo_files = list([p for p in fallback_svo_path.iterdir() if p.name.endswith(".svo")])
         for file in svo_files:
             shutil.move(file, svo_path / file.name)
