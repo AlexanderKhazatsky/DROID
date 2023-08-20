@@ -39,7 +39,7 @@ To upload new demonstrations:
    automatically created by the data collection GUI, and should be formatted following the
    "Expected Data Directory Structure" section below.
 
-5. Run the script from the root of the repository `python scripts/postprocessing.py`.
+5. Run the script from the root of the repository `python scripts/postprocess.py`.
    + If you run into errors, or the script outputs "Errors in... [FIX IMMEDIATELY]" or "Errors in... [VERIFY]",
      consult the "Debugging Common Failures" section below.
 
@@ -95,7 +95,7 @@ The script will complain/log any deviations from the above format... but try to 
 
 ### Debugging Common Failures
 
-Running `python scripts/postprocessing.py` will iterate through all demonstrations in `data_dir` throwing either "hard"
+Running `python scripts/postprocess.py` will iterate through all demonstrations in `data_dir` throwing either "hard"
 or "silent" errors. Hard errors stop execution of the script until they are fixed, while "silent" errors are logged
 and reported to you at the end of execution (and are stored in the `<lab>-cache.json` file).
 
