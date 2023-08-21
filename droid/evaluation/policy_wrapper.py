@@ -65,12 +65,12 @@ class PolicyWrapper:
 
 
 class PolicyWrapperRobomimic:
-    def __init__(self, policy, timestep_filtering_kwargs, image_transform_kwargs, eval_mode=True):
+    def __init__(self, policy, timestep_filtering_kwargs, image_transform_kwargs, frame_stack, eval_mode=True):
         self.policy = policy
 
         assert eval_mode is True
 
-        self.fs_wrapper = FrameStackWrapper(num_frames=10)
+        self.fs_wrapper = FrameStackWrapper(num_frames=frame_stack)
         self.fs_wrapper.reset()
         self.policy.start_episode()
 
