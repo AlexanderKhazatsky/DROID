@@ -84,16 +84,16 @@ class PolicyWrapperRobomimic:
 
         im0 = processed_timestep["observation"]["camera"]["image"]["hand_camera"][0]
 
-        # # TODO: correctly infer camera images
-        # im1 = processed_timestep["observation"]["camera"]["image"]["varied_camera"][0]
-        # im2 = processed_timestep["observation"]["camera"]["image"]["varied_camera"][2]
+        # TODO: correctly infer camera images
+        im1 = processed_timestep["observation"]["camera"]["image"]["varied_camera"][0]
+        im2 = processed_timestep["observation"]["camera"]["image"]["varied_camera"][2]
 
         obs = {
             "robot_state/cartesian_position": np.array(observation["robot_state"]["cartesian_position"]),
             "robot_state/gripper_position": np.array([observation["robot_state"]["gripper_position"]]),
             "camera/image/hand_camera_image": im0,
-            # "camera/image/varied_camera_left_image": im1,
-            # "camera/image/varied_camera_right_image": im2,
+            "camera/image/varied_camera_1_image": im1,
+            "camera/image/varied_camera_2_image": im2,
         }
         
         self.fs_wrapper.add_obs(obs)
