@@ -45,10 +45,23 @@ def eval_launcher(variant, run_id, exp_id):
     ckpt_dict["config"] = json.dumps(config)
     policy, _ = FileUtils.policy_from_checkpoint(ckpt_dict=ckpt_dict, device=device, verbose=True)
 
+    # determine the action space (relative or absolute)
+    action_keys = config.train.action_keys
+    if "action/rel_pos" in action_keys:
+        action_space = "cartesian_velocity"
+        for k in action_keys:
+            assert not k.startswith("action/abs_")
+    elif "action/abs_pos" in action_keys:
+        action_space = "cartesian_position"
+        for k in action_keys:
+            assert not k.startswith("action/rel_")
+    else:
+        raise ValueError
+
     # Prepare Policy Wrapper #
     data_processing_kwargs = dict(
         timestep_filtering_kwargs=dict(
-            action_space="cartesian_velocity",
+            action_space=action_space,
             robot_state_keys=["cartesian_position", "gripper_position", "joint_positions"],
             camera_extrinsics=[],
         ),
@@ -73,6 +86,7 @@ def eval_launcher(variant, run_id, exp_id):
         policy=policy,
         timestep_filtering_kwargs=policy_timestep_filtering_kwargs,
         image_transform_kwargs=policy_image_transform_kwargs,
+        frame_stack=config.train.frame_stack,
         eval_mode=True,
     )
 
