@@ -1,0 +1,7 @@
+[submodule "r2d2/fairo"]
+	path = r2d2/fairo
+	url = git@github.com:facebookresearch/fairo.git
+[submodule "r2d2/oculus_reader"]
+	path = r2d2/oculus_reader
+	url = git@github.com:peterdavidfagan/oculus_reader.git
+	branch = main
