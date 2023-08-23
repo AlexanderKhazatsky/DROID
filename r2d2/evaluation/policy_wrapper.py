@@ -100,9 +100,6 @@ class PolicyWrapperRobomimic:
         obs_history = self.fs_wrapper.get_obs_history()
         action = self.policy(obs_history)
 
-        # clip action
-        action = np.clip(action, a_min=-1, a_max=1)
-
         return action
 
     def reset(self):
