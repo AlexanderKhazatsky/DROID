@@ -13,13 +13,14 @@ from droid.misc.transformations import change_pose_frame
 
 
 class RobotEnv(gym.Env):
-    def __init__(self, action_space="cartesian_velocity", camera_kwargs={}):
+    def __init__(self, action_space="cartesian_velocity", gripper_action_space=None, camera_kwargs={}):
         # Initialize Gym Environment
         super().__init__()
 
         # Define Action Space #
         assert action_space in ["cartesian_position", "joint_position", "cartesian_velocity", "joint_velocity"]
         self.action_space = action_space
+        self.gripper_action_space = gripper_action_space
         self.check_action_range = "velocity" in action_space
 
         # Robot Configuration
@@ -51,7 +52,11 @@ class RobotEnv(gym.Env):
             assert (action.max() <= 1) and (action.min() >= -1)
 
         # Update Robot
-        action_info = self.update_robot(action, action_space=self.action_space)
+        action_info = self.update_robot(
+            action,
+            action_space=self.action_space,
+            gripper_action_space=self.gripper_action_space,
+        )
 
         # Return Action Info
         return action_info
@@ -66,8 +71,13 @@ class RobotEnv(gym.Env):
 
         self._robot.update_joints(self.reset_joints, velocity=False, blocking=True, cartesian_noise=noise)
 
-    def update_robot(self, action, action_space="cartesian_velocity", blocking=False):
-        action_info = self._robot.update_command(action, action_space=action_space, blocking=blocking)
+    def update_robot(self, action, action_space="cartesian_velocity", gripper_action_space=None, blocking=False):
+        action_info = self._robot.update_command(
+            action,
+            action_space=action_space,
+            gripper_action_space=gripper_action_space,
+            blocking=blocking
+        )
         return action_info
 
     def create_action_dict(self, action):
