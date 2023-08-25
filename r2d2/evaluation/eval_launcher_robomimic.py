@@ -81,6 +81,14 @@ def eval_launcher(variant, run_id, exp_id):
     else:
         raise ValueError
 
+    # determine the action space for the gripper
+    if "action/gripper_velocity" in action_keys:
+        gripper_action_space = "velocity"
+    elif "action/gripper_position" in action_keys:
+        gripper_action_space = "position"
+    else:
+        raise ValueError
+
     # Prepare Policy Wrapper #
     data_processing_kwargs = dict(
         timestep_filtering_kwargs=dict(
@@ -129,12 +137,12 @@ def eval_launcher(variant, run_id, exp_id):
         gripper_action_space=policy_timestep_filtering_kwargs["gripper_action_space"],
         camera_kwargs=policy_camera_kwargs
     )
-    # controller = VRPolicy()
+    controller = VRPolicy()
 
     # Launch GUI #
     data_collector = DataCollecter(
         env=env,
-        controller=None,
+        controller=controller,
         policy=wrapped_policy,
         save_traj_dir=log_dir,
         save_data=variant.get("save_data", True),
