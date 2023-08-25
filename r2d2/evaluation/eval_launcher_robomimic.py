@@ -58,10 +58,19 @@ def eval_launcher(variant, run_id, exp_id):
     else:
         raise ValueError
 
+    # determine the action space for the gripper
+    if "action/gripper_velocity" in action_keys:
+        gripper_action_space = "velocity"
+    elif "action/gripper_position" in action_keys:
+        gripper_action_space = "position"
+    else:
+        raise ValueError
+
     # Prepare Policy Wrapper #
     data_processing_kwargs = dict(
         timestep_filtering_kwargs=dict(
             action_space=action_space,
+            gripper_action_space=gripper_action_space,
             robot_state_keys=["cartesian_position", "gripper_position", "joint_positions"],
             camera_extrinsics=[],
         ),
@@ -90,9 +99,6 @@ def eval_launcher(variant, run_id, exp_id):
         eval_mode=True,
     )
 
-    # Prepare Environment #
-    policy_action_space = policy_timestep_filtering_kwargs["action_space"]
-
     camera_kwargs = dict(
         hand_camera=dict(image=True, concatenate_images=False, resolution=(imsize, imsize), resize_func="cv2"),
         varied_camera=dict(image=True, concatenate_images=False, resolution=(imsize, imsize), resize_func="cv2"),
@@ -101,7 +107,11 @@ def eval_launcher(variant, run_id, exp_id):
     policy_camera_kwargs = {}
     policy_camera_kwargs.update(camera_kwargs)
 
-    env = RobotEnv(action_space=policy_action_space, camera_kwargs=policy_camera_kwargs)
+    env = RobotEnv(
+        action_space=policy_timestep_filtering_kwargs["action_space"],
+        gripper_action_space=policy_timestep_filtering_kwargs["gripper_action_space"],
+        camera_kwargs=policy_camera_kwargs
+    )
     controller = VRPolicy()
 
     # Launch GUI #
