@@ -98,6 +98,7 @@ class RealSenseCamera:
 		timestamp_dict = {self.serial_number +'_read_start': time_ms()}
 		frames = self._pipeline.wait_for_frames()
 		timestamp_dict[self.serial_number + '_read_end'] = time_ms()
+		timestamp_dict[self.serial_number + '_frame_capture'] = int(frames.get_timestamp()) # time at which the frame was captured.
 		if self.image:
 			color_frame = frames.get_color_frame()
 			color_image = np.asanyarray(color_frame.get_data())
