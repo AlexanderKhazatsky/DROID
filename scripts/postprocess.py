@@ -68,6 +68,13 @@ REGISTERED_MEMBERS: Dict[str, Dict[str, str]] = {
         "Jason Ma": "c5f808b7",
         "Vaidehi Som": "06b0ffa5",
     },
+    
+    "RAD": {
+        "Abdul Rehman": "c6cf6b42",
+        "Aditya Kamireddypalli": "ac111655",
+        "Jack Rome": "284fa481",
+        "Peter Fagan": "62828209",
+    },
 
     "RAIL": {
         "Christian Avina": "ah6fcd56",
