@@ -72,7 +72,7 @@ def eval_launcher(variant, run_id, exp_id):
             action_space=action_space,
             gripper_action_space=gripper_action_space,
             robot_state_keys=["cartesian_position", "gripper_position", "joint_positions"],
-            camera_extrinsics=[],
+            # camera_extrinsics=[],
         ),
         image_transform_kwargs=dict(
             remove_alpha=True,
