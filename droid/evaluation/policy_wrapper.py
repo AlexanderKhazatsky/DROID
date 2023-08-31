@@ -82,15 +82,27 @@ class PolicyWrapperRobomimic:
         timestep = {"observation": observation}
         processed_timestep = self.timestep_processor.forward(timestep)
 
+        extrinsics_dict = processed_timestep["extrinsics_dict"]
+
         obs = {
             "robot_state/cartesian_position": np.array(observation["robot_state"]["cartesian_position"]),
             "robot_state/gripper_position": np.array([observation["robot_state"]["gripper_position"]]),
+            
             "camera/image/hand_camera_left_image": processed_timestep["observation"]["camera"]["image"]["hand_camera"][0],
             "camera/image/hand_camera_right_image": processed_timestep["observation"]["camera"]["image"]["hand_camera"][1],
             "camera/image/varied_camera_1_left_image": processed_timestep["observation"]["camera"]["image"]["varied_camera"][0],
             "camera/image/varied_camera_1_right_image": processed_timestep["observation"]["camera"]["image"]["varied_camera"][1],
             "camera/image/varied_camera_2_left_image": processed_timestep["observation"]["camera"]["image"]["varied_camera"][2],
             "camera/image/varied_camera_2_right_image": processed_timestep["observation"]["camera"]["image"]["varied_camera"][3],
+
+            "camera/extrinsics/hand_camera_left": extrinsics_dict["hand_camera"][0],
+            "camera/extrinsics/hand_camera_left_gripper_offset": extrinsics_dict["hand_camera"][1],
+            "camera/extrinsics/hand_camera_right": extrinsics_dict["hand_camera"][2],
+            "camera/extrinsics/hand_camera_right_gripper_offset": extrinsics_dict["hand_camera"][3],
+            "camera/extrinsics/varied_camera_1_left": extrinsics_dict["varied_camera"][0],
+            "camera/extrinsics/varied_camera_1_right": extrinsics_dict["varied_camera"][1],
+            "camera/extrinsics/varied_camera_2_left": extrinsics_dict["varied_camera"][2],
+            "camera/extrinsics/varied_camera_2_right": extrinsics_dict["varied_camera"][3],
         }
         
         self.fs_wrapper.add_obs(obs)

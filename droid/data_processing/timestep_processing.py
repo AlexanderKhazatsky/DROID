@@ -95,4 +95,7 @@ class TimestepProcesser:
             action = np.concatenate([arm_action, [gripper_action]], dtype=self.action_dtype)
             processed_timestep["action"] = action
 
+        # return raw information + meta data
+        processed_timestep["extrinsics_dict"] = extrinsics_dict
+
         return processed_timestep
