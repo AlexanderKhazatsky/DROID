@@ -86,7 +86,7 @@ class PolicyWrapperRobomimic:
 
         obs = {
             "robot_state/cartesian_position": observation["robot_state"]["cartesian_position"],
-            "robot_state/gripper_position": observation["robot_state"]["gripper_position"],
+            "robot_state/gripper_position": [observation["robot_state"]["gripper_position"]], # wrap as array, raw data is single float
             
             "camera/image/hand_camera_left_image": processed_timestep["observation"]["camera"]["image"]["hand_camera"][0],
             "camera/image/hand_camera_right_image": processed_timestep["observation"]["camera"]["image"]["hand_camera"][1],
