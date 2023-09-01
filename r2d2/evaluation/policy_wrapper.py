@@ -85,8 +85,8 @@ class PolicyWrapperRobomimic:
         extrinsics_dict = processed_timestep["extrinsics_dict"]
 
         obs = {
-            "robot_state/cartesian_position": np.array(observation["robot_state"]["cartesian_position"]),
-            "robot_state/gripper_position": np.array([observation["robot_state"]["gripper_position"]]),
+            "robot_state/cartesian_position": observation["robot_state"]["cartesian_position"],
+            "robot_state/gripper_position": observation["robot_state"]["gripper_position"],
             
             "camera/image/hand_camera_left_image": processed_timestep["observation"]["camera"]["image"]["hand_camera"][0],
             "camera/image/hand_camera_right_image": processed_timestep["observation"]["camera"]["image"]["hand_camera"][1],
@@ -104,6 +104,10 @@ class PolicyWrapperRobomimic:
             "camera/extrinsics/varied_camera_2_left": extrinsics_dict["varied_camera"][2],
             "camera/extrinsics/varied_camera_2_right": extrinsics_dict["varied_camera"][3],
         }
+
+        # set item of obs as np.array
+        for k in obs:
+            obs[k] = np.array(obs[k])
         
         self.fs_wrapper.add_obs(obs)
         obs_history = self.fs_wrapper.get_obs_history()
