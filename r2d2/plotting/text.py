@@ -32,6 +32,10 @@ user_to_lab = {
     "Rishi Bedi": "IPRL",
     "Amine Obeid": "REAL",
     "Kaylee Burns": "IRIS",
+    # Added by Suvir...
+    "Megha Srivastava": "ILIAD",
+    "Jensen Gao": "ILIAD",
+    "Suvir Mirchandani": "ILIAD",
 }
 
 clean_user = {
