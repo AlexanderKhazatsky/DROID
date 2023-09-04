@@ -43,10 +43,16 @@ REGISTERED_MEMBERS: Dict[str, Dict[str, str]] = {
 
     "ILIAD": {
         "Suneel Belkhale": "sbd7d2c6",
-        "Evelyn Choi": "7e97d04f",
+        "Evelyn Choi": "7e97d04f", #*
+        "Jensen Gao": "5e938e3b",
         "Joey Hejna": "j807b3f8",
         "Sidd Karamcheti": "s43a277k",
+        "Suvir Mirchandani": "50aee79f",
+        "Angela So": "49fe161f", #*
+        "Megha Srivastava": "f3d50b2a",
         "Yilin Wu": "7ae1bcff",
+        # * These two students used the system very
+        # briefly, so have a small number of demos
     },
 
     "IPRL": {
