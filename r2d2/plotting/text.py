@@ -32,6 +32,10 @@ user_to_lab = {
     "Rishi Bedi": "IPRL",
     "Amine Obeid": "REAL",
     "Kaylee Burns": "IRIS",
+    # Added by Lawrence...
+    "Lawrence Chen": "AUTOLab",
+    "Roy Lin": "AUTOLab",
+    "Zehan Ma": "AUTOLab",
 }
 
 clean_user = {

@@ -32,6 +32,12 @@ from r2d2.postprocessing.util.validate import validate_user2id
 #         + Simple ID generator --> python -c "import uuid; print(str(uuid.uuid4())[:8])"
 # fmt: off
 REGISTERED_MEMBERS: Dict[str, Dict[str, str]] = {
+    "AUTOLab": {
+        "Lawrence Chen": "0d4edc83",
+        "Roy Lin": "84bd5053",
+        "Zehan Ma": "5d05c5aa",
+    },
+    
     "CLVR": {
         "Minho Heo": "236539bc",
         "Sungjae Park": "13759f6e",
