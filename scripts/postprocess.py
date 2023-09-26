@@ -57,6 +57,7 @@ REGISTERED_MEMBERS: Dict[str, Dict[str, str]] = {
     },
 
     "IRIS": {
+        "Antonio Herrera": "938130c4",
         "Kaylee Burns": "y2a59979",
         "Ethan Foster": "7dfa2da3",
         "Alexander Khazatsky": "ef107c48",
@@ -86,6 +87,11 @@ REGISTERED_MEMBERS: Dict[str, Dict[str, str]] = {
         "Samy Rasmy": "a73643bb",
         "Heng Wei": "4f8ca688",
         "Albert Zhan": "de601749",
+    },
+    
+    "TRI": {
+        "Suraj Nair": "4b1a56cc",
+        "Antonio Herrera": "938130c4",
     },
 }
 validate_user2id(REGISTERED_MEMBERS)
