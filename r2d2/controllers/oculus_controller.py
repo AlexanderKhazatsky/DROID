@@ -90,7 +90,14 @@ class VRPolicy:
                 rot_mat = np.asarray(self._state["poses"][self.controller_id])
                 if stop_updating:
                     self.reset_orientation = False
-                self.vr_to_global_mat = np.linalg.inv(rot_mat)
+                # try to invert the rotation matrix, if not possible, then just use the identity matrix                
+                try:
+                    rot_mat = np.linalg.inv(rot_mat)
+                except:
+                    print(f"exception for rot mat: {rot_mat}")
+                    rot_mat = np.eye(4)
+                    self.reset_orientation = True
+                self.vr_to_global_mat = rot_mat
 
     def _process_reading(self):
         rot_mat = np.asarray(self._state["poses"][self.controller_id])
