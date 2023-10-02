@@ -68,6 +68,27 @@ class TimestepProcesser:
         if len(extrinsics_state):
             extrinsics_state = np.concatenate(extrinsics_state)
 
+        ### Get Intrinsics ###
+        cam_intrinsics_obs = timestep["observation"]["camera_intrinsics"]
+        sorted_calibrated_ids = sorted(calibration_dict.keys())
+        intrinsics_dict = defaultdict(list)
+
+        for serial_number in sorted_camera_ids:
+            cam_type = camera_type_dict[serial_number]
+            if cam_type not in self.camera_extrinsics:
+                continue
+
+            full_cam_ids = sorted(cam_intrinsics_obs.keys())
+            for full_cam_id in full_cam_ids:
+                if serial_number in full_cam_id:
+                    intr = cam_intrinsics_obs[full_cam_id]
+                    intrinsics_dict[cam_type].append(intr)
+
+        sorted_intrinsics_keys = sorted(intrinsics_dict.keys())
+        intrinsics_state = list([np.array(intrinsics_dict[cam_type]).flatten() for cam_type in sorted_intrinsics_keys])
+        if len(intrinsics_state):
+            intrinsics_state = np.concatenate(intrinsics_state)
+
         ### Get High Dimensional State Info ###
         high_dim_state_dict = defaultdict(lambda: defaultdict(list))
 
@@ -84,7 +105,7 @@ class TimestepProcesser:
                         high_dim_state_dict[obs_type][cam_type].append(data)
 
         ### Finish Observation Portion ###
-        low_level_state = np.concatenate([robot_state, extrinsics_state], dtype=self.state_dtype)
+        low_level_state = np.concatenate([robot_state, extrinsics_state, intrinsics_state], dtype=self.state_dtype)
         processed_timestep = {"observation": {"state": low_level_state, "camera": high_dim_state_dict}}
         self.image_transformer.forward(processed_timestep)
 

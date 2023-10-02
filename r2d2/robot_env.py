@@ -122,4 +122,11 @@ class RobotEnv(gym.Env):
         extrinsics = self.get_camera_extrinsics(state_dict)
         obs_dict["camera_extrinsics"] = extrinsics
 
+        intrinsics = {}
+        for cam in self.camera_reader.camera_dict.values():
+            cam_intr_info = cam.get_intrinsics()
+            for (full_cam_id, info) in cam_intr_info.items():
+                intrinsics[full_cam_id] = info["cameraMatrix"]
+        obs_dict["camera_intrinsics"] = intrinsics
+
         return obs_dict
