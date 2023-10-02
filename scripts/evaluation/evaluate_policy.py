@@ -1,14 +1,14 @@
 from droid.evaluation.eval_launcher import eval_launcher
 import os
 
-CKPT_PATH = "" # add robomimic checkpoint here
-
 variant = dict(
     exp_name="policy_test",
     save_data=False,
     use_gpu=True,
     seed=0,
     policy_logdir="test",
+    task="",
+    layout_id=None,
     model_id=50,
     camera_kwargs=dict(),
     data_processing_kwargs=dict(
