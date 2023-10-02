@@ -121,7 +121,7 @@ class PolicyWrapperRobomimic:
             "camera/extrinsics/varied_camera_2_right": self.convert_raw_extrinsics_to_Twc(extrinsics_dict["varied_camera"][3]),
 
             "camera/intrinsics/hand_camera_left": intrinsics_dict["hand_camera"][0],
-            "camera/intrinsics/hand_camera_right": intrinsics_dict["hand_camera"][2],
+            "camera/intrinsics/hand_camera_right": intrinsics_dict["hand_camera"][1],
             "camera/intrinsics/varied_camera_1_left": intrinsics_dict["varied_camera"][0],
             "camera/intrinsics/varied_camera_1_right": intrinsics_dict["varied_camera"][1],
             "camera/intrinsics/varied_camera_2_left": intrinsics_dict["varied_camera"][2],
