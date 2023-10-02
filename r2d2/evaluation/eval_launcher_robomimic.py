@@ -32,8 +32,6 @@ def eval_launcher(variant, run_id, exp_id):
     torch.device("cuda:0" if use_gpu else "cpu")
 
     ckpt_path = variant["ckpt_path"]
-    task = variant["task"]
-    layout_id = variant["layout_id"]
 
     device = TorchUtils.get_torch_device(try_to_use_cuda=True)
     ckpt_dict = FileUtils.maybe_dict_from_checkpoint(ckpt_path=ckpt_path)
