@@ -119,5 +119,6 @@ class TimestepProcesser:
 
         # return raw information + meta data
         processed_timestep["extrinsics_dict"] = extrinsics_dict
+        processed_timestep["intrinsics_dict"] = intrinsics_dict
 
         return processed_timestep
