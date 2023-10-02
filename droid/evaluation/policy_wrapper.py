@@ -3,6 +3,8 @@ import torch
 from collections import deque
 
 from droid.data_processing.timestep_processing import TimestepProcesser
+import robomimic.utils.torch_utils as TorchUtils
+import robomimic.utils.tensor_utils as TensorUtils
 
 
 def converter_helper(data, batchify=True):
@@ -78,6 +80,21 @@ class PolicyWrapperRobomimic:
             ignore_action=True, **timestep_filtering_kwargs, image_transform_kwargs=image_transform_kwargs
         )
 
+    def convert_raw_extrinsics_to_Twc(self, raw_data):
+        """
+        helper function that convert raw extrinsics (6d pose) to transformation matrix (Twc)
+        """
+        raw_data = torch.from_numpy(raw_data)
+        pos = raw_data[0:3]
+        rot_mat = TorchUtils.euler_angles_to_matrix(raw_data[3:6], convention="XYZ")
+        extrinsics = np.zeros((4, 4))
+        extrinsics[:3,:3] = TensorUtils.to_numpy(rot_mat)
+        extrinsics[:3,3] = TensorUtils.to_numpy(pos)
+        extrinsics[3,3] = 1.0
+        # invert the matrix to represent standard definition of extrinsics: from world to cam
+        extrinsics = np.linalg.inv(extrinsics)
+        return extrinsics
+
     def forward(self, observation):
         timestep = {"observation": observation}
         processed_timestep = self.timestep_processor.forward(timestep)
@@ -92,6 +109,7 @@ class PolicyWrapperRobomimic:
             "camera/image/varied_camera_1_right_image": processed_timestep["observation"]["camera"]["image"]["varied_camera"][1],
             "camera/image/varied_camera_2_left_image": processed_timestep["observation"]["camera"]["image"]["varied_camera"][2],
             "camera/image/varied_camera_2_right_image": processed_timestep["observation"]["camera"]["image"]["varied_camera"][3],
+<<<<<<< HEAD:droid/evaluation/policy_wrapper.py
             "camera/extrinsics/hand_camera_left": extrinsics_dict["hand_camera"][0],
             "camera/extrinsics/hand_camera_left_gripper_offset": extrinsics_dict["hand_camera"][1],
             "camera/extrinsics/hand_camera_right": extrinsics_dict["hand_camera"][2],
@@ -100,6 +118,15 @@ class PolicyWrapperRobomimic:
             "camera/extrinsics/varied_camera_1_right": extrinsics_dict["varied_camera"][1],
             "camera/extrinsics/varied_camera_2_left": extrinsics_dict["varied_camera"][2],
             "camera/extrinsics/varied_camera_2_right": extrinsics_dict["varied_camera"][3],
+=======
+
+            "camera/extrinsics/hand_camera_left": self.convert_raw_extrinsics_to_Twc(extrinsics_dict["hand_camera"][0]),
+            "camera/extrinsics/hand_camera_right": self.convert_raw_extrinsics_to_Twc(extrinsics_dict["hand_camera"][2]),
+            "camera/extrinsics/varied_camera_1_left": self.convert_raw_extrinsics_to_Twc(extrinsics_dict["varied_camera"][0]),
+            "camera/extrinsics/varied_camera_1_right": self.convert_raw_extrinsics_to_Twc(extrinsics_dict["varied_camera"][1]),
+            "camera/extrinsics/varied_camera_2_left": self.convert_raw_extrinsics_to_Twc(extrinsics_dict["varied_camera"][2]),
+            "camera/extrinsics/varied_camera_2_right": self.convert_raw_extrinsics_to_Twc(extrinsics_dict["varied_camera"][3]),
+>>>>>>> robotmimic policy wrapper: convert 6d pose vector extrinsics to Twc matrix:r2d2/evaluation/policy_wrapper.py
         }
 
         # set item of obs as np.array
