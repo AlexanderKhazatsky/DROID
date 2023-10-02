@@ -13,11 +13,7 @@ from droid.misc.transformations import change_pose_frame
 
 
 class RobotEnv(gym.Env):
-<<<<<<< HEAD:droid/robot_env.py
     def __init__(self, action_space="cartesian_velocity", gripper_action_space=None, camera_kwargs={}, do_reset=True):
-=======
-    def __init__(self, action_space="cartesian_velocity", gripper_action_space=None, camera_kwargs={}):
->>>>>>> support position/velocity gripper action space for eval:r2d2/robot_env.py
         # Initialize Gym Environment
         super().__init__()
 
