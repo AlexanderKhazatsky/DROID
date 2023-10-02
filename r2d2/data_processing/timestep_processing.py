@@ -13,6 +13,7 @@ class TimestepProcesser:
         self,
         ignore_action=False,
         action_space="cartesian_velocity",
+        gripper_action_space=None,
         robot_state_keys=["cartesian_position", "gripper_position", "joint_positions", "joint_velocities"],
         camera_extrinsics=["hand_camera", "varied_camera", "fixed_camera"],
         state_dtype=np.float32,
@@ -22,7 +23,7 @@ class TimestepProcesser:
         assert action_space in ["cartesian_position", "joint_position", "cartesian_velocity", "joint_velocity"]
 
         self.action_space = action_space
-        self.gripper_key = "gripper_velocity" if "velocity" in action_space else "gripper_position"
+        self.gripper_key = "gripper_velocity" if "velocity" in gripper_action_space else "gripper_position"
         self.ignore_action = ignore_action
 
         self.robot_state_keys = robot_state_keys
