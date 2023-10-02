@@ -40,7 +40,11 @@ def eval_launcher(variant, run_id, exp_id):
     config = json.loads(ckpt_dict["config"])
 
     ### infer image size ###
+<<<<<<< HEAD
     imsize = max(ckpt_dict["shape_metadata"]["all_shapes"]["camera/image/hand_camera_left_image"])
+=======
+    imsize = ckpt_dict["shape_metadata"]["all_shapes"]["camera/image/hand_camera_left_image"][2]
+>>>>>>> local fixes for eval
 
     ckpt_dict["config"] = json.dumps(config)
     policy, _ = FileUtils.policy_from_checkpoint(ckpt_dict=ckpt_dict, device=device, verbose=True)
@@ -69,7 +73,7 @@ def eval_launcher(variant, run_id, exp_id):
         raise ValueError
 
     # determine the action space (relative or absolute)
-    action_keys = config.train.action_keys
+    action_keys = config["train"]["action_keys"]
     if "action/rel_pos" in action_keys:
         action_space = "cartesian_velocity"
         for k in action_keys:
