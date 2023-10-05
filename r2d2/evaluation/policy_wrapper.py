@@ -84,7 +84,7 @@ class PolicyWrapperRobomimic:
         """
         helper function that convert raw extrinsics (6d pose) to transformation matrix (Twc)
         """
-        raw_data = torch.from_numpy(raw_data)
+        raw_data = torch.from_numpy(np.array(raw_data))
         pos = raw_data[0:3]
         rot_mat = TorchUtils.euler_angles_to_matrix(raw_data[3:6], convention="XYZ")
         extrinsics = np.zeros((4, 4))
@@ -101,11 +101,11 @@ class PolicyWrapperRobomimic:
 
         extrinsics_dict = processed_timestep["extrinsics_dict"]
         intrinsics_dict = processed_timestep["intrinsics_dict"]
+        # import pdb; pdb.set_trace()
 
         obs = {
             "robot_state/cartesian_position": observation["robot_state"]["cartesian_position"],
             "robot_state/gripper_position": [observation["robot_state"]["gripper_position"]], # wrap as array, raw data is single float
-            
             "camera/image/hand_camera_left_image": processed_timestep["observation"]["camera"]["image"]["hand_camera"][0],
             "camera/image/hand_camera_right_image": processed_timestep["observation"]["camera"]["image"]["hand_camera"][1],
             "camera/image/varied_camera_1_left_image": processed_timestep["observation"]["camera"]["image"]["varied_camera"][0],
