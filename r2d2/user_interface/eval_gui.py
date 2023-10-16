@@ -1,5 +1,7 @@
+from abc import ABC, abstractmethod
 from datetime import date
 import numpy as np
+
 
 from tkinter import *
 from r2d2.user_interface.gui import *
@@ -30,6 +32,25 @@ _ESCAPE_KEY = "<Escape>"
 class Condition:
     GOAL = "goal"
     LANGUAGE = "language"
+
+class GoalCondPolicy(ABC):
+    def __init__(self):
+        pass
+
+    @abstractmethod
+    def load_goal_imgs(self, img_dict):
+        """
+        img_dict is a dictionary of goal images, 
+        where the keys are the names of the cameras
+        """
+        pass
+
+    @abstractmethod
+    def load_lang(self, text):
+        """
+        text is a string for language conditioning
+        """
+        pass
 
 
 class EvalGUI(ctk.CTk):
@@ -169,7 +190,7 @@ class EvalGUI(ctk.CTk):
                 img = self.camera_feed[idx]
                 img = Image.fromarray(img)
                 # save pil image to disk
-                img.save(f"{eval_traj_dir}/{idx}.png")
+                img.save(f"{eval_traj_dir}/{self.cam_ids[idx]}.png")
 
             self.eval_goal_dirs.append(eval_traj_dir)
             self.frames[EvalConfigurationPage].update_goal_radio_btns()
@@ -327,11 +348,25 @@ class EvalConfigurationPage(ctk.CTkFrame):
             )
 
     def goal_img_changed(self):
-        print(f"goal img changed to {self.controller.eval_goal_dirs[::-1][self.selected_goal_dir_idx.get()]}")
         if self.controller.policy is not None:
-            self.controller.policy.load_goal_img_dir(
-                self.controller.eval_goal_dirs[::-1][self.selected_goal_dir_idx.get()]
+            self.controller.policy.load_goal_imgs(
+                self.load_goal_imgs_from_dir()
             )
+
+    def load_goal_imgs_from_dir(self):
+        goal_img_dir = self.controller.eval_goal_dirs[::-1][self.selected_goal_dir_idx.get()]
+        goal_imgs = {}
+        for img in os.listdir(goal_img_dir):
+            # get full path of image
+            img = os.path.join(goal_img_dir, img)
+            # load image with key
+            try:
+                # for key extract the png file name
+                img_key = img.split("/")[-1].split(".")[0] 
+                goal_imgs[img_key] = np.array(Image.open(img))
+            except:
+                print(f"could not load image: {img}")
+        return goal_imgs
 
     def place_image_gc_elements(self):
         self.goal_dir_label.grid(row=GOAL_IMAGE_ROW, column=5)
@@ -373,7 +408,7 @@ class EvalConfigurationPage(ctk.CTkFrame):
     def eval_robot(self):
         # set the goal conditioning
         if self.controller.policy is not None:
-            self.controller.policy.load_lang_conditioning(self.lang_text.get("1.0", "end-1c"))
+            self.controller.policy.load_lang(self.lang_text.get("1.0", "end-1c"))
 
         print(f"language conditioning: {self.lang_text.get('1.0', 'end-1c')}")
         if self.controller.eval_goal_dirs:
@@ -482,10 +517,7 @@ class CaptureGoal(ctk.CTkFrame):
     def update_image_grid(self, i):
         if i not in self.clicked_ids:
             self.clicked_ids.append(i)
-            # self.image_boxes[i].config(highlightbackground="green")
         else:
-            # self.image_boxes[i].config(highlightbackground="red")
-            # remove i
             self.clicked_ids.remove(i)
 
     def update_camera_feed(self, i, w_coeff=1.0, h_coeff=1.0):
