@@ -18,7 +18,7 @@ from r2d2.robot_env import RobotEnv
 from r2d2.user_interface.data_collector import DataCollecter
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
-data_dir = os.path.join(dir_path, "../../data")
+data_dir = os.path.join(dir_path, "../../evaluation_logs")
 
 LAST_N_GOALS = 5
 MIDDLE_COLUMN = 4
@@ -26,12 +26,14 @@ GOAL_IMAGE_ROW = 7
 
 _DEFAULT_RESOLUTION = "1500x1200"
 _ESCAPE_KEY = "<Escape>"
+DEFAULT_LANG_TEXT = "Enter text for language\n conditioning"
 
 
 # create a string enum for conditioning: goal and language
 class Condition:
     GOAL = "goal"
     LANGUAGE = "language"
+
 
 class GoalCondPolicy(ABC):
     def __init__(self):
@@ -40,7 +42,7 @@ class GoalCondPolicy(ABC):
     @abstractmethod
     def load_goal_imgs(self, img_dict):
         """
-        img_dict is a dictionary of goal images, 
+        img_dict is a dictionary of goal images,
         where the keys are the names of the cameras
         """
         pass
@@ -54,15 +56,20 @@ class GoalCondPolicy(ABC):
 
 
 class EvalGUI(ctk.CTk):
-    def __init__(self, policy, fullscreen=False):
-        # Initialize #
+    # add env args param to init that gets passed to robot env but optional
+    def __init__(self, policy, env=None, eval_dir=None, fullscreen=False):
         super().__init__()
 
-        self.eval_traj_dir = os.path.join(data_dir, "evals", str(date.today()))
+        if not eval_dir:
+            self.eval_traj_dir = os.path.join(data_dir, "evals", str(date.today()))
+        else:
+            self.eval_traj_dir = eval_dir
         if not os.path.isdir(self.eval_traj_dir):
             os.makedirs(self.eval_traj_dir)
 
-        env = RobotEnv()
+        if not env:
+            env = RobotEnv()
+
         controller = VRPolicy()
         robot = DataCollecter(
             env=env, controller=controller, policy=policy, save_data=False, save_traj_dir=self.eval_traj_dir
@@ -301,7 +308,7 @@ class EvalConfigurationPage(ctk.CTkFrame):
         # Free Response Tasks #
         # self.lang_text_lbl = ctk.CTkLabel(self, text="Enter the text for language conditioning", font=ctk.CTkFont(size=20, underline=True))
         self.lang_text = ctk.CTkTextbox(self)
-        self.lang_text.insert("0.0", text="Enter text for language\n conditioning")
+        self.lang_text.insert("0.0", text=DEFAULT_LANG_TEXT)
 
         self.toggle_text_box()
 
@@ -338,8 +345,8 @@ class EvalConfigurationPage(ctk.CTkFrame):
             self.radio_buttons[i].grid_forget()
         self.radio_buttons = []
         for i, folder in enumerate(self.controller.eval_goal_dirs[::-1][:LAST_N_GOALS]):
-            # strip off everything before ../data
-            folder = folder.split("data/")[-1]
+            # strip off everything before ../
+            folder = folder.split("../")[-1]
             # change self.selected_goal_dir_idx to the index of the selected radio button
             self.radio_buttons.append(
                 ctk.CTkRadioButton(
@@ -349,9 +356,7 @@ class EvalConfigurationPage(ctk.CTkFrame):
 
     def goal_img_changed(self):
         if self.controller.policy is not None:
-            self.controller.policy.load_goal_imgs(
-                self.load_goal_imgs_from_dir()
-            )
+            self.controller.policy.load_goal_imgs(self.load_goal_imgs_from_dir())
 
     def load_goal_imgs_from_dir(self):
         goal_img_dir = self.controller.eval_goal_dirs[::-1][self.selected_goal_dir_idx.get()]
@@ -362,7 +367,7 @@ class EvalConfigurationPage(ctk.CTkFrame):
             # load image with key
             try:
                 # for key extract the png file name
-                img_key = img.split("/")[-1].split(".")[0] 
+                img_key = img.split("/")[-1].split(".")[0]
                 goal_imgs[img_key] = np.array(Image.open(img))
             except:
                 print(f"could not load image: {img}")
@@ -410,7 +415,6 @@ class EvalConfigurationPage(ctk.CTkFrame):
         if self.controller.policy is not None:
             self.controller.policy.load_lang(self.lang_text.get("1.0", "end-1c"))
 
-        print(f"language conditioning: {self.lang_text.get('1.0', 'end-1c')}")
         if self.controller.eval_goal_dirs:
             print(f"goal img dir: {self.controller.eval_goal_dirs[::-1][self.selected_goal_dir_idx.get()]}")
 
