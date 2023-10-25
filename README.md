@@ -36,6 +36,7 @@ Regardless of the machine, go into r2d2/misc/parameters.py, and:
 
 If you are setting this up on the robot NUC:
 - In r2d2/misc/parameters.py, set "sudo_password" to your machine's corresponding sudo password. Sudo access is needed to launch the robot. The rest of the parameters can be ignored for now.
+- For the robot_type variable, enter 'fr3' or 'panda' depending on which Franka robot you are using
 
 If you are setting this up on the control workstation:
 - Go into r2d2/misc/parameters.py
