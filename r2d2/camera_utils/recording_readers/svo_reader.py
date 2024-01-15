@@ -27,6 +27,7 @@ class SVOReader:
 
         # Set SVO path for playback
         init_parameters = sl.InitParameters()
+        init_parameters.camera_image_flip = sl.FLIP_MODE.OFF
         init_parameters.set_from_svo_file(filepath)
 
         # Open the ZED

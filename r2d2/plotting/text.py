@@ -14,7 +14,7 @@ user_to_lab = {
     "Samantha Huang": "RAIL",
     "Christian Avina": "RAIL",
     "Emi Tran": "RAIL",
-    "Mohan Kumar": "CMU",
+    "Mohan Kumar": "GuptaLab",
     "Glen Berseth": "REAL",
     "Kirsty Ellis": "REAL",
     "Kirsty ellis": "REAL",
@@ -25,11 +25,24 @@ user_to_lab = {
     "Minho Heo": "CLVR",
     "Sungjae Park": "CLVR",
     "Vaidehi Som": "PennPAL",
+    # Added by Sidd...
+    "Heng Wei": "REAL",
+    "Yunshuang Li": "PennPAL",
+    "Jason Ma": "PennPAL",
+    "Rishi Bedi": "IPRL",
+    "Amine Obeid": "REAL",
+    "Kaylee Burns": "IRIS",
+    # Added by Lawrence...
+    "Lawrence Chen": "AUTOLab",
+    "Roy Lin": "AUTOLab",
+    "Zehan Ma": "AUTOLab",
 }
 
 clean_user = {
     "Alexander Khazatsky": "Sasha Khazatsky",
     "Kirsty ellis": "Kirsty Ellis",
+    # Added by Sidd...
+    "heng wei": "Heng Wei",
 }
 
 all_tasks = [

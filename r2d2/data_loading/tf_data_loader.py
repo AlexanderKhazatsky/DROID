@@ -1,6 +1,7 @@
-from typing import Dict
-import tensorflow as tf
 from functools import partial
+from typing import Dict
+
+import tensorflow as tf
 
 
 def get_type_spec(path: str) -> Dict[str, tf.TensorSpec]:
@@ -100,7 +101,6 @@ def _process_transition(transition: Dict[str, tf.Tensor]) -> Dict[str, tf.Tensor
 if __name__ == "__main__":
     ### EXAMPLE USAGE ###
     import tqdm
-    import matplotlib.pyplot as plt
 
     dataset = get_tf_dataloader(
         "/tmp/franka_tfrecord_test/train",

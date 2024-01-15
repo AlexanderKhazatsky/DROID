@@ -27,7 +27,8 @@ pip install dm-robotics-controllers==0.5.0 --no-deps
 
 If you are using miniconda instead of anaconda:
 - Go into r2d2/franka, then open launch_gripper.sh and launch_robot.sh
-- In both files, change the word anaconda to miniconda, and save it
+- In both files, change the word anaconda to miniconda, change the paths to be absolute (ie. starting from /home), and save it
+- Go into scripts/server, and do the same thing to launch_server.sh
 
 Regardless of the machine, go into r2d2/misc/parameters.py, and:
 - Set robot_ip to match the IP address of your robot
@@ -35,6 +36,7 @@ Regardless of the machine, go into r2d2/misc/parameters.py, and:
 
 If you are setting this up on the robot NUC:
 - In r2d2/misc/parameters.py, set "sudo_password" to your machine's corresponding sudo password. Sudo access is needed to launch the robot. The rest of the parameters can be ignored for now.
+- For the robot_type variable, enter 'fr3' or 'panda' depending on which Franka robot you are using
 
 If you are setting this up on the control workstation:
 - Go into r2d2/misc/parameters.py
