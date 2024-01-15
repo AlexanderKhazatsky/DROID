@@ -33,7 +33,7 @@ def validate_user2id(registered_lab_members: Dict[str, Dict[str, str]]) -> bool:
 def validate_day_dir(day_dir: Path) -> bool:
     format_err_msg = f"Invalid directory `{day_dir}`; should match YYYY-MM-DD!"
     date_err_msg = f"Invalid directory `{day_dir}`; date is in the future!"
-    assert re.match(r"^2023-\d{2}-\d{2}", day_dir.name) is not None, format_err_msg
+    assert re.match(r"^\d{4}-\d{2}-\d{2}", day_dir.name) is not None, format_err_msg
     assert datetime.strptime(day_dir.name, "%Y-%m-%d") <= datetime.now(), date_err_msg
     return True
 
