@@ -28,7 +28,7 @@ def export_mp4(svo_file: Path, mp4_dir: Path, stereo_view: str = "left", show_pr
     initial_parameters.set_from_svo_file(str(svo_file))
     initial_parameters.svo_real_time_mode = False
     initial_parameters.coordinate_units = sl.UNIT.MILLIMETER
-    initial_parameters.camera_image_flip = sl.FLIP_MODE_OFF
+    initial_parameters.camera_image_flip = sl.FLIP_MODE.OFF
 
     # Create ZED Camera Object & Open SVO File
     zed = sl.Camera()
