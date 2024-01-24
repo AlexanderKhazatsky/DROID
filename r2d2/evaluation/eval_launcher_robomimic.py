@@ -40,11 +40,7 @@ def eval_launcher(variant, run_id, exp_id):
     config = json.loads(ckpt_dict["config"])
 
     ### infer image size ###
-<<<<<<< HEAD
     imsize = max(ckpt_dict["shape_metadata"]["all_shapes"]["camera/image/hand_camera_left_image"])
-=======
-    imsize = ckpt_dict["shape_metadata"]["all_shapes"]["camera/image/hand_camera_left_image"][2]
->>>>>>> local fixes for eval
 
     ckpt_dict["config"] = json.dumps(config)
     policy, _ = FileUtils.policy_from_checkpoint(ckpt_dict=ckpt_dict, device=device, verbose=True)
@@ -141,12 +137,12 @@ def eval_launcher(variant, run_id, exp_id):
         gripper_action_space=policy_timestep_filtering_kwargs["gripper_action_space"],
         camera_kwargs=policy_camera_kwargs
     )
-    controller = VRPolicy()
+    # controller = VRPolicy()
 
     # Launch GUI #
     data_collector = DataCollecter(
         env=env,
-        controller=controller,
+        controller=None,
         policy=wrapped_policy,
         save_traj_dir=log_dir,
         save_data=variant.get("save_data", True),
