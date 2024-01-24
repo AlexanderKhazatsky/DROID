@@ -187,7 +187,11 @@ import cv2
 
 # Co-Train full R2D2 language conditioned 2 cam
 
-CKPT_PATH="/home/ashwinbalakrishna/Desktop/data/r2d2-multitask/r2d2/im/diffusion_policy/01-22-None/bz_128_noise_samples_8_cams_2cams_goal_mode_None_truncated_geom_factor_0.3_ldkeys_proprio-lang_visenc_VisualCore_fuser_None_ds_full_balanced_chips/20240122062843/models/model_epoch_50.pth"
+# CKPT_PATH="/home/ashwinbalakrishna/Desktop/data/r2d2-multitask/r2d2/im/diffusion_policy/01-22-None/bz_128_noise_samples_8_cams_2cams_goal_mode_None_truncated_geom_factor_0.3_ldkeys_proprio-lang_visenc_VisualCore_fuser_None_ds_full_balanced_chips/20240122062843/models/model_epoch_50.pth"
+
+
+### GC
+# CKPT_PATH = "/home/ashwinbalakrishna/Desktop/data/r2d2-multitask/r2d2/im/diffusion_policy/01-22-None/bz_128_noise_samples_8_cams_wrist_goal_mode_geom_truncated_geom_factor_0.3_ldkeys_proprio_visenc_VisualCore_fuser_None_ds_full_balanced_chips/20240122062654/models/model_epoch_50.pth"
 
 variant = dict(
     exp_name="policy_test",
@@ -237,7 +241,7 @@ if __name__ == "__main__":
         input("Now reset the scene for the policy to execute, press Enter to acknowledge: ")
     if args.lang_cond:
         user_input = input("Provide a language command for the robot to complete: ").lower()
-        with open('/home/ashwinbalakrishna/Desktop/r2d2-eval/lang_command.txt', 'w') as file:
+        with open('eval_params/lang_command.txt', 'w') as file:
             file.write(user_input)
     
     print("Evaluating Policy")
