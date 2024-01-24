@@ -38,16 +38,15 @@ def eval_launcher(variant, run_id, exp_id):
     device = TorchUtils.get_torch_device(try_to_use_cuda=True)
     ckpt_dict = FileUtils.maybe_dict_from_checkpoint(ckpt_path=ckpt_path)
     config = json.loads(ckpt_dict["config"])
-    print("CONFIG!")
 
     ### infer image size ###
     imsize = 128 ## HARDCODE to 128 for now
     # imsize = ckpt_dict["shape_metadata"]["all_shapes"]["camera/image/hand_camera_left_image"][0]
-    print("IMSIZE: ", imsize)
 
     ckpt_dict["config"] = json.dumps(config)
     policy, _ = FileUtils.policy_from_checkpoint(ckpt_dict=ckpt_dict, device=device, verbose=True)
     policy.goal_mode = config["train"]["goal_mode"]
+    policy.eval_mode = True
 
     # determine the action space (relative or absolute)
     action_keys = config["train"]["action_keys"]
@@ -235,6 +234,6 @@ def get_goal_im(variant, run_id, exp_id):
     ims = env.read_cameras()[0]["image"]
     for k in ims.keys():
         image = ims[k]
-        cv2.imwrite(f'/home/ashwinbalakrishna/Desktop/r2d2-eval/goalims/{k}.png', image[:, :, :3])
+        cv2.imwrite(f'eval_params/{k}.png', image[:, :, :3])
     return ims
 # '/home/ashwinbalakrishna/Desktop/r2d2-eval/goalims/a.png'
