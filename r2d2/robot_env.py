@@ -13,7 +13,7 @@ from r2d2.misc.transformations import change_pose_frame
 
 
 class RobotEnv(gym.Env):
-    def __init__(self, action_space="cartesian_velocity", gripper_action_space=None, camera_kwargs={}):
+    def __init__(self, action_space="cartesian_velocity", gripper_action_space=None, camera_kwargs={}, do_reset=True):
         # Initialize Gym Environment
         super().__init__()
 
@@ -43,7 +43,8 @@ class RobotEnv(gym.Env):
         self.camera_type_dict = camera_type_dict
 
         # Reset Robot
-        self.reset()
+        if do_reset:
+            self.reset()
 
     def step(self, action):
         # Check Action
