@@ -37,7 +37,8 @@ def collect_trajectory(
     - Otherwise, we will end the trajectory when the controller tells us to
     - If you need a pointer to the current observation, pass a dictionary in for obs_pointer
     """
-
+    horizon = 1000 ## MAX 75 seconds per rollout before being marked as failure
+    wait_for_controller=False ## DONT USE CONTROLLER DURING EVAL
     # Check Parameters #
     assert (controller is not None) or (policy is not None)
     assert (controller is not None) or (horizon is not None)
