@@ -231,12 +231,11 @@ def calibrate_camera(
         for full_cam_id in cam_obs["image"]:
             if camera_id not in full_cam_id:
                 continue
+            if take_picture:
+                img = deepcopy(cam_obs["image"][full_cam_id])
+                pose = state["cartesian_position"].copy()
+                calibrator.add_sample(full_cam_id, img, pose)
             cam_obs["image"][full_cam_id] = calibrator.augment_image(full_cam_id, cam_obs["image"][full_cam_id])
-            if not take_picture:
-                continue
-            img = deepcopy(cam_obs["image"][full_cam_id])
-            pose = state["cartesian_position"].copy()
-            calibrator.add_sample(full_cam_id, img, pose)
 
         # Update Obs Pointer #
         if obs_pointer is not None:
