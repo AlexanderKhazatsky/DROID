@@ -1,4 +1,4 @@
-name: build laptop fer container and host on ghcr.io
+name: build nuc fr3 container and host on ghcr.io
 
 on:
   push:
@@ -6,14 +6,14 @@ on:
     paths:
       - .gitmodules
       - r2d2/**
-      - .docker/laptop/*
-      - .github/workflows/build_container_nuc
+      - .docker/nuc/*
+      - .github/workflows/build_container_nuc_fr3
   workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
   ORG_NAME: AlexanderKhazatsky
-  IMAGE_NAME: r2d2
+  IMAGE_NAME: droid_nuc
 
 jobs:
   build-and-push-image:
@@ -46,9 +46,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: .
-          file: .docker/nuc/Dockerfile.laptop
+          file: .docker/nuc/Dockerfile.nuc_fr3
           push: true
           no-cache: true
-          tags: ${{ env.REGISTRY }}/${{ env.ORG_NAME }}/${{ env.IMAGE_NAME }}:laptop_fer
-          build-args: |
-            ROBOT_MODEL=FER
+          tags: ${{ env.REGISTRY }}/${{ env.ORG_NAME }}/${{ env.IMAGE_NAME }}:fr3

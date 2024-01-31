@@ -1,4 +1,4 @@
-name: build nuc fer container and host on ghcr.io
+name: build laptop panda container and host on ghcr.io
 
 on:
   push:
@@ -6,14 +6,14 @@ on:
     paths:
       - .gitmodules
       - r2d2/**
-      - .docker/nuc/*
-      - .github/workflows/build_container_nuc
+      - .docker/laptop/*
+      - .github/workflows/build_container_laptop_panda
   workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
   ORG_NAME: AlexanderKhazatsky
-  IMAGE_NAME: r2d2
+  IMAGE_NAME: droid_laptop
 
 jobs:
   build-and-push-image:
@@ -46,11 +46,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: .
-          file: .docker/nuc/Dockerfile.nuc
+          file: .docker/nuc/Dockerfile.laptop_panda
           push: true
           no-cache: true
-          tags: ${{ env.REGISTRY }}/${{ env.ORG_NAME }}/${{ env.IMAGE_NAME }}:nuc_fer
-          build-args: |
-            ROBOT_MODEL=FER
-            #ROBOT_IP=
-            #NUC_IP=
+          tags: ${{ env.REGISTRY }}/${{ env.ORG_NAME }}/${{ env.IMAGE_NAME }}:panda
