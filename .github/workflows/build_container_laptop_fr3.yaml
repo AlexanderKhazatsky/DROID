@@ -12,7 +12,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  ORG_NAME: AlexanderKhazatsky
+  ORG_NAME: alexanderkhazatsky
   IMAGE_NAME: droid_laptop
 
 jobs:
