@@ -1,3 +1,9 @@
+[![docs](https://github.com/alexanderkhazatsky/R2D2/actions/workflows/pages.yaml/badge.svg)](https://github.com/alexanderkhazatsky/R2D2/blob/main/.github/workflows/pages.yaml)
+[![nuc_panda](https://github.com/alexanderkhazatsky/R2D2/actions/workflows/build_container_nuc_panda.yaml/badge.svg)](https://github.com/alexanderkhazatsky/R2D2/blob/main/.github/workflows/build_container_nuc_panda.yaml)
+[![nuc_fr3](https://github.com/alexanderkhazatsky/R2D2/actions/workflows/build_container_nuc_fr3.yaml/badge.svg)](https://github.com/alexanderkhazatsky/R2D2/blob/main/.github/workflows/build_container_nuc_fr3.yaml)
+[![laptop_panda](https://github.com/alexanderkhazatsky/R2D2/actions/workflows/build_container_laptop_panda.yaml/badge.svg)](https://github.com/alexanderkhazatsky/R2D2/blob/main/.github/workflows/build_container_laptop_panda.yaml)
+[![laptop_fr3](https://github.com/alexanderkhazatsky/R2D2/actions/workflows/build_container_laptop_fr3.yaml/badge.svg)](https://github.com/alexanderkhazatsky/R2D2/blob/main/.github/build_container_laptop_fr3/pages.yaml)
+
 # R2D2: Residential Robot Demonstration Dataset
 
 The repository provides the code for contributing to and using the R2D2 dataset.
@@ -86,7 +92,3 @@ To collect data, run:
 python scripts/main.py
 ```
 
-## Actions Monitor 🔎
-| **Workflow Name**            | **Description**                                        | **Status**                                                                                                                                                                                                                                                                      |
-|------------------------------|--------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| pre-commit    | Ensures that files all follow the same formatting.       | [![pre-commit](https://github.com/AlexanderKhazatsky/R2D2/actions/workflows/pre-commit.yaml/badge.svg)](https://github.com/AlexanderKhazatsky/R2D2/blob/main/.github/workflows/pre-commit.yaml)          |
