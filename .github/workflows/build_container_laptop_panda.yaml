@@ -12,7 +12,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  ORG_NAME: alexanderkhazatsky
+  ORG_NAME: peterdavidfagan
   IMAGE_NAME: droid_laptop
 
 jobs:
@@ -45,7 +45,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: .
-          file: .docker/nuc/Dockerfile.laptop_panda
+          file: .docker/laptop/Dockerfile.laptop_panda
           push: true
           no-cache: true
           tags: ${{ env.REGISTRY }}/${{ env.ORG_NAME }}/${{ env.IMAGE_NAME }}:panda
