@@ -16,7 +16,7 @@ ARG NUC_POLYMETIS_CONFIG_DIR=${NUC_POLYMETIS_DIR}/polymetis/conf
 RUN apt-get update && \
     apt-get install -y software-properties-common build-essential sudo git curl wget python3-pip libspdlog-dev \
     libeigen3-dev lsb-release ffmpeg libsm6 libxext6 && \
-    apt-get upgrade
+    apt-get upgrade -y 
 
 # install latest cmake version
 RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null && \

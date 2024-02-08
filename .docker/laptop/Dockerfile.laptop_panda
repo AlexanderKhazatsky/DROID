@@ -55,6 +55,7 @@ RUN apt-get update -y || true ; apt-get install --no-install-recommends lsb-rele
     ln -sf /lib/x86_64-linux-gnu/libusb-1.0.so.0 /usr/lib/x86_64-linux-gnu/libusb-1.0.so && \
     rm ZED_SDK_Linux_Ubuntu${UBUNTU_RELEASE_YEAR}.run && \
     rm -rf /var/lib/apt/lists/*
+
 RUN conda install -c conda-forge libstdcxx-ng requests # required for pyzed
 RUN python /usr/local/zed/get_python_api.py && python -m pip install --ignore-installed /app/pyzed-4.0-cp37-cp37m-linux_x86_64.whl
 
@@ -63,7 +64,8 @@ RUN add-apt-repository universe && \
     apt-get update -y && \ 
     apt-get install -y android-tools-fastboot
 RUN pip3 install -e $NUC_OCULUS_DIR && \
-    apt install -y android-tools-adb
+    apt install -y android-tools-adb && \
+    rm -rf /var/lib/apt/lists/*
 
 # python environment setup
 RUN pip3 install -e . && \

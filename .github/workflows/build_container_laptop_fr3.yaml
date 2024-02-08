@@ -23,10 +23,19 @@ jobs:
       packages: write
 
     steps:
+
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
           submodules: recursive
+      
+      - name: Free Space
+        run: |
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/hostedtoolcache
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          sudo rm -rf ${GITHUB_WORKSPACE}/.git
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
@@ -45,7 +54,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: .
-          file: .docker/nuc/Dockerfile.laptop_fr3
+          file: .docker/laptop/Dockerfile.laptop_fr3
           push: true
           no-cache: true
           tags: ${{ env.REGISTRY }}/${{ env.ORG_NAME }}/${{ env.IMAGE_NAME }}:fr3
