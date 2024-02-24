@@ -32,7 +32,7 @@ class FrankaRobot:
         )
         self._server_launched = True
         if gripper_type == 'franka':
-            sleep_time = 20 # Franka seems to take longer to launch
+            sleep_time = 10 # Franka seems to take longer to launch
         else: # 'robotiq'
             sleep_time = 5
         for i in range(sleep_time):

@@ -3,12 +3,12 @@ from cv2 import aruco
 # Robot Params #
 # TODO: Revert all to blank strings before release.
 nuc_ip = '172.16.0.7'
-robot_ip = '172.16.0.11'
+robot_ip = '172.16.0.2'
 sudo_password = ''
 if sudo_password == '':
     raise ValueError('Must set sudo_password in r2d2/misc/parameters.py!')
 robot_type = "panda"  # 'panda' or 'fr3'
-robot_serial_number = "295341-1326374"
+robot_serial_number = "295341-1325480"
 gripper_type = 'franka' # 'franka' or 'robotiq'
 operator_position = 'front' # 'front' or 'back'
 
