@@ -48,8 +48,7 @@ class DataCollecter:
 
     def reset_robot(self, randomize=False):
         self.env._robot.establish_connection()
-        if self.controller is not None:
-            self.controller.reset_state()
+        self.controller.reset_state()
         self.env.reset(randomize=randomize)
 
         # reset the policy at start of each rollout
@@ -57,10 +56,7 @@ class DataCollecter:
             self.policy.reset()
 
     def get_user_feedback(self):
-        if self.controller is not None:
-            info = self.controller.get_info()
-        else:
-            info = {"success": False, "failure": False, "controller_on": True}
+        info = self.controller.get_info()
         return deepcopy(info)
 
     def enable_advanced_calibration(self):

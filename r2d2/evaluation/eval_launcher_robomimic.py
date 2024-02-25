@@ -104,8 +104,6 @@ def eval_launcher(variant, run_id, exp_id):
         eval_mode=True,
     )
 
-    print("IMAGE TRANSFORM KWARGS: ", image_transform_kwargs)
-
     camera_kwargs = dict(
         hand_camera=dict(image=True, concatenate_images=False, resolution=(imsize, imsize), resize_func="cv2"),
         varied_camera=dict(image=True, concatenate_images=False, resolution=(imsize, imsize), resize_func="cv2"),
@@ -154,10 +152,8 @@ def get_goal_im(variant, run_id, exp_id):
     ckpt_dict = FileUtils.maybe_dict_from_checkpoint(ckpt_path=ckpt_path)
     config = json.loads(ckpt_dict["config"])
 
-    # import pdb; pdb.set_trace()
     ### infer image size ###
-    imsize = 128
-    # imsize = ckpt_dict["shape_metadata"]["all_shapes"]["camera/image/hand_camera_left_image"][2]
+    imsize = max(ckpt_dict["shape_metadata"]["all_shapes"]["camera/image/hand_camera_left_image"])
 
     ckpt_dict["config"] = json.dumps(config)
     policy, _ = FileUtils.policy_from_checkpoint(ckpt_dict=ckpt_dict, device=device, verbose=True)
@@ -230,10 +226,9 @@ def get_goal_im(variant, run_id, exp_id):
         camera_kwargs=policy_camera_kwargs,
         do_reset=False
     )
-    # import pdb; pdb.set_trace()
+
     ims = env.read_cameras()[0]["image"]
     for k in ims.keys():
         image = ims[k]
         cv2.imwrite(f'eval_params/{k}.png', image[:, :, :3])
     return ims
-# '/home/ashwinbalakrishna/Desktop/r2d2-eval/goalims/a.png'
