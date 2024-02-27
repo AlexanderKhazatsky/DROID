@@ -92,3 +92,7 @@ To collect data, run:
 python scripts/main.py
 ```
 
+To evaluate policies, install [TODO: add link to our final robomimic fork as dependency] and run:
+```python
+python scripts/evaluation/evaluate.py
+```
