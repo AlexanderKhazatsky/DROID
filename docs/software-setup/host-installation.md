@@ -2,7 +2,7 @@
 layout: default
 title: Running Application on Host
 has_children: false
-nav_order: 1
+nav_order: 2
 parent: Software Setup
 ---
 
