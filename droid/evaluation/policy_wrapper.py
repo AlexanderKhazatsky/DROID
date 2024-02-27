@@ -56,6 +56,12 @@ class PolicyWrapper:
         torch_timestep = np_dict_to_torch_dict(processed_timestep)
         action = self.policy(torch_timestep)[0]
         np_action = action.detach().numpy()
+        # a_star = np.cumsum(processed_timestep['observation']['state']) / 7
+        # print('Policy Action: ', np_action)
+        # print('Expert Action: ', a_star)
+        # print('Error: ', np.abs(a_star - np_action).mean())
+
+        # import pdb; pdb.set_trace()
         return np_action
 
 
