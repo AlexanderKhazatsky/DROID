@@ -41,7 +41,7 @@ images = [Image.fromarray(image.numpy()) for image in images]
 images[0].show()
 ```
 
-For more complex examples of loading the RLDS format of the DROID and for training policies please consult the [policy learning repository]().
+For more complex examples of loading the RLDS format of the DROID and for training policies please consult examples provided in [robomimic](https://github.com/ARISE-Initiative/robomimic).
 
 ### Accessing Raw Data
 
