@@ -26,5 +26,5 @@ ARUCO_DICT = aruco.Dictionary_get(aruco.DICT_5X5_100)
 ubuntu_pro_token = ""
 
 # Code Version [DONT CHANGE] #
-r2d2_version = "1.3"
+droid_version = "1.3"
 

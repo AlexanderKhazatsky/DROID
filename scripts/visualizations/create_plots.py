@@ -2,12 +2,12 @@ import os
 
 import matplotlib.pyplot as plt
 
-from r2d2.plotting.analysis_func import *
-from r2d2.plotting.misc import *
-from r2d2.plotting.text import *
+from droid.plotting.analysis_func import *
+from droid.plotting.misc import *
+from droid.plotting.text import *
 
 # Gather Graphical Data #
-data_path = None  # "/Volumes/R2D2_Drive/MyDrive/R2D2: Weekly Lab Data/IPRL"
+data_path = None  # "/Volumes/DROID_Drive/MyDrive/DROID: Weekly Lab Data/IPRL"
 dir_path = os.path.dirname(os.path.realpath(__file__))
 data_directory = os.path.join(dir_path, "../../", "data") if data_path is None else data_path
 PLOT_FOLDERPATH = os.path.join(dir_path, "../../", "plots")
@@ -23,7 +23,7 @@ for curr_dict in cumulative_dicts:
     all_dict_keys = list(curr_dict.keys())
     for key in all_dict_keys:
         curr_dict[key] = np.cumsum(curr_dict[key])
-        curr_dict["R2D2"] += curr_dict[key]
+        curr_dict["DROID"] += curr_dict[key]
 
 # Make Figure #
 fig = plt.figure()

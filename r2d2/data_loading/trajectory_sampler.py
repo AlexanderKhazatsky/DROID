@@ -3,8 +3,8 @@ import os
 import h5py
 import numpy as np
 
-from r2d2.data_processing.timestep_processing import TimestepProcesser
-from r2d2.trajectory_utils.misc import load_trajectory
+from droid.data_processing.timestep_processing import TimestepProcesser
+from droid.trajectory_utils.misc import load_trajectory
 
 
 def crawler(dirname, filter_func=None):

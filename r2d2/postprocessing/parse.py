@@ -2,7 +2,7 @@
 parse.py
 
 Core parsing logic -- takes a path to a raw demonstration directory (comprised of `trajectory.h5` and the SVO
-recordings), parses out the relevant structured information following the schema in `r2d2.postprocessing.schema`,
+recordings), parses out the relevant structured information following the schema in `droid.postprocessing.schema`,
 returning a JSON-serializable data record.
 """
 from datetime import datetime
@@ -11,7 +11,7 @@ from typing import Dict, Optional, Tuple
 
 import h5py
 
-from r2d2.postprocessing.schema import TRAJECTORY_SCHEMA
+from droid.postprocessing.schema import TRAJECTORY_SCHEMA
 
 
 def parse_datetime(date_str: str, mode="day") -> datetime:

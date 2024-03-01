@@ -7,7 +7,7 @@ import tf_agents
 from tf_agents.trajectories import time_step as ts
 import tensorflow_hub as hub
 
-from r2d2.user_interface.eval_gui import GoalCondPolicy, DEFAULT_LANG_TEXT
+from droid.user_interface.eval_gui import GoalCondPolicy, DEFAULT_LANG_TEXT
 
 
 def resize(image):

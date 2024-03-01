@@ -1,7 +1,7 @@
 """
 schema.py
 
-Schema & processing functions for extracting and formatting metadata from an individual R2D2 trajectory as a
+Schema & processing functions for extracting and formatting metadata from an individual DROID trajectory as a
 JSON-serializable record. Converting to JSON provides a more friendly human-readable format, and facilitates downstream
 tools for standing up a database/query engine.
 """
@@ -53,7 +53,7 @@ def get_robot_serial(*, attrs: Dict, **_) -> str:
     return attrs.get("robot_serial_number", "unknown")
 
 
-def get_r2d2_version(*, attrs: Dict, **_) -> str:
+def get_droid_version(*, attrs: Dict, **_) -> str:
     return str(attrs.get("version_number", "-1.0"))
 
 
@@ -108,7 +108,7 @@ TRAJECTORY_SCHEMA: Dict[str, Callable] = {
     "scene_id": get_scene_id,
     "success": get_success,
     "robot_serial": get_robot_serial,
-    "r2d2_version": get_r2d2_version,
+    "droid_version": get_droid_version,
 
     # === Task Parameters ===
     "current_task": get_current_task,

@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 
-from r2d2.data_processing.timestep_processing import TimestepProcesser
+from droid.data_processing.timestep_processing import TimestepProcesser
 
 
 def converter_helper(data, batchify=True):

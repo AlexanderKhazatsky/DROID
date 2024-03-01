@@ -5,7 +5,7 @@ ascii=$(cat ./intro.txt)
 echo "$ascii"
 
 
-echo "Welcome to the R2D2 setup process."
+echo "Welcome to the DROID setup process."
 
 read -p "Is this your first time setting up the machine? (yes/no): " first_time
 
@@ -60,7 +60,7 @@ fi
 # Read the parameter values from the Python script using awk and convert to env variables
 echo -e "\nSet environment variables from parameters file\n"
 
-PARAMETERS_FILE="$(git rev-parse --show-toplevel)/r2d2/misc/parameters.py"
+PARAMETERS_FILE="$(git rev-parse --show-toplevel)/droid/misc/parameters.py"
 awk -F'[[:space:]]*=[[:space:]]*' '/^[[:space:]]*([[:alnum:]_]+)[[:space:]]*=/ && $1 != "ARUCO_DICT" { gsub("\"", "", $2); print "export " $1 "=" $2 }' "$PARAMETERS_FILE" > temp_env_vars.sh
 source temp_env_vars.sh
 export ROOT_DIR=$(git rev-parse --show-toplevel)

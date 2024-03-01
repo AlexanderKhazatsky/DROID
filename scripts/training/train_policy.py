@@ -1,8 +1,8 @@
 import json
 
-from r2d2.training.model_trainer import exp_launcher
+from droid.training.model_trainer import exp_launcher
 
-task_label_filepath = "/home/sasha/R2D2/scripts/labeling/task_label_filepath.json"
+task_label_filepath = "/home/sasha/DROID/scripts/labeling/task_label_filepath.json"
 with open(task_label_filepath, "r") as jsonFile:
     task_labels = json.load(jsonFile)
 

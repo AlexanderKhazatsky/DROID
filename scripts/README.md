@@ -15,7 +15,7 @@ Sidd if you have a better solution)!
 
 ## Quickstart
 
-To get started, make sure you're on the data collection laptop! Pull the latest version of the R2D2 repository;
+To get started, make sure you're on the data collection laptop! Pull the latest version of the DROID repository;
 there should be a folder `cache/postprocessing` at the repository root. If your lab has uploaded data to Google
 Drive prior to August 1st, 2023, you should see a file `<lab>-cache.json` in this folder!
 
@@ -24,18 +24,18 @@ To upload new demonstrations:
 1. Install new Python dependencies for post-processing (`pip install -e .`); should install `boto3` and `pyrallis`.
 
 2. Read and familiarize yourself with the script `scripts/postprocess.py`, especially the arguments in the
-   dataclass `R2D2UploadConfig`. Note the labs and members defined in `REGISTERED_MEMBERS`.
+   dataclass `DROIDUploadConfig`. Note the labs and members defined in `REGISTERED_MEMBERS`.
    + If your lab is not in the dictionary, add it (along with your first member's name + associated 8-character ID).
    + The comments above the dictionary definition walk through how to add new members (and generate IDs)!
 
-3. Create a file `r2d2-credentials.json` (or whatever, just make sure **it is not tracked by git**) with the AWS
+3. Create a file `droid-credentials.json` (or whatever, just make sure **it is not tracked by git**) with the AWS
    Access Key and Secret Key that was sent to your lab leads by email.
    + The JSON file should be formatted as ```{"AccessKeyID": <ACCESS KEY>, "SecretAccessKey": <SECRET KEY>}```
-   + Update `R2D2UploadConfig.credentials_json` with the path to this JSON file.
+   + Update `DROIDUploadConfig.credentials_json` with the path to this JSON file.
    + **If you don't have AWS Credentials:** Check the section "AWS S3 Access" below!
 
-4. Update `R2D2UploadConfig.lab` with your unique lab identifier from `REGISTERED_MEMBERS`. Update
-   `R2D2UploadConfig.data_dir` with the path to the folder containing your demonstrations. This folder is
+4. Update `DROIDUploadConfig.lab` with your unique lab identifier from `REGISTERED_MEMBERS`. Update
+   `DROIDUploadConfig.data_dir` with the path to the folder containing your demonstrations. This folder is
    automatically created by the data collection GUI, and should be formatted following the
    "Expected Data Directory Structure" section below.
 
@@ -53,7 +53,7 @@ it left off).
 
 One member per lab should email Sidd to get credentials to upload demonstrations to the S3 bucket. Each lab will only
 get one set of credentials, to be stored on the data collection laptop; the credentials only allow for uploading to
-the R2D2 S3 bucket (no other AWS permissions).
+the DROID S3 bucket (no other AWS permissions).
 
 Make sure to check that your lab doesn't already have a set of valid credentials (the following users should already
 have credentials):
@@ -119,7 +119,7 @@ and reported to you at the end of execution (and are stored in the `<lab>-cache.
 
 - `Lab <LAB> not in REGISTERED_LAB_MEMBERS`
   + This error means that `<LAB>` is not recognized. If you're a lab joining the project, add an entry to
-  + `REGISTERED_LAB_MEMBERS`. Otherwise, check the `lab` parameter you set in `R2D2UploadConfig` or message Sidd.
+  + `REGISTERED_LAB_MEMBERS`. Otherwise, check the `lab` parameter you set in `DROIDUploadConfig` or message Sidd.
 
 - `Problem connection to S3 bucket; verify credentials JSON file!`
   + There's an issue connection to AWS S3; verify the credentials in the JSON file were copied correctly, otherwise

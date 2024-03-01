@@ -7,8 +7,8 @@ import numpy as np
 from dateutil.relativedelta import relativedelta
 from scipy import stats
 
-from r2d2.plotting.misc import *
-from r2d2.plotting.text import *
+from droid.plotting.misc import *
+from droid.plotting.text import *
 
 # Define Data Crawler #
 num_demos = 0

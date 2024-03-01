@@ -18,7 +18,7 @@ function confirm_devices {
 ascii=$(cat ./intro.txt)
 echo "$ascii"
 
-echo "Welcome to the R2D2 setup process."
+echo "Welcome to the DROID setup process."
 
 
 read -p "Is this your first time setting up the machine? (yes/no): " first_time
@@ -107,8 +107,8 @@ if [ "$first_time" = "no" ]; then
 	done
 
 	echo $ROOT_DIR
-	pip3 install -e $ROOT_DIR/r2d2/oculus_reader
-	python3 $ROOT_DIR/r2d2/oculus_reader/oculus_reader/reader.py
+	pip3 install -e $ROOT_DIR/droid/oculus_reader
+	python3 $ROOT_DIR/droid/oculus_reader/oculus_reader/reader.py
 	echo cleaning up threads ...
 	sleep 5
 	adb kill-server
@@ -117,7 +117,7 @@ fi
 # expose parameters as environment variables
 echo -e "Set environment variables from parameters file \n"
 
-PARAMETERS_FILE="$(git rev-parse --show-toplevel)/r2d2/misc/parameters.py"
+PARAMETERS_FILE="$(git rev-parse --show-toplevel)/droid/misc/parameters.py"
 awk -F'[[:space:]]*=[[:space:]]*' '/^[[:space:]]*([[:alnum:]_]+)[[:space:]]*=/ && $1 != "ARUCO_DICT" { gsub("\"", "", $2); print "export " $1 "=" $2 }' "$PARAMETERS_FILE" > temp_env_vars.sh
 source temp_env_vars.sh
 export ROOT_DIR=$ROOT_DIR

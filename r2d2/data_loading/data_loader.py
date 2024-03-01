@@ -1,8 +1,8 @@
 from torch.utils.data import DataLoader
 from torch.utils.data.datapipes.iter import Shuffler
 
-from r2d2.data_loading.dataset import TrajectoryDataset
-from r2d2.data_loading.trajectory_sampler import *
+from droid.data_loading.dataset import TrajectoryDataset
+from droid.data_loading.trajectory_sampler import *
 
 
 def create_dataloader(

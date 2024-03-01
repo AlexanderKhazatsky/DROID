@@ -6,12 +6,12 @@ import psutil
 import pyzed.sl as sl
 from tqdm import tqdm
 
-from r2d2.camera_utils.wrappers.recorded_multi_camera_wrapper import RecordedMultiCameraWrapper
-from r2d2.data_loading.trajectory_sampler import *
+from droid.camera_utils.wrappers.recorded_multi_camera_wrapper import RecordedMultiCameraWrapper
+from droid.data_loading.trajectory_sampler import *
 
 
 def example_script():
-    path = "/home/sasha/R2D2/data/success/2023-02-15/Wed_Feb_15_19:08:33_2023/recordings/23404442.svo"
+    path = "/home/sasha/DROID/data/success/2023-02-15/Wed_Feb_15_19:08:33_2023/recordings/23404442.svo"
 
     init = sl.InitParameters()
     init.set_from_svo_file(path)
@@ -127,7 +127,7 @@ def single_reader_script():
     camera.disable_camera()
 
 
-# from r2d2.training.data_loading.data_loader import create_train_test_data_loader
+# from droid.training.data_loading.data_loader import create_train_test_data_loader
 # data_processing_kwargs=dict(
 #     timestep_filtering_kwargs=dict(
 #         # Eventually need to enable sweeper to take lists #

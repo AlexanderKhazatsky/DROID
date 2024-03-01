@@ -7,7 +7,7 @@ nav_order: 5
 
 # Evaluating Policies
 
-* Run a variant of [this](https://github.com/AlexanderKhazatsky/R2D2/blob/main/scripts/evaluation/evaluate_policy.py) file with the desired properties.
+* Run a variant of [this](https://github.com/AlexanderKhazatsky/DROID/blob/main/scripts/evaluation/evaluate_policy.py) file with the desired properties.
 	* Make sure to update policy_logdir and model_id with the desired values
 	* Any properties that are added to the variant will be loaded from the training folder values.
 * It is recommended to start off by evaluating policies in the “Practice” tab for simplicity.

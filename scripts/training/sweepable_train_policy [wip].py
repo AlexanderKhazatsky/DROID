@@ -1,4 +1,4 @@
-from r2d2.training.model_trainer import exp_launcher
+from droid.training.model_trainer import exp_launcher
 
 # import rlkit.util.hyperparameter as hyp
 

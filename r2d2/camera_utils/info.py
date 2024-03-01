@@ -1,4 +1,4 @@
-from r2d2.misc.parameters import *
+from droid.misc.parameters import *
 
 camera_type_dict = {
     hand_camera_id: 0,

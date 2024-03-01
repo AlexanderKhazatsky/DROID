@@ -9,8 +9,8 @@ import numpy as np
 from cv2 import aruco
 from scipy.spatial.transform import Rotation as R
 
-from r2d2.misc.parameters import *
-from r2d2.misc.transformations import *
+from droid.misc.parameters import *
+from droid.misc.transformations import *
 
 # Create Board #
 CHARUCO_BOARD = aruco.CharucoBoard_create(

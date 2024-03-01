@@ -3,7 +3,7 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "r2d2"
+name = "droid"
 authors = [
     {name = "Alexander Khazatsky "}
 ]
@@ -45,9 +45,9 @@ postprocessing = [
 ]
 
 [project.urls]
-homepage = "https://github.com/AlexanderKhazatsky/R2D2"
-repository = "https://github.com/AlexanderKhazatsky/R2D2"
-documentation = "https://github.com/AlexanderKhazatsky/R2D2"
+homepage = "https://github.com/AlexanderKhazatsky/DROID"
+repository = "https://github.com/AlexanderKhazatsky/DROID"
+documentation = "https://github.com/AlexanderKhazatsky/DROID"
 
 [tool.black]
 line-length = 121

@@ -40,5 +40,5 @@ This guide assumes you have already setup DROID application software to run on y
 
 # Uploading Data
 
-Instructions for uploading data can be found in [this](https://github.com/AlexanderKhazatsky/R2D2/tree/main/scripts) readme.
+Instructions for uploading data can be found in [this](https://github.com/AlexanderKhazatsky/DROID/tree/main/scripts) readme.
 

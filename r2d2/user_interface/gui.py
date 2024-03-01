@@ -16,11 +16,11 @@ import numpy as np
 from PIL import Image, ImageOps, ImageTk
 
 # Internal Imports #
-from r2d2.camera_utils.info import get_camera_name
-from r2d2.misc.parameters import robot_ip
-from r2d2.user_interface.gui_parameters import *
-from r2d2.user_interface.misc import *
-from r2d2.user_interface.text import *
+from droid.camera_utils.info import get_camera_name
+from droid.misc.parameters import robot_ip
+from droid.user_interface.gui_parameters import *
+from droid.user_interface.misc import *
+from droid.user_interface.text import *
 
 
 class RobotGUI(tk.Tk):

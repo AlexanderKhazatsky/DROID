@@ -6,9 +6,9 @@ from datetime import date
 import cv2
 import h5py
 
-import r2d2.trajectory_utils.misc as tu
-from r2d2.calibration.calibration_utils import check_calibration_info
-from r2d2.misc.parameters import hand_camera_id, r2d2_version, robot_serial_number, robot_type
+import droid.trajectory_utils.misc as tu
+from droid.calibration.calibration_utils import check_calibration_info
+from droid.misc.parameters import hand_camera_id, droid_version, robot_serial_number, robot_type
 
 # Prepare Data Folder #
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -76,7 +76,7 @@ class DataCollecter:
             info = {}
         info["time"] = self.last_traj_name
         info["robot_serial_number"] = "{0}-{1}".format(robot_type, robot_serial_number)
-        info["version_number"] = r2d2_version
+        info["version_number"] = droid_version
 
         if practice or (not self.save_data):
             save_filepath = None

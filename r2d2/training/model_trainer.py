@@ -11,8 +11,8 @@ import torch
 import torch.optim as optim
 from tqdm import trange
 
-from r2d2.data_loading.data_loader import create_train_test_data_loader
-from r2d2.training.models.policy_network import ImagePolicy
+from droid.data_loading.data_loader import create_train_test_data_loader
+from droid.training.models.policy_network import ImagePolicy
 
 
 def exp_launcher(variant, run_id, exp_id):

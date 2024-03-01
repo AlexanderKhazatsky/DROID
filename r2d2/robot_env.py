@@ -3,13 +3,13 @@ from copy import deepcopy
 import gym
 import numpy as np
 
-from r2d2.calibration.calibration_utils import load_calibration_info
-from r2d2.camera_utils.info import camera_type_dict
-from r2d2.camera_utils.wrappers.multi_camera_wrapper import MultiCameraWrapper
-from r2d2.misc.parameters import hand_camera_id, nuc_ip
-from r2d2.misc.server_interface import ServerInterface
-from r2d2.misc.time import time_ms
-from r2d2.misc.transformations import change_pose_frame
+from droid.calibration.calibration_utils import load_calibration_info
+from droid.camera_utils.info import camera_type_dict
+from droid.camera_utils.wrappers.multi_camera_wrapper import MultiCameraWrapper
+from droid.misc.parameters import hand_camera_id, nuc_ip
+from droid.misc.server_interface import ServerInterface
+from droid.misc.time import time_ms
+from droid.misc.transformations import change_pose_frame
 
 
 class RobotEnv(gym.Env):

@@ -4,11 +4,11 @@ import os
 import numpy as np
 import torch
 
-from r2d2.controllers.oculus_controller import VRPolicy
-from r2d2.evaluation.policy_wrapper import PolicyWrapper
-from r2d2.robot_env import RobotEnv
-from r2d2.user_interface.data_collector import DataCollecter
-from r2d2.user_interface.gui import RobotGUI
+from droid.controllers.oculus_controller import VRPolicy
+from droid.evaluation.policy_wrapper import PolicyWrapper
+from droid.robot_env import RobotEnv
+from droid.user_interface.data_collector import DataCollecter
+from droid.user_interface.gui import RobotGUI
 
 
 def eval_launcher(variant, run_id, exp_id):

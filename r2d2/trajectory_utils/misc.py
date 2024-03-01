@@ -6,14 +6,14 @@ import cv2
 import numpy as np
 from PIL import Image
 
-from r2d2.calibration.calibration_utils import *
-from r2d2.camera_utils.info import camera_type_to_string_dict
-from r2d2.camera_utils.wrappers.recorded_multi_camera_wrapper import RecordedMultiCameraWrapper
-from r2d2.misc.parameters import *
-from r2d2.misc.time import time_ms
-from r2d2.misc.transformations import change_pose_frame
-from r2d2.trajectory_utils.trajectory_reader import TrajectoryReader
-from r2d2.trajectory_utils.trajectory_writer import TrajectoryWriter
+from droid.calibration.calibration_utils import *
+from droid.camera_utils.info import camera_type_to_string_dict
+from droid.camera_utils.wrappers.recorded_multi_camera_wrapper import RecordedMultiCameraWrapper
+from droid.misc.parameters import *
+from droid.misc.time import time_ms
+from droid.misc.transformations import change_pose_frame
+from droid.trajectory_utils.trajectory_reader import TrajectoryReader
+from droid.trajectory_utils.trajectory_writer import TrajectoryWriter
 
 
 def collect_trajectory(

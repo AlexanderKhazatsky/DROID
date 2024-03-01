@@ -4,8 +4,8 @@ from itertools import chain
 
 import numpy as np
 
-from r2d2.camera_utils.info import camera_type_to_string_dict
-from r2d2.data_processing.data_transforms import ImageTransformer
+from droid.camera_utils.info import camera_type_to_string_dict
+from droid.data_processing.data_transforms import ImageTransformer
 
 
 class TimestepProcesser:

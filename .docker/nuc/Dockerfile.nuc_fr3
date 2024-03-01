@@ -8,7 +8,7 @@ ENV ROBOT_IP=172.16.0.1
 ENV NUC_IP=172.16.0.2
 
 # set directory structure
-ARG NUC_POLYMETIS_DIR=/app/r2d2/fairo/polymetis
+ARG NUC_POLYMETIS_DIR=/app/droid/fairo/polymetis
 ARG NUC_ROBOT_CONFIG_DIR=/app/config/${ROBOT_TYPE}
 ARG NUC_POLYMETIS_CONFIG_DIR=${NUC_POLYMETIS_DIR}/polymetis/conf
 
@@ -64,11 +64,11 @@ RUN pip3 install -e . && \
     pip3 install dm-robotics-controllers==0.5.0 --no-deps
 
 # using miniconda instead of anaconda so overwrite sh scripts
-RUN find /app/r2d2/franka -type f -name "launch_*.sh" -exec sed -i 's/anaconda/miniconda/g' {} \;
+RUN find /app/droid/franka -type f -name "launch_*.sh" -exec sed -i 's/anaconda/miniconda/g' {} \;
 RUN find /app/scripts/server -type f -name "launch_server.sh" -exec sed -i 's/anaconda/miniconda/g' {} \;
 
 # set absolute paths
-RUN find /app/r2d2/franka -type f -name "launch_*.sh" -exec sed -i 's|~|/root|g' {} \;
+RUN find /app/droid/franka -type f -name "launch_*.sh" -exec sed -i 's|~|/root|g' {} \;
 RUN find /app/scripts/server -type f -name "launch_server.sh" -exec sed -i 's|~|/root|g' {} \;
 
 # start the server

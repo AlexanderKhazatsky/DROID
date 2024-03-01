@@ -1,6 +1,6 @@
 import argparse
-from r2d2.user_interface.eval_gui import EvalGUI
-from r2d2.evaluation.rt1_wrapper import RT1Policy
+from droid.user_interface.eval_gui import EvalGUI
+from droid.evaluation.rt1_wrapper import RT1Policy
 
 
 def main():

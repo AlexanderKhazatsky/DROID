@@ -7,12 +7,12 @@ import numpy as np
 import torch
 from polymetis import GripperInterface, RobotInterface
 
-from r2d2.misc.parameters import sudo_password
-from r2d2.misc.subprocess_utils import run_terminal_command, run_threaded_command
+from droid.misc.parameters import sudo_password
+from droid.misc.subprocess_utils import run_terminal_command, run_threaded_command
 
 # UTILITY SPECIFIC IMPORTS
-from r2d2.misc.transformations import add_poses, euler_to_quat, pose_diff, quat_to_euler
-from r2d2.robot_ik.robot_ik_solver import RobotIKSolver
+from droid.misc.transformations import add_poses, euler_to_quat, pose_diff, quat_to_euler
+from droid.robot_ik.robot_ik_solver import RobotIKSolver
 
 
 class FrankaRobot:

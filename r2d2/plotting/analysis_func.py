@@ -4,8 +4,8 @@ from collections import defaultdict
 import h5py
 import numpy as np
 
-from r2d2.plotting.misc import *
-from r2d2.plotting.text import *
+from droid.plotting.misc import *
+from droid.plotting.text import *
 
 # Create Empty Objects #
 user_progress_dict = defaultdict(lambda: 0)

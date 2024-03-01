@@ -26,9 +26,9 @@ from typing import Dict, Tuple
 import boto3
 from tqdm import tqdm
 
-from r2d2.postprocessing.parse import parse_datetime, parse_timestamp, parse_trajectory, parse_user
-from r2d2.postprocessing.util.svo2mp4 import convert_mp4s
-from r2d2.postprocessing.util.validate import validate_day_dir, validate_metadata_record, validate_svo_existence
+from droid.postprocessing.parse import parse_datetime, parse_timestamp, parse_trajectory, parse_user
+from droid.postprocessing.util.svo2mp4 import convert_mp4s
+from droid.postprocessing.util.validate import validate_day_dir, validate_metadata_record, validate_svo_existence
 
 
 # === Stage 1 :: Indexing ===
@@ -181,7 +181,7 @@ def run_upload(
     totals: Dict[str, Dict[str, int]],
     processed_uuids: Dict[str, Dict[str, str]],
     uploaded_uuids: Dict[str, Dict[str, str]],
-    bucket_name: str = "r2d2-data",
+    bucket_name: str = "droid-data",
     prefix: str = "lab-uploads/",
 ) -> None:
     """Iterate through each successfully processed trajectory in `processed_uuids` and upload to S3."""

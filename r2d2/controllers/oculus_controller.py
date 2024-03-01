@@ -3,8 +3,8 @@ import time
 import numpy as np
 from oculus_reader.reader import OculusReader
 
-from r2d2.misc.subprocess_utils import run_threaded_command
-from r2d2.misc.transformations import add_angles, euler_to_quat, quat_diff, quat_to_euler, rmat_to_quat
+from droid.misc.subprocess_utils import run_threaded_command
+from droid.misc.transformations import add_angles, euler_to_quat, quat_diff, quat_to_euler, rmat_to_quat
 
 
 def vec_to_reorder_mat(vec):

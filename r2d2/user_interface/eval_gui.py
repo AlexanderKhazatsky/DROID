@@ -4,8 +4,8 @@ import numpy as np
 
 
 from tkinter import *
-from r2d2.user_interface.gui import *
-from r2d2.misc.time import time_ms
+from droid.user_interface.gui import *
+from droid.misc.time import time_ms
 
 import customtkinter as ctk
 
@@ -13,9 +13,9 @@ ctk.set_appearance_mode("dark")  # Modes: system (default), light, dark
 ctk.set_default_color_theme("blue")  # Themes: blue (default), dark-blue, green
 ctk.DrawEngine.preferred_drawing_method = "circle_shapes"
 
-from r2d2.controllers.oculus_controller import VRPolicy
-from r2d2.robot_env import RobotEnv
-from r2d2.user_interface.data_collector import DataCollecter
+from droid.controllers.oculus_controller import VRPolicy
+from droid.robot_env import RobotEnv
+from droid.user_interface.data_collector import DataCollecter
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 data_dir = os.path.join(dir_path, "../../evaluation_logs")

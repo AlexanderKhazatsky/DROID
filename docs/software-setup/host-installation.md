@@ -101,16 +101,16 @@ We will use Conda as the package manager for our python virtual environment. You
 
 Next, we will commence with setting up the Polymetis library. The following [guide](https://facebookresearch.github.io/fairo/polymetis/installation.html#for-advanced-users-developers) details how to build Polymetis, we will be following this guide.
 
-The first step of the linked guide requires you to clone the fairo repository. We have included a pinned version of the library with the R2D2 main repository as a git submodule. Clone the R2D2 repository and submodules with the following command:
+The first step of the linked guide requires you to clone the fairo repository. We have included a pinned version of the library with the DROID main repository as a git submodule. Clone the DROID repository and submodules with the following command:
 
 ```bash
-git clone git@github.com:AlexanderKhazatsky/R2D2.git
+git clone git@github.com:AlexanderKhazatsky/DROID.git
 # sync and pull submodules
 git submodule sync
 git submodule update --remote --init --recursive
 ```
 
-You should now find the fairo repository at `r2d2/fairo`, from this point continue with steps 2 and 3 of the polymetis guide.
+You should now find the fairo repository at `droid/fairo`, from this point continue with steps 2 and 3 of the polymetis guide.
 
 In step 4, when building libfranka from source, it is crucial to fix the version of libfranka you are using to one that is compatible with the robot you are using, see the below table for a list of robot hardware and libfranka version compatibility: 
 
@@ -163,7 +163,7 @@ Update the IP parameters in `droid/misc/parameters.py`, in particular set `robot
 
 If you choose to install miniconda instead of anaconda in previous steps of this guide you will need to make the following edits:
 
-In r2d2/franka change the word anaconda to minicode in the scripts `launch_gripper.sh` and `launch_robot.sh`. Also change the paths to be absolute. Repeat for the `launch_server.sh` file in `scripts/server`
+In droid/franka change the word anaconda to minicode in the scripts `launch_gripper.sh` and `launch_robot.sh`. Also change the paths to be absolute. Repeat for the `launch_server.sh` file in `scripts/server`
 
 ## Optional: Configure Headless Server
 
@@ -198,10 +198,10 @@ To set the static IP for the laptop, enter Settings > Network and click the add 
 
 We will use Conda as the package manager for our python virtual environment. You can install Conda from the following [link](https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html). Once you've installed Conda, ensure that you have configured git on the NUC so you can pull software packages from GitHub. A guide on configuring git is provided [here](https://docs.github.com/en/get-started/getting-started-with-git/set-up-git#setting-up-git).
 
-Clone the R2D2 repository and submodules with the following command:
+Clone the DROID repository and submodules with the following command:
 
 ```bash
-git clone git@github.com:AlexanderKhazatsky/R2D2.git
+git clone git@github.com:AlexanderKhazatsky/DROID.git
 # sync and pull submodules
 git submodule sync
 git submodule update --remote --init --recursive
@@ -239,10 +239,10 @@ Once you have restarted your machine post installation, activate the robot conda
 python -c "import pyzed"
 ```
 
-The software for the Oculus application is included under `r2d2/oculus_reader` as a git submodule. Start by installing the oculus reader dependencies into the current virtual environment through running:
+The software for the Oculus application is included under `droid/oculus_reader` as a git submodule. Start by installing the oculus reader dependencies into the current virtual environment through running:
 
 ```bash
-pip install -e ./r2d2/oculus_reader
+pip install -e ./droid/oculus_reader
 ```
 
 Next, install the android debug bridge software dependency required to interface with your Oculus Quest through running:
@@ -269,7 +269,7 @@ Update the IP parameters in `droid/misc/parameters.py`, in particular set `robot
 
 If you choose to install miniconda instead of anaconda in previous steps of this guide you will need to make the following edits:
 
-In r2d2/franka change the word anaconda to minicode in the scripts `launch_gripper.sh` and `launch_robot.sh`. Also change the paths to be absolute. Repeat for the `launch_server.sh` file in `scripts/server`
+In droid/franka change the word anaconda to minicode in the scripts `launch_gripper.sh` and `launch_robot.sh`. Also change the paths to be absolute. Repeat for the `launch_server.sh` file in `scripts/server`
 
 
 # Testing/Validating Entire Setup

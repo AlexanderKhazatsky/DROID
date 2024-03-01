@@ -1,4 +1,4 @@
-from r2d2.training.model_trainer import exp_launcher
+from droid.training.model_trainer import exp_launcher
 
 variant = dict(
     exp_name="sanity_check_state_obs",

@@ -2,9 +2,9 @@ import glob
 import random
 from collections import defaultdict
 
-from r2d2.camera_utils.info import get_camera_type
-from r2d2.camera_utils.recording_readers.mp4_reader import MP4Reader
-from r2d2.camera_utils.recording_readers.svo_reader import SVOReader
+from droid.camera_utils.info import get_camera_type
+from droid.camera_utils.recording_readers.mp4_reader import MP4Reader
+from droid.camera_utils.recording_readers.svo_reader import SVOReader
 
 
 class RecordedMultiCameraWrapper:

@@ -1,12 +1,12 @@
-[![docs](https://github.com/alexanderkhazatsky/R2D2/actions/workflows/pages.yaml/badge.svg)](https://github.com/alexanderkhazatsky/R2D2/blob/main/.github/workflows/pages.yaml)
-[![nuc_panda](https://github.com/alexanderkhazatsky/R2D2/actions/workflows/build_container_nuc_panda.yaml/badge.svg)](https://github.com/alexanderkhazatsky/R2D2/blob/main/.github/workflows/build_container_nuc_panda.yaml)
-[![nuc_fr3](https://github.com/alexanderkhazatsky/R2D2/actions/workflows/build_container_nuc_fr3.yaml/badge.svg)](https://github.com/alexanderkhazatsky/R2D2/blob/main/.github/workflows/build_container_nuc_fr3.yaml)
-[![laptop_panda](https://github.com/alexanderkhazatsky/R2D2/actions/workflows/build_container_laptop_panda.yaml/badge.svg)](https://github.com/alexanderkhazatsky/R2D2/blob/main/.github/workflows/build_container_laptop_panda.yaml)
-[![laptop_fr3](https://github.com/alexanderkhazatsky/R2D2/actions/workflows/build_container_laptop_fr3.yaml/badge.svg)](https://github.com/alexanderkhazatsky/R2D2/blob/main/.github/build_container_laptop_fr3/pages.yaml)
+[![docs](https://github.com/alexanderkhazatsky/DROID/actions/workflows/pages.yaml/badge.svg)](https://github.com/alexanderkhazatsky/DROID/blob/main/.github/workflows/pages.yaml)
+[![nuc_panda](https://github.com/alexanderkhazatsky/DROID/actions/workflows/build_container_nuc_panda.yaml/badge.svg)](https://github.com/alexanderkhazatsky/DROID/blob/main/.github/workflows/build_container_nuc_panda.yaml)
+[![nuc_fr3](https://github.com/alexanderkhazatsky/DROID/actions/workflows/build_container_nuc_fr3.yaml/badge.svg)](https://github.com/alexanderkhazatsky/DROID/blob/main/.github/workflows/build_container_nuc_fr3.yaml)
+[![laptop_panda](https://github.com/alexanderkhazatsky/DROID/actions/workflows/build_container_laptop_panda.yaml/badge.svg)](https://github.com/alexanderkhazatsky/DROID/blob/main/.github/workflows/build_container_laptop_panda.yaml)
+[![laptop_fr3](https://github.com/alexanderkhazatsky/DROID/actions/workflows/build_container_laptop_fr3.yaml/badge.svg)](https://github.com/alexanderkhazatsky/DROID/blob/main/.github/build_container_laptop_fr3/pages.yaml)
 
-# R2D2: Residential Robot Demonstration Dataset
+# DROID: Residential Robot Demonstration Dataset
 
-The repository provides the code for contributing to and using the R2D2 dataset.
+The repository provides the code for contributing to and using the DROID dataset.
 
 NOTE: This repository has two dependencies listed below. If you are setting this up on the robot NUC, (1) is required. If you are setting this up on the control workstation, (2) is required:
 
@@ -32,26 +32,26 @@ pip install dm-robotics-controllers==0.5.0 --no-deps
 ```
 
 If you are using miniconda instead of anaconda:
-- Go into r2d2/franka, then open launch_gripper.sh and launch_robot.sh
+- Go into droid/franka, then open launch_gripper.sh and launch_robot.sh
 - In both files, change the word anaconda to miniconda, change the paths to be absolute (ie. starting from /home), and save it
 - Go into scripts/server, and do the same thing to launch_server.sh
 
-Regardless of the machine, go into r2d2/misc/parameters.py, and:
+Regardless of the machine, go into droid/misc/parameters.py, and:
 - Set robot_ip to match the IP address of your robot
 - Set nuc_ip to match the IP address of your NUC
 
 If you are setting this up on the robot NUC:
-- In r2d2/misc/parameters.py, set "sudo_password" to your machine's corresponding sudo password. Sudo access is needed to launch the robot. The rest of the parameters can be ignored for now.
+- In droid/misc/parameters.py, set "sudo_password" to your machine's corresponding sudo password. Sudo access is needed to launch the robot. The rest of the parameters can be ignored for now.
 - For the robot_type variable, enter 'fr3' or 'panda' depending on which Franka robot you are using
 
 If you are setting this up on the control workstation:
-- Go into r2d2/misc/parameters.py
+- Go into droid/misc/parameters.py
 - Set robot_serial_number to match your robot's serial number (found on your franka website, under Settings -> Franka World -> Control S/N)
 - For the robot_type variable, enter 'fr3' or 'panda' depending on which Franka robot you are using
 - Update the Charuco board parameters to match yours. If you ordered it through calib.io, the parameters should be on the board.
 - With the cameras plugged in, launch the GUI, and go to the calibration page. Clicking the camera ID’s will show you which view they correspond to. Update hand_camera_id, varied_3rd_person_camera_id, and fixed_3rd_person_camera_id values in parameters.py with the correct camera ID for each camera.
 
-To make R2D2 compatible with polymetis:
+To make DROID compatible with polymetis:
 - If you have an FR3, you will need [these](https://drive.google.com/drive/folders/178-MJTAVV0m5_RDs2ScUNcYameGDA0Eg?usp=sharing) files
 - If you have a Panda, you will need [these](https://drive.google.com/drive/folders/1wXTQQbFKjd9ed3yKxB4td9GzA_XrR7Xk?usp=sharing) files
 - Go into fairo/polymetis/polymetis/conf/robot_client/:

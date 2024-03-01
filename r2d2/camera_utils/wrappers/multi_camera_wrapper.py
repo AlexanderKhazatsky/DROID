@@ -2,8 +2,8 @@ import os
 import random
 from collections import defaultdict
 
-from r2d2.camera_utils.camera_readers.zed_camera import gather_zed_cameras
-from r2d2.camera_utils.info import get_camera_type
+from droid.camera_utils.camera_readers.zed_camera import gather_zed_cameras
+from droid.camera_utils.info import get_camera_type
 
 
 class MultiCameraWrapper:

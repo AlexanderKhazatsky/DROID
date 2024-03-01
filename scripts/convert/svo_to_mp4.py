@@ -5,8 +5,8 @@ import os
 import cv2
 from tqdm import tqdm
 
-from r2d2.camera_utils.recording_readers.svo_reader import SVOReader
-from r2d2.data_loading.trajectory_sampler import collect_data_folderpaths
+from droid.camera_utils.recording_readers.svo_reader import SVOReader
+from droid.data_loading.trajectory_sampler import collect_data_folderpaths
 
 
 def convert_svo_to_mp4(filepath, recording_folderpath):

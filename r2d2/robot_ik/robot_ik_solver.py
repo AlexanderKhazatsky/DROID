@@ -2,7 +2,7 @@ import numpy as np
 from dm_control import mjcf
 from dm_robotics.moma.effectors import arm_effector, cartesian_6d_velocity_effector
 
-from r2d2.robot_ik.arm import FrankaArm
+from droid.robot_ik.arm import FrankaArm
 
 
 class RobotIKSolver:
