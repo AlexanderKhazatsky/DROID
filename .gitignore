@@ -145,5 +145,5 @@ clean.py
 .vscode/
 
 # AWS Credentials
-r2d2-credentials.json
+droid-credentials.json
 *credentials.json

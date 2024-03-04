@@ -1,4 +1,4 @@
-from r2d2.evaluation.eval_launcher import eval_launcher
+from droid.evaluation.eval_launcher import eval_launcher
 
 variant = dict(
     exp_name="policy_test",

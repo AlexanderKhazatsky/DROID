@@ -1,19 +1,19 @@
 """
 postprocess.py
 
-Core script for processing & uploading collected demonstration data to the R2D2 Amazon S3 bucket.
+Core script for processing & uploading collected demonstration data to the DROID Amazon S3 bucket.
 
 Performs the following:
-    - Checks for "cached" uploads in `R2D2/cache/<lab>-cache.json; avoids repetitive work.
+    - Checks for "cached" uploads in `DROID/cache/<lab>-cache.json; avoids repetitive work.
     - Parses out relevant metadata from each trajectory --> *errors* on "unexpected format" (fail-fast).
     - Converts all SVO files to the relevant MP4s --> logs "corrupt" data (silent).
     - Runs validation logic on all *new* demonstrations --> errors on "corrupt" data (fail-fast).
     - Writes JSON metadata for all *new* demonstrations for easy data querying.
-    - Uploads each demonstration "day" data to Amazon S3 bucket and updates `R2D2/cache/<lab>-cache.json`.
+    - Uploads each demonstration "day" data to Amazon S3 bucket and updates `DROID/cache/<lab>-cache.json`.
 
 Note :: Must run on hardware with the ZED SDK; highly recommended to run this on the data collection laptop directly!
 
-Run from R2D2 directory root with: `python scripts/postprocess.py --lab <LAB_ID>
+Run from DROID directory root with: `python scripts/postprocess.py --lab <LAB_ID>
 """
 import json
 import os
@@ -23,9 +23,9 @@ from typing import Dict, Tuple
 
 import pyrallis
 
-from r2d2.postprocessing.parse import parse_datetime
-from r2d2.postprocessing.stages import run_indexing, run_processing, run_upload
-from r2d2.postprocessing.util.validate import validate_user2id
+from droid.postprocessing.parse import parse_datetime
+from droid.postprocessing.stages import run_indexing, run_processing, run_upload
+from droid.postprocessing.util.validate import validate_user2id
 
 # Registry of known labs and associated users. Note that we canonicalize names as "<F>irst <L>ast".
 #   => We map each "name" to a unique ID (8 characters); when adding new users, make sure to pick a unique ID!
@@ -116,7 +116,7 @@ REGISTERED_ALIASES: Dict[str, Tuple[str, str]] = {
 
 
 @dataclass
-class R2D2UploadConfig:
+class DROIDUploadConfig:
     # fmt: off
     lab: str                                        # Lab ID (all uppercase) -- e.g., "CLVR", "ILIAD", "REAL"
     data_dir: Path = Path("data")                   # Path to top-level directory with "success"/"failure" directories
@@ -132,7 +132,7 @@ class R2D2UploadConfig:
 
     # AWS/S3 Upload Credentials
     credentials_json: Path = Path(                  # Path to JSON file with Access Key/Secret Key (don't push to git!)
-        "r2d2-credentials.json"
+        "droid-credentials.json"
     )
 
     # Cache Parameters
@@ -141,7 +141,7 @@ class R2D2UploadConfig:
 
 
 @pyrallis.wrap()
-def postprocess(cfg: R2D2UploadConfig) -> None:
+def postprocess(cfg: DROIDUploadConfig) -> None:
     print(f"[*] Starting Data Processing & Upload for Lab `{cfg.lab}`")
 
     # Initialize Cache Data Structure --> Load Uploaded/Processed List from `cache_dir` (if exists)

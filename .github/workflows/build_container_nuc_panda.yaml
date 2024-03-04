@@ -5,7 +5,7 @@ on:
     branches: ['main']
     paths:
       - .gitmodules
-      - r2d2/**
+      - droid/**
       - .docker/nuc/*
       - .github/workflows/build_container_nuc_panda
   workflow_dispatch:

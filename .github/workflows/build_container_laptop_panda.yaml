@@ -5,7 +5,7 @@ on:
     branches: ['main']
     paths:
       - .gitmodules
-      - r2d2/**
+      - droid/**
       - .docker/laptop/*
       - .github/workflows/build_container_laptop_panda
   workflow_dispatch:

@@ -6,8 +6,8 @@ import tqdm
 from absl import app, flags, logging
 from tqdm_multiprocess import TqdmMultiProcessPool
 
-from r2d2.data_loading.trajectory_sampler import crawler
-from r2d2.trajectory_utils.misc import load_trajectory
+from droid.data_loading.trajectory_sampler import crawler
+from droid.trajectory_utils.misc import load_trajectory
 
 """
 AVAILABLE KEYS:

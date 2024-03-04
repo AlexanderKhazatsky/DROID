@@ -75,7 +75,7 @@ In order to simplify the process of performing a RT patch of the Ubuntu Kernel w
 
 ## Configure Parameters
 
-Complete all parameters in `./r2d2/misc/parameters.py`. 
+Complete all parameters in `./droid/misc/parameters.py`. 
 
 Start by specifying static IP addresses for all the machines on the platform (NUC, laptop, control unit). 
 
@@ -117,7 +117,7 @@ In order to simplify the process of performing a RT patch of the Ubuntu Kernel w
 
 ## Configure Parameters
 
-Complete all parameters in `./r2d2/misc/parameters.py`. 
+Complete all parameters in `./droid/misc/parameters.py`. 
 
 Start by specifying static IP addresses for all the machines on the platform (NUC, laptop, control unit). 
 

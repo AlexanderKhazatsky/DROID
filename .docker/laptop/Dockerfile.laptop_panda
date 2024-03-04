@@ -11,8 +11,8 @@ ENV NVIDIA_DRIVER_CAPABILITIES \
 
 # set directory structure
 ARG NUC_ROBOT_CONFIG_DIR=/app/config/${ROBOT_TYPE}
-ARG NUC_OCULUS_DIR=/app/r2d2/oculus_reader
-ARG NUC_POLYMETIS_DIR=/app/r2d2/fairo/polymetis
+ARG NUC_OCULUS_DIR=/app/droid/oculus_reader
+ARG NUC_POLYMETIS_DIR=/app/droid/fairo/polymetis
 ARG NUC_POLYMETIS_CONFIG_DIR=${NUC_POLYMETIS_DIR}/polymetis/conf
 
 # copy project code to container
@@ -78,11 +78,11 @@ RUN pip3 install -e . && \
 
 
 # using miniconda instead of anaconda so overwrite sh scripts
-RUN find /app/r2d2/franka -type f -name "launch_*.sh" -exec sed -i 's/anaconda/miniconda/g' {} \;
+RUN find /app/droid/franka -type f -name "launch_*.sh" -exec sed -i 's/anaconda/miniconda/g' {} \;
 RUN find /app/scripts/server -type f -name "launch_server.sh" -exec sed -i 's/anaconda/miniconda/g' {} \;
 
 # set absolute paths
-RUN find /app/r2d2/franka -type f -name "launch_*.sh" -exec sed -i 's|~|/root|g' {} \;
+RUN find /app/droid/franka -type f -name "launch_*.sh" -exec sed -i 's|~|/root|g' {} \;
 RUN find /app/scripts/server -type f -name "launch_server.sh" -exec sed -i 's|~|/root|g' {} \;
 
 # set polymetis config files

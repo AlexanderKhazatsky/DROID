@@ -1,6 +1,6 @@
 import zerorpc
 
-from r2d2.franka.robot import FrankaRobot
+from droid.franka.robot import FrankaRobot
 
 if __name__ == "__main__":
     robot_client = FrankaRobot()
