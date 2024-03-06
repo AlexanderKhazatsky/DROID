@@ -1,9 +1,0 @@
-title: DROID Docs
-description: Developer documentation for recreating the DROID platform setup.
-theme: just-the-docs
-
-url: https://peterdavidfagan.github.io/DROID # this url not being used right now
-color_scheme: droid # TODO: update name to DROID
-
-aux_links:
-  Official GitHub Repository: https://github.com/AlexanderKhazatsky/DROID
