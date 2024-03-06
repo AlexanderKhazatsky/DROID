@@ -1,7 +1,0 @@
-[submodule "droid/fairo"]
-	path = droid/fairo
-	url = git@github.com:facebookresearch/fairo.git
-[submodule "droid/oculus_reader"]
-	path = droid/oculus_reader
-	url = git@github.com:rail-berkeley/oculus_reader.git
-	branch = main
