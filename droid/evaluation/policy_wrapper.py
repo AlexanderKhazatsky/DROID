@@ -99,11 +99,9 @@ class PolicyWrapperRobomimic:
         processed_timestep = self.timestep_processor.forward(timestep)
 
         extrinsics_dict = processed_timestep["extrinsics_dict"]
-<<<<<<< HEAD:droid/evaluation/policy_wrapper.py
-=======
         intrinsics_dict = processed_timestep["intrinsics_dict"]
+        # import pdb; pdb.set_trace()
 
->>>>>>> robomimic policy wrapper: pass intrinsics to policy:r2d2/evaluation/policy_wrapper.py
         obs = {
             "robot_state/cartesian_position": observation["robot_state"]["cartesian_position"],
             "robot_state/gripper_position": [observation["robot_state"]["gripper_position"]], # wrap as array, raw data is single float
@@ -113,16 +111,6 @@ class PolicyWrapperRobomimic:
             "camera/image/varied_camera_1_right_image": processed_timestep["observation"]["camera"]["image"]["varied_camera"][1],
             "camera/image/varied_camera_2_left_image": processed_timestep["observation"]["camera"]["image"]["varied_camera"][2],
             "camera/image/varied_camera_2_right_image": processed_timestep["observation"]["camera"]["image"]["varied_camera"][3],
-<<<<<<< HEAD:droid/evaluation/policy_wrapper.py
-            "camera/extrinsics/hand_camera_left": extrinsics_dict["hand_camera"][0],
-            "camera/extrinsics/hand_camera_left_gripper_offset": extrinsics_dict["hand_camera"][1],
-            "camera/extrinsics/hand_camera_right": extrinsics_dict["hand_camera"][2],
-            "camera/extrinsics/hand_camera_right_gripper_offset": extrinsics_dict["hand_camera"][3],
-            "camera/extrinsics/varied_camera_1_left": extrinsics_dict["varied_camera"][0],
-            "camera/extrinsics/varied_camera_1_right": extrinsics_dict["varied_camera"][1],
-            "camera/extrinsics/varied_camera_2_left": extrinsics_dict["varied_camera"][2],
-            "camera/extrinsics/varied_camera_2_right": extrinsics_dict["varied_camera"][3],
-=======
 
             "camera/extrinsics/hand_camera_left": self.convert_raw_extrinsics_to_Twc(extrinsics_dict["hand_camera"][0]),
             "camera/extrinsics/hand_camera_right": self.convert_raw_extrinsics_to_Twc(extrinsics_dict["hand_camera"][2]),
@@ -130,9 +118,6 @@ class PolicyWrapperRobomimic:
             "camera/extrinsics/varied_camera_1_right": self.convert_raw_extrinsics_to_Twc(extrinsics_dict["varied_camera"][1]),
             "camera/extrinsics/varied_camera_2_left": self.convert_raw_extrinsics_to_Twc(extrinsics_dict["varied_camera"][2]),
             "camera/extrinsics/varied_camera_2_right": self.convert_raw_extrinsics_to_Twc(extrinsics_dict["varied_camera"][3]),
-<<<<<<< HEAD:droid/evaluation/policy_wrapper.py
->>>>>>> robotmimic policy wrapper: convert 6d pose vector extrinsics to Twc matrix:r2d2/evaluation/policy_wrapper.py
-=======
 
             "camera/intrinsics/hand_camera_left": intrinsics_dict["hand_camera"][0],
             "camera/intrinsics/hand_camera_right": intrinsics_dict["hand_camera"][1],
@@ -140,7 +125,6 @@ class PolicyWrapperRobomimic:
             "camera/intrinsics/varied_camera_1_right": intrinsics_dict["varied_camera"][1],
             "camera/intrinsics/varied_camera_2_left": intrinsics_dict["varied_camera"][2],
             "camera/intrinsics/varied_camera_2_right": intrinsics_dict["varied_camera"][3],
->>>>>>> robomimic policy wrapper: pass intrinsics to policy:r2d2/evaluation/policy_wrapper.py
         }
 
         # set item of obs as np.array
