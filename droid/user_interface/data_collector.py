@@ -51,10 +51,6 @@ class DataCollecter:
         self.controller.reset_state()
         self.env.reset(randomize=randomize)
 
-        # reset the policy at start of each rollout
-        if self.policy is not None:
-            self.policy.reset()
-
     def get_user_feedback(self):
         info = self.controller.get_info()
         return deepcopy(info)
