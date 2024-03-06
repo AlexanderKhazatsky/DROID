@@ -1,4 +1,4 @@
-from droid.evaluation.eval_launcher import eval_launcher
+from droid.evaluation.eval_launcher_robomimic import eval_launcher, get_goal_im
 import matplotlib.pyplot as plt
 import os
 import argparse
