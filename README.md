@@ -92,7 +92,7 @@ To collect data, run:
 python scripts/main.py
 ```
 
-To evaluate policies, install our fork of robomimic [here](https://github.com/ashwin-balakrishna96/robomimic) and run:
+To evaluate policies, install our [policy learning and evaluation codebase] (https://github.com/ashwin-balakrishna96/robomimic/tree/r2d2) and run:
 ```python
 python scripts/evaluation/evaluate_policy.py
 ```
