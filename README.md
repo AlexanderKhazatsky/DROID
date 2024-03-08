@@ -92,7 +92,9 @@ To collect data, run:
 python scripts/main.py
 ```
 
-To evaluate policies, install [TODO: add link to our final robomimic fork as dependency] and run:
+To evaluate policies, install our fork of robomimic [here](https://github.com/ashwin-balakrishna96/robomimic) and run:
 ```python
-python scripts/evaluation/evaluate.py
+python scripts/evaluation/evaluate_policy.py
 ```
+with the appropriate command line arguments for the model checkpoint path and whether to do goal or language conditioning, and then follow
+all resulting prompts in the terminal. To replicate experiments from the paper, use the language conditioning mode.
