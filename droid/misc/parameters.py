@@ -2,18 +2,16 @@ import os
 from cv2 import aruco
 
 # Robot Params #
-nuc_ip = ""
-robot_ip = ""
-laptop_ip = ""
-gateway_ip = "" # only needed if connecting to internet via ethernet
-sudo_password = ""
-robot_type = ""  # 'panda' or 'fr3'
+nuc_ip = "172.16.0.3"
+robot_ip = "172.16.0.2"
+sudo_password = "tri-robots123"
+robot_type = "fr3"  # 'panda' or 'fr3'
 robot_serial_number = ""
 
 # Camera ID's #
-hand_camera_id = ""
-varied_camera_1_id = ""
-varied_camera_2_id = ""
+hand_camera_id = "16522755"
+varied_camera_1_id = "29431508"
+varied_camera_2_id = "29513368"
 
 # Charuco Board Params #
 CHARUCOBOARD_ROWCOUNT = 9
