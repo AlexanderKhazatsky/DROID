@@ -3,9 +3,9 @@ from cv2 import aruco
 
 # Robot Params #
 nuc_ip = ""
+robot_ip = ""
 laptop_ip = ""
 gateway_ip = "" # only needed if connected to internet via ethernet
-robot_ip = ""
 sudo_password = ""
 robot_type = ""  # 'panda' or 'fr3'
 robot_serial_number = ""
