@@ -56,6 +56,8 @@ if __name__ == "__main__":
         input("Now reset the scene for the policy to execute, press Enter to acknowledge: ")
     if args.lang_cond:
         user_input = input("Provide a language command for the robot to complete: ").lower()
+        if not os.path.exists('eval_params'):
+            os.makedirs('eval_params')
         with open('eval_params/lang_command.txt', 'w') as file:
             file.write(user_input)
     

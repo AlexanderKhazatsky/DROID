@@ -251,6 +251,8 @@ def get_goal_im(variant, run_id, exp_id):
     )
 
     ims = env.read_cameras()[0]["image"]
+    if not os.path.exists('eval_params'):
+        os.makedirs('eval_params')
     for k in ims.keys():
         image = ims[k]
         cv2.imwrite(f'eval_params/{k}.png', image[:, :, :3])
