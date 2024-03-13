@@ -1,20 +1,15 @@
-[![docs](https://github.com/alexanderkhazatsky/DROID/actions/workflows/pages.yaml/badge.svg)](https://github.com/alexanderkhazatsky/DROID/blob/main/.github/workflows/pages.yaml)
-[![nuc_panda](https://github.com/alexanderkhazatsky/DROID/actions/workflows/build_container_nuc_panda.yaml/badge.svg)](https://github.com/alexanderkhazatsky/DROID/blob/main/.github/workflows/build_container_nuc_panda.yaml)
-[![nuc_fr3](https://github.com/alexanderkhazatsky/DROID/actions/workflows/build_container_nuc_fr3.yaml/badge.svg)](https://github.com/alexanderkhazatsky/DROID/blob/main/.github/workflows/build_container_nuc_fr3.yaml)
-[![laptop_panda](https://github.com/alexanderkhazatsky/DROID/actions/workflows/build_container_laptop_panda.yaml/badge.svg)](https://github.com/alexanderkhazatsky/DROID/blob/main/.github/workflows/build_container_laptop_panda.yaml)
-[![laptop_fr3](https://github.com/alexanderkhazatsky/DROID/actions/workflows/build_container_laptop_fr3.yaml/badge.svg)](https://github.com/alexanderkhazatsky/DROID/blob/main/.github/build_container_laptop_fr3/pages.yaml)
+# The DROID Robot Platform
 
-# DROID: Residential Robot Demonstration Dataset
+This repository contains the code for setting up your DROID robot platform and using it to collect teleoperated demonstration data. This platform was used to collect the [DROID dataset](XXX), a large, in-the-wild dataset of robot manipulations.
 
-The repository provides the code for contributing to and using the DROID dataset.
+If you are interested in using the DROID dataset for training robot policies, please check out our [policy learning repo](XXX).
+For more information about DROID, please see the following links: 
 
-NOTE: This repository has two dependencies listed below. If you are setting this up on the robot NUC, (1) is required. If you are setting this up on the control workstation, (2) is required:
+[**[Homepage]**](XXX) &ensp; [**[Documentation]**](XXX) &ensp; [**[Paper]**](XXX) &ensp; [**[Dataset Visualizer]**](XXX).
 
-(1) https://github.com/facebookresearch/fairo
-
-(2) https://github.com/rail-berkeley/oculus_reader
-
+---------
 ## Setup Guide
+
 Setup this repository on both the server and client machine (ie: NUC and workstation)
 
 Install the necesary packages:
@@ -30,6 +25,12 @@ pip install dm-robotics-geometry==0.5.0 --no-deps
 pip install dm-robotics-manipulation==0.5.0 --no-deps
 pip install dm-robotics-controllers==0.5.0 --no-deps
 ```
+
+NOTE: This repository has two dependencies listed below. If you are setting this up on the robot NUC, (1) is required. If you are setting this up on the control workstation, (2) is required:
+
+(1) https://github.com/facebookresearch/fairo
+
+(2) https://github.com/rail-berkeley/oculus_reader
 
 If you are using miniconda instead of anaconda:
 - Go into droid/franka, then open launch_gripper.sh and launch_robot.sh
