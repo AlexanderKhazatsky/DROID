@@ -67,7 +67,6 @@ export ROOT_DIR=$(git rev-parse --show-toplevel)
 export NUC_IP=$nuc_ip
 export ROBOT_IP=$robot_ip
 export LAPTOP_IP=$laptop_ip
-export GATEWAY_IP=$gateway_ip
 export SUDO_PASSWORD=$sudo_password
 export ROBOT_TYPE=$robot_type
 export ROBOT_SERIAL_NUMBER=$robot_serial_number
@@ -116,7 +115,7 @@ echo "You've selected: $interface_name"
 # Add and configure the static IP connection
 nmcli connection delete "nuc_static"
 nmcli connection add con-name "nuc_static" ifname "$interface_name" type ethernet
-nmcli connection modify "nuc_static" ipv4.method manual ipv4.address $NUC_IP/24 ipv4.gateway $GATEWAY_IP
+nmcli connection modify "nuc_static" ipv4.method manual ipv4.address $NUC_IP/24
 nmcli connection up "nuc_static"
 
 echo "Static IP configuration complete for interface $interface_name."

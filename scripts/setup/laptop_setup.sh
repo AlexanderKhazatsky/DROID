@@ -124,7 +124,6 @@ export ROOT_DIR=$ROOT_DIR
 export NUC_IP=$nuc_ip
 export LAPTOP_IP=$laptop_ip
 export ROBOT_IP=$robot_ip
-export GATEWAY_IP=$gateway_ip
 export SUDO_PASSWORD=$sudo_password
 export ROBOT_TYPE=$robot_type
 export ROBOT_SERIAL_NUMBER=$robot_serial_number
