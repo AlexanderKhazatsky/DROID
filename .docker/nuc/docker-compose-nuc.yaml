@@ -2,7 +2,7 @@ version: "3"
 
 services: 
   setup_nuc:
-    image: ghcr.io/alexanderkhazatsky/droid:nuc_fer
+    image: ghcr.io/droid-dataset/droid_nuc:${ROBOT_TYPE}
     environment:
       ROBOT_TYPE: ${ROBOT_TYPE}
       LIBFRANKA_VERSION: ${LIBFRANKA_VERSION}
@@ -16,6 +16,12 @@ services:
     build: 
       context: ../../
       dockerfile: .docker/nuc/Dockerfile.nuc
+      args:
+        ROBOT_TYPE: ${ROBOT_TYPE}
+        LIBFRANKA_VERSION: ${LIBFRANKA_VERSION}
+        NUC_IP: ${NUC_IP}
+        ROBOT_IP: ${ROBOT_IP}
+        LAPTOP_IP: ${LAPTOP_IP}
     devices:
       - "/dev:/dev"
     privileged: true

@@ -1,6 +1,16 @@
 FROM nvidia/cuda:12.1.0-devel-ubuntu22.04
 
-# set robot parameters
+# build args
+ARG ROBOT_TYPE=${ROBOT_TYPE}
+ARG LIBFRANKA_VERSION=${LIBFRANKA_VERSION}
+ARG ROBOT_IP=${ROBOT_IP}
+ARG NUC_IP=${NUC_IP}
+ARG NUC_ROBOT_CONFIG_DIR=/app/config/${ROBOT_TYPE}
+ARG NUC_OCULUS_DIR=/app/droid/oculus_reader
+ARG NUC_POLYMETIS_DIR=/app/droid/fairo/polymetis
+ARG NUC_POLYMETIS_CONFIG_DIR=${NUC_POLYMETIS_DIR}/polymetis/conf
+
+# runtime env vars
 ENV ROBOT_TYPE=${ROBOT_TYPE}
 ENV LIBFRANKA_VERSION=${LIBFRANKA_VERSION}
 ENV ROBOT_IP=${ROBOT_IP}
@@ -8,12 +18,6 @@ ENV NUC_IP=${NUC_IP}
 ENV NVIDIA_VISIBLE_DEVICES=all
 ENV NVIDIA_DRIVER_CAPABILITIES \
     ${NVIDIA_DRIVER_CAPABILITIES:+$NVIDIA_DRIVER_CAPABILITIES,}compute,video,utility
-
-# set directory structure
-ARG NUC_ROBOT_CONFIG_DIR=/app/config/${ROBOT_TYPE}
-ARG NUC_OCULUS_DIR=/app/droid/oculus_reader
-ARG NUC_POLYMETIS_DIR=/app/droid/fairo/polymetis
-ARG NUC_POLYMETIS_CONFIG_DIR=${NUC_POLYMETIS_DIR}/polymetis/conf
 
 # copy project code to container
 COPY . /app
