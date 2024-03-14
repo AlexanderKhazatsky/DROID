@@ -104,10 +104,10 @@ Next, we will commence with setting up the Polymetis library. The following [gui
 The first step of the linked guide requires you to clone the fairo repository. We have included a pinned version of the library with the DROID main repository as a git submodule. Clone the DROID repository and submodules with the following command:
 
 ```bash
-git clone git@github.com:AlexanderKhazatsky/DROID.git
+git clone git@github.com:droid-dataset/droid.git
 # sync and pull submodules
 git submodule sync
-git submodule update --remote --init --recursive
+git submodule update --init --recursive
 ```
 
 You should now find the fairo repository at `droid/fairo`, from this point continue with steps 2 and 3 of the polymetis guide.
@@ -201,10 +201,9 @@ We will use Conda as the package manager for our python virtual environment. You
 Clone the DROID repository and submodules with the following command:
 
 ```bash
-git clone git@github.com:AlexanderKhazatsky/DROID.git
-# sync and pull submodules
+git clone git@github.com:droid-dataset/droid.git
 git submodule sync
-git submodule update --remote --init --recursive
+git submodule update --init --recursive
 ```
 
 Next create and activate a conda environment called `robot` with python 3.7 through running the following commands:
