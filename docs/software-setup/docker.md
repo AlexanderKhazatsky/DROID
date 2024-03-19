@@ -2,7 +2,7 @@
 layout: default
 title: Running Application through Docker
 has_children: false
-nav_order: 2
+nav_order: 1
 parent: Software Setup
 ---
 
@@ -73,21 +73,36 @@ When installing Ubuntu, set the computer password `robot` and enable the `Log in
 
 In order to simplify the process of performing a RT patch of the Ubuntu Kernel we leverage Ubuntu Pro. Generate an Ubuntu Pro token through following the section 3 called "Get your free Ubuntu pro subscription" from the following [guide](https://ubuntu.com/pro/tutorial). We will use this token to activate Ubuntu pro and activate an RT patched kernel on our machine.
 
+## Cloning Codebase
+
+To clone the codebase including submodule dependencies run:
+
+```bash
+git clone git@github.com:droid-dataset/droid.git
+cd droid 
+git submodule update --init --recursive
+```
+
 ## Configure Parameters
 
-Complete all parameters in `./droid/misc/parameters.py`. 
+Complete the following parameters in `./droid/misc/parameters.py`. 
 
-Start by specifying static IP addresses for all the machines on the platform (NUC, laptop, control unit). 
+* Start by specifying static IP addresses for all the machines on the platform (NUC, laptop, control unit). 
 
-Add the sudo password for the machine you are using (only relevant for the NUC machine). 
+* Add the sudo password for the machine you are using (only relevant for the NUC machine). 
 
-Set the type and serial number of your robot. The serial number for your robot can be found on the control box unit. 
+* Set the type and serial number of your robot. The serial number for your robot can be found on the control box unit. 
 
-If this is your first time setting up the platform you can ignore the camera ids as you will need to load the GUI to generate these. 
+* If this is your first time setting up the platform you can ignore the camera ids as you will need to load the GUI to generate these. 
 
-Set the Charuco board parameters to match the board you are using.
+* Set the Charuco board parameters to match the board you are using.
 
-Provide an Ubuntu Pro token (required to automate rt-patch of kernel on the NUC). 
+* Provide an Ubuntu Pro token (required to automate rt-patch of kernel on the NUC). 
+
+Complete the following parameters in `./config/<robot_type>/franka_hardware.yaml`
+
+* Specify the `robot_ip` parameter. 
+
 
 ## Run Setup Script
 
@@ -111,25 +126,35 @@ You may use the following [application](https://etcher.balena.io/) to flash a US
 
 When installing Ubuntu, set the computer password `robot` and enable the `Log in automatically` setting.
 
-## Ubuntu Pro Token
+## Cloning Codebase    
 
-In order to simplify the process of performing a RT patch of the Ubuntu Kernel we leverage Ubuntu Pro. Generate an Ubuntu Pro token through following the section 3 called "Get your free Ubuntu pro subscription" from the following [guide](https://ubuntu.com/pro/tutorial). We will use this token to activate Ubuntu pro and activate an RT patched kernel on our machine.
+To clone the codebase including submodule dependencies run:
+
+```bash
+git clone git@github.com:droid-dataset/droid.git                
+cd droid
+git submodule update --init --recursive
+```
 
 ## Configure Parameters
 
-Complete all parameters in `./droid/misc/parameters.py`. 
+Complete the following parameters in `./droid/misc/parameters.py`.
 
-Start by specifying static IP addresses for all the machines on the platform (NUC, laptop, control unit). 
+* Specify static IP addresses for all the machines on the platform (NUC, laptop, control unit).
 
-Add the sudo password for the machine you are using (only relevant for the NUC machine). 
+* Add the sudo password for the machine you are using (only relevant for the NUC machine).
 
-Set the type and serial number of your robot. The serial number for your robot can be found on the control box unit. 
+* Set the type and serial number of your robot. The serial number for your robot can be found on the control box unit.
 
-If this is your first time setting up the platform you can ignore the camera ids as you will need to load the GUI to generate these. 
+* If this is your first time setting up the platform you can ignore the camera ids as you will need to load the GUI to generate these.
 
-Set the Charuco board parameters to match the board you are using.
+* Set the Charuco board parameters to match the board you are using.
 
-Provide an Ubuntu Pro token (required to automate rt-patch of kernel on the NUC). 
+* Provide an Ubuntu Pro token (required to automate rt-patch of kernel on the NUC).
+
+Complete the following parameters in `./config/<robot_type>/franka_hardware.yaml`
+
+* Specify the `robot_ip` parameter.
 
 ## Run Setup Script
 
@@ -141,12 +166,15 @@ To complete the device setup execute the setup script through running the follow
 
 # Testing/Validating Entire Setup
 
-In order to validate your device setup we will attempt to collect a trajectory. Start by running the NUC server machine through running the corresponding Docker container:
+In order to validate your device setup we will attempt to collect a trajectory. Start by running the NUC server machine through running the corresponding Docker container. This can be accomplished through running the setup script which spins the control server container. Alternatively you may run the container directly with the below command. 
+
 
 ```bash
 cd .docker/nuc 
 docker compose -f docker-compose-nuc.yaml up
 ```
+
+**Note:** you want to ensure environment variables defined in the docker compose file are exported for them to be available to the container:
 
 Next run the test script for collecting a trajectory on the laptop through running the test Docker container:
 
@@ -154,3 +182,5 @@ Next run the test script for collecting a trajectory on the laptop through runni
 cd .docker/laptop
 docker compose -f docker-compose-laptop.yaml run laptop_setup python scripts/test/collect_trajectory.py
 ```
+
+**Note:** you want to ensure environment variables defined in the docker compose file are exported for them to be available to the container:

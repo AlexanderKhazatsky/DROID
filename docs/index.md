@@ -6,7 +6,7 @@ nav_order: 1
 
 # 🤖 **D**istributed **RO**bot **I**nteraction **D**ataset
 
-![](./assets/index/banner.jpeg)
+![](./assets/index/droid_teaser.jpg)
 
 
 ## 👋 Welcome to the DROID Developer Documentation
@@ -19,11 +19,11 @@ This goal of this documentation site is to enable robotics researchers to:
 
 The guides for accomplishing these goals are split into the following high-level sections:
 
-* 🔨 **Hardware Setup:** a list of the required hardware (with links to suppliers) and a guide for assembling the platform.
-* 🖥️ **Software Setup:** guides on configuring device settings and software. 
-* 🤖 **Example Workflows:** tutorials for common workflows (e.g. data collection, policy deployment).
-* 📈 **Dataset Schema:** an outline of the schema of DROID.
-* 📖 **Contribution Guidelines:** guidelines for contributing data to DROID. 
+* 🔨 [**Hardware Setup:**](https://alexanderkhazatsky.github.io/DROID/docs/hardware-setup) a list of the required hardware (with links to suppliers) and a guide for assembling the platform.
+* 🖥️ [**Software Setup:**](https://alexanderkhazatsky.github.ioDROID/docs/software-setup) guides on configuring device settings and software. 
+* 📈 [**The DROID Dataset:**](https://alexanderkhazatsky.github.io/DROID/docs/the-droid-dataset) an in-the-wild robot manipulation dataset.
+* 🤖 [**Example Workflows:**](https://alexanderkhazatsky.github.io/DROID/docs/example-workflows) tutorials for common workflows (e.g. data collection, policy deployment).
+* 📖 [**Contribution Guidelines:**](https://alexanderkhazatsky.github.io/DROID/docs/contribution-guidelines) guidelines for contributing data to DROID. 
 
 
 
