@@ -12,7 +12,7 @@ class RobotIKSolver:
         self.max_gripper_delta = 0.25
         self.max_lin_delta = 0.075
         self.max_rot_delta = 0.15
-        self.control_hz = 15
+        self.control_hz = 5
 
         self._arm = FrankaArm()
         self._physics = mjcf.Physics.from_mjcf_model(self._arm.mjcf_model)

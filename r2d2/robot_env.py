@@ -23,11 +23,11 @@ class RobotEnv(gym.Env):
         self.check_action_range = "velocity" in action_space
 
         # Robot Configuration
-        self.reset_joints = np.array([0, 0, 0, -1.85,  0, 1.85, 0.8])
+        self.reset_joints = np.array([0, 0.06, 0, -2.3,  0, 2.35, 0.8])
         self.randomize_low = np.array([-0.05, -0.05, -0.05, -0.15, -0.15, -0.15])
         self.randomize_high = np.array([0.05, 0.05, 0.05, 0.15, 0.15, 0.15])
         self.DoF = 7 if ('cartesian' in action_space) else 8
-        self.control_hz = 15
+        self.control_hz = 5
 
         if nuc_ip is None:
             from franka.robot import FrankaRobot
@@ -56,7 +56,7 @@ class RobotEnv(gym.Env):
         # Return Action Info
         return action_info
 
-    def reset(self, randomize=True):
+    def reset(self, randomize=False):
         self._robot.update_gripper(0, velocity=False, blocking=True)
 
         if randomize:
