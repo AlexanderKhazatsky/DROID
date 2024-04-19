@@ -1,6 +1,14 @@
-# R2D2: Residential Robot Demonstration Dataset
+# The DROID Robot Platform
 
-The repository provides the code for contributing to and using the R2D2 dataset.
+This repository contains the code for setting up your DROID robot platform and using it to collect teleoperated demonstration data. This platform was used to collect the [DROID dataset](XXX), a large, in-the-wild dataset of robot manipulations.
+
+If you are interested in using the DROID dataset for training robot policies, please check out our [policy learning repo](XXX).
+For more information about DROID, please see the following links: 
+
+[**[Homepage]**](XXX) &ensp; [**[Documentation]**](XXX) &ensp; [**[Paper]**](XXX) &ensp; [**[Dataset Visualizer]**](XXX).
+
+---------
+## Setup Guide
 
 NOTE: This repository has two dependencies listed below. If you are setting this up on the robot NUC (i.e., the "server" machine), (1) is required. If you are setting this up on the control workstation (i.e., the "client" machine), (2) is required. The Setup Guide below explains how to install these dependencies.
 
@@ -8,7 +16,6 @@ NOTE: This repository has two dependencies listed below. If you are setting this
 
 (2) https://github.com/rail-berkeley/oculus_reader
 
-## Setup Guide
 Setup this repository on both the server and client machine (i.e., NUC and workstation, respectively).
 
 Note: It is possible to set everything up on just the NUC (without using a workstation) to get the code running and test things out. If you wish to do this, just follow every step below: all steps for the NUC and workstation combined.

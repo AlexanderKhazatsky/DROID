@@ -137,3 +137,18 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Scratch
+scratch-reference/
+clean.py
+
+# MacOS
+.DS_Store
+
+# IDE Caches
+.idea/
+.vscode/
+
+# AWS Credentials
+droid-credentials.json
+*credentials.json

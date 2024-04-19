@@ -1,9 +1,9 @@
 import random
 
-from r2d2.data_loading.trajectory_sampler import crawler
-from r2d2.trajectory_utils.misc import visualize_trajectory
+from droid.data_loading.trajectory_sampler import crawler
+from droid.trajectory_utils.misc import visualize_trajectory
 
-logdir = "/home/sasha/R2D2/data/success/2023-04-20"
+logdir = "/home/sasha/DROID/data/success/2023-04-20"
 
 all_folderpaths = crawler(logdir)
 random.shuffle(all_folderpaths)

@@ -1,6 +1,6 @@
-from r2d2.trajectory_utils.misc import visualize_trajectory
+from droid.trajectory_utils.misc import visualize_trajectory
 
-trajectory_folderpath = "/home/sasha/R2D2/data/success/2023-03-10/Fri_Mar_10_13:05:35_2023"
+trajectory_folderpath = "/home/sasha/DROID/data/success/2023-03-10/Fri_Mar_10_13:05:35_2023"
 
 camera_kwargs = dict(
     hand_camera=dict(image=True, resolution=(0, 0)),

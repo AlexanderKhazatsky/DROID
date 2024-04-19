@@ -1,6 +1,6 @@
-from r2d2.controllers.oculus_controller import VRPolicy
-from r2d2.robot_env import RobotEnv
-from r2d2.trajectory_utils.misc import calibrate_camera
+from droid.controllers.oculus_controller import VRPolicy
+from droid.robot_env import RobotEnv
+from droid.trajectory_utils.misc import calibrate_camera
 
 # Make the robot env
 env = RobotEnv()

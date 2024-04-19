@@ -1,8 +1,8 @@
 from torch.utils.data.datapipes.iter import Shuffler
 
-from r2d2.data_loading.dataset import TrajectoryDataset
-from r2d2.data_loading.trajectory_sampler import *
-from r2d2.trajectory_utils.misc import visualize_timestep
+from droid.data_loading.dataset import TrajectoryDataset
+from droid.data_loading.trajectory_sampler import *
+from droid.trajectory_utils.misc import visualize_timestep
 
 all_folderpaths = collect_data_folderpaths()
 traj_sampler = TrajectorySampler(all_folderpaths, recording_prefix="SVO")

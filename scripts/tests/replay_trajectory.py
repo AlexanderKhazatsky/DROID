@@ -1,8 +1,8 @@
-from r2d2.robot_env import RobotEnv
-from r2d2.trajectory_utils.misc import replay_trajectory
+from droid.robot_env import RobotEnv
+from droid.trajectory_utils.misc import replay_trajectory
 
-trajectory_folderpath = "data/success/2023-05-02/Tue_May__2_16:47:19_2023/"
-action_space = "cartesian_velocity"
+trajectory_folderpath = "/home/sasha/DROID/data/success/2023-02-16/Thu_Feb_16_16:27:00_2023"
+action_space = "joint_position"
 
 # Make the robot env
 env = RobotEnv(action_space=action_space)

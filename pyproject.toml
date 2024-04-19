@@ -3,7 +3,7 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "r2d2"
+name = "droid"
 authors = [
     {name = "Alexander Khazatsky "}
 ]
@@ -34,15 +34,19 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "black",
+    "black[jupyter]",
+    "ipython",
     "pre-commit",
     "ruff",
 ]
+postprocessing = [
+    "scikit-image",
+]
 
 [project.urls]
-homepage = "https://github.com/AlexanderKhazatsky/R2D2"
-repository = "https://github.com/AlexanderKhazatsky/R2D2"
-documentation = "https://github.com/AlexanderKhazatsky/R2D2"
+homepage = "https://github.com/AlexanderKhazatsky/DROID"
+repository = "https://github.com/AlexanderKhazatsky/DROID"
+documentation = "https://github.com/AlexanderKhazatsky/DROID"
 
 [tool.black]
 line-length = 121
@@ -57,14 +61,12 @@ ignore = ["F405", "B006", "C901", "F403", "E722"]
 [tool.ruff.per-file-ignores]
 "__init__.py" = ["E402", "F401"]
 
-
 [tool.isort]
 profile = "black"
 line_length = 121
 skip = ["__init__.py"]
 filter_files = true
 py_version = "all"
-
 
 [tool.setuptools.packages.find]
 where = ["."]
