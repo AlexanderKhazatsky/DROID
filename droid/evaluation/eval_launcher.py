@@ -28,11 +28,11 @@ def eval_launcher(variant, run_id, exp_id):
     torch.device("cuda:0" if use_gpu else "cpu")
 
     # Load Model + Variant #
-    policy_logdir = os.path.join(dir_path, "../../training_logs", variant["policy_logdir"])
-    policy_filepath = os.path.join(policy_logdir, "models", "{0}.pt".format(variant["model_id"]))
+    policy_logdir = os.path.join(dir_path, variant["policy_logdir"])
+    policy_filepath = os.path.join(policy_logdir, "models", f"model_epoch_{variant['model_id']}.pth")
     policy = torch.load(policy_filepath)
 
-    variant_filepath = os.path.join(policy_logdir, "variant.json")
+    variant_filepath = os.path.join(policy_logdir, "config.json")
     with open(variant_filepath, "r") as jsonFile:
         policy_variant = json.load(jsonFile)
 
@@ -48,6 +48,7 @@ def eval_launcher(variant, run_id, exp_id):
     policy_timestep_filtering_kwargs.update(timestep_filtering_kwargs)
     policy_image_transform_kwargs.update(image_transform_kwargs)
 
+    import ipdb; ipdb.set_trace()
     wrapped_policy = PolicyWrapper(
         policy=policy,
         timestep_filtering_kwargs=policy_timestep_filtering_kwargs,

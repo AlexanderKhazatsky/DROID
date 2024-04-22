@@ -5,6 +5,10 @@ import numpy as np
 import time
 import cv2
 
+
+resize_func_map = {"cv2": cv2.resize, None: None}
+
+
 def gather_realsense_cameras():
 	context = rs.context()
 	all_devices = list(context.devices)
@@ -32,12 +36,14 @@ class RealSenseCamera:
 	def disable_advanced_calibration(self):
 		pass # function is called by multi_camera_wrapper but not needed for realsense
 
-	def set_reading_parameters(self, image=True, depth=True, pointcloud=False, concatenate_images=False, resolution=(0,0)):
+	def set_reading_parameters(self, image=True, depth=True, pointcloud=False, concatenate_images=False, resolution=(0,0), resize_func=None):
 		"""Sets the camera reading parameters."""
 		# Non-Permenant Values #
 		self.image = image
 		# Permenant Values #
 		self.depth = depth
+		self.resolution = resolution
+		self.resize_func = resize_func_map[resize_func]
 
 	def set_calibration_mode(self):
 		"""Sets the camera mode for camera calibration."""
@@ -102,12 +108,22 @@ class RealSenseCamera:
 		if self.image:
 			color_frame = frames.get_color_frame()
 			color_image = np.asanyarray(color_frame.get_data())
+
+			# Resize if needed.
+			if self.resolution != (0,0):
+				color_image = self.resize_func(color_image, self.resolution)
+
 			data_dict['image'] = {self.serial_number: color_image}
 			if self.recording_video:
 				self.video_writer.write(color_image)
 		if self.depth:
 			depth_frame = frames.get_depth_frame()
 			depth_image = np.asanyarray(depth_frame.get_data())
+
+			# Resize if needed.
+			if self.resolution != (0,0):
+				depth_image = self.resize_func(depth_image, self.resolution)
+
 			# The original depth values are 16-bit unsigned integers between 0 and 65535, inclusive.
 			# We convert depth values to 8-bit unsigned integers between 0 and 255, inclusive, as follows:
 			#   Say we only care about depth values 0 to 1000 and want to clip values larger than 1000 (assuming

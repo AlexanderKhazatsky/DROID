@@ -233,6 +233,7 @@ class FrankaRobot:
         # If using the Franka gripper (not Robotiq), overwrite the gripper action as a binary (open/close) value.
         if gripper_type == 'franka':
             action_dict['gripper_action'] = -1. if action[-1] < 0. else 1.
+            action_dict['gripper_position'] = 0. if action[-1] < 0. else 1.
 
         if 'cartesian' in action_space:
             if velocity:

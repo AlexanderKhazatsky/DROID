@@ -49,7 +49,7 @@ class DataCollecter:
     def reset_robot(self, randomize=False):
         self.env._robot.establish_connection()
         self.controller.reset_state()
-        self.env.reset(randomize)
+        self.env.reset()
 
     def get_user_feedback(self):
         info = self.controller.get_info()

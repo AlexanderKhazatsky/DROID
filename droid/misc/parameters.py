@@ -17,8 +17,7 @@ operator_position = 'front' # 'front' or 'back'
 # TODO: Revert all to blank strings before release.
 camera_type = 'realsense' # 'realsense' or 'zed'
 hand_camera_id = '138422074005'
-varied_camera_1_id = '23404442'
-varied_camera_2_id = '29838012'
+static_camera_id = '140122076178'
 
 # Charuco Board Params #
 CHARUCOBOARD_ROWCOUNT = 9
