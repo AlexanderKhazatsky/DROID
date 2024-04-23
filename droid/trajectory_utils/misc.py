@@ -276,7 +276,7 @@ def calibrate_camera(
 
 
 def replay_trajectory(
-    env, filepath=None, assert_replayable_keys=["cartesian_position", "gripper_position", "joint_positions"]
+    env, filepath=None, action_space="cartesian_velocity", assert_replayable_keys=["cartesian_position", "gripper_position", "joint_position"]
 ):
     print("WARNING: STATE 'CLOSENESS' FOR REPLAYABILITY HAS NOT BEEN CALIBRATED")
     gripper_key = "gripper_velocity" if "velocity" in env.action_space else "gripper_position"
@@ -293,10 +293,7 @@ def replay_trajectory(
 
         # Move To Initial Position #
         if i == 0:
-            init_joint_position = timestep["observation"]["robot_state"]["joint_positions"]
-            init_gripper_position = timestep["observation"]["robot_state"]["gripper_position"]
-            action = np.concatenate([init_joint_position, [init_gripper_position]])
-            env.update_robot(action, action_space="joint_position", blocking=True)
+            env.reset()
             input('Press Enter to continue...')
 
         # TODO: Assert Replayability #
@@ -308,11 +305,15 @@ def replay_trajectory(
 
         # Get Action In Desired Action Space #
         control_timestamps["policy_start"] = time_ms()
-        arm_action = timestep["action"][env.action_space]
-        gripper_action = timestep["action"][gripper_key]
-        action = np.concatenate([arm_action, [gripper_action]])
         controller_info = timestep["observation"]["controller_info"]
         movement_enabled = controller_info.get("movement_enabled", True)
+
+        if action_space == "cartesian_velocity":
+            action = np.append(timestep['action']['cartesian_velocity'], timestep['action']['gripper_velocity'])
+        elif action_space == "cartesian_position":
+            action = np.append(timestep['action']['cartesian_position'], timestep['action']['gripper_position'])
+        else:
+            raise ValueError(f"Invalid action_space: {action_space}")
 
         # Regularize Control Frequency #
         control_timestamps["sleep_start"] = time_ms()

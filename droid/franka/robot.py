@@ -216,8 +216,7 @@ class FrankaRobot:
 
         if gripper_action_space is None:
             gripper_action_space = "velocity" if velocity else "position"
-        assert gripper_action_space in ["velocity", "policy"]
-            
+        assert gripper_action_space in ["velocity", "position"]
 
         if gripper_action_space == "velocity":
             action_dict["gripper_velocity"] = action[-1]
@@ -232,7 +231,10 @@ class FrankaRobot:
 
         # If using the Franka gripper (not Robotiq), overwrite the gripper action as a binary (open/close) value.
         if gripper_type == 'franka':
-            action_dict['gripper_action'] = -1. if action[-1] < 0. else 1.
+            if gripper_action_space == "velocity":  # for velocity, -1: close, +1: open
+                action_dict['gripper_action'] = -1. if action[-1] < 0. else 1.
+            else:                                   # for position,  0: close, +1: open
+                action_dict['gripper_action'] = -1. if action[-1] < 0.5 else 1.
             action_dict['gripper_position'] = 0. if action[-1] < 0. else 1.
 
         if 'cartesian' in action_space:
