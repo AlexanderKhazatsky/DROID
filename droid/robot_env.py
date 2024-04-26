@@ -49,8 +49,8 @@ class RobotEnv(gym.Env):
     def step(self, action):
         # Check Action
         assert len(action) == self.DoF
-        if self.check_action_range:
-            assert (action.max() <= 1) and (action.min() >= -1), f'action: {action}'
+        # Clip action between bounds.
+        action = np.clip(action, a_min=-1.0, a_max=1.0)
 
         # Update Robot
         action_info = self.update_robot(

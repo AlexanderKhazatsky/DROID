@@ -167,7 +167,7 @@ class FrankaRobot:
         return self._robot.get_joint_velocities().tolist()
 
     def get_gripper_position(self):
-        return 1 - (self._gripper.get_state().width / self._max_gripper_width)
+        return self._gripper.get_state().width / self._max_gripper_width
 
     def get_ee_pose(self):
         pos, quat = self._robot.get_ee_pose()
