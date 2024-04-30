@@ -5,23 +5,6 @@ import argparse
 import cv2
 
 
-# variant = dict(
-#     exp_name="mjk_panda_1_abs",
-#     save_data=False,
-#     use_gpu=True,
-#     seed=0,
-#     policy_logdir="/iris/u/moojink/prismatic-dev/droid_dp_runs/droid/im/diffusion_policy/04-19-None/bz_128_noise_samples_8_sample_weights_1_dataset_names_mjk_panda_1_abs_cams_static_ldkeys_proprio-lang_visenc_VisualCore_fuser_None/20240419013924/",
-#     task="",
-#     layout_id=None,
-#     model_id=300,
-#     camera_kwargs=dict(),
-#     data_processing_kwargs=dict(
-#         timestep_filtering_kwargs=dict(),
-#         image_transform_kwargs=dict(),
-#     ),
-#     ckpt_path=args.ckpt_path,
-# )
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('-g', '--capture_goal', action='store_true')

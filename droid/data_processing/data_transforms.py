@@ -31,7 +31,8 @@ class ImageTransformer:
             transforms.append(T.AugMix())
 
         if to_tensor:
-            transforms.append(T.ToTensor())
+            transforms.append(T.ToTensor())  # int -> float, (H, W, C) -> (C, H, W)
+
 
         self.composed_transforms = T.Compose(transforms)
 
@@ -47,6 +48,5 @@ class ImageTransformer:
 
         # Apply Transforms #
         for cam_type in obs:
-            for i in range(len(obs[cam_type])):
-                data = self.composed_transforms(obs[cam_type][i])
-                obs[cam_type][i] = data
+            data = self.composed_transforms(obs[cam_type])
+            obs[cam_type] = data

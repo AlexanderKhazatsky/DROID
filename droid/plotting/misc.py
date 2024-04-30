@@ -45,7 +45,7 @@ def task_mapper(task_description):
 
 
 def grab_3rd_person_extrinsics(camera_extrinsics, camera_type_dict):
-    varied_extrinsics = []
+    static_extrinsics = []
     for cam_id in camera_type_dict:
         # Ignore Hand Camera #
         if camera_type_dict[cam_id][0] == 0:
@@ -55,9 +55,9 @@ def grab_3rd_person_extrinsics(camera_extrinsics, camera_type_dict):
         for full_id in camera_extrinsics:
             if cam_id in full_id:
                 cam_pose = camera_extrinsics[full_id][0]
-                varied_extrinsics.append(cam_pose)
+                static_extrinsics.append(cam_pose)
 
-    return varied_extrinsics
+    return static_extrinsics
 
 
 def estimate_pos_angle_density(pose_list):

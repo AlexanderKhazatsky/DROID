@@ -48,7 +48,6 @@ def eval_launcher(variant, run_id, exp_id):
     policy_timestep_filtering_kwargs.update(timestep_filtering_kwargs)
     policy_image_transform_kwargs.update(image_transform_kwargs)
 
-    import ipdb; ipdb.set_trace()
     wrapped_policy = PolicyWrapper(
         policy=policy,
         timestep_filtering_kwargs=policy_timestep_filtering_kwargs,

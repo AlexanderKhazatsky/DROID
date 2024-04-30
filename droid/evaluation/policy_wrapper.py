@@ -1,8 +1,12 @@
 import numpy as np
+import sys
 import torch
 from collections import deque
 
 from droid.data_processing.timestep_processing import TimestepProcesser
+# TODO (@moojink) Hack so that the interpreter can find robomimic
+sys.path.append("/iris/u/moojink/prismatic-dev/droid_policy_learning/")
+import robomimic.utils.obs_utils as ObsUtils
 import robomimic.utils.torch_utils as TorchUtils
 import robomimic.utils.tensor_utils as TensorUtils
 
@@ -56,18 +60,11 @@ class PolicyWrapper:
         torch_timestep = np_dict_to_torch_dict(processed_timestep)
         action = self.policy(torch_timestep)[0]
         np_action = action.detach().numpy()
-
-        # a_star = np.cumsum(processed_timestep['observation']['state']) / 7
-        # print('Policy Action: ', np_action)
-        # print('Expert Action: ', a_star)
-        # print('Error: ', np.abs(a_star - np_action).mean())
-
-        # import pdb; pdb.set_trace()
         return np_action
 
 
 class PolicyWrapperRobomimic:
-    def __init__(self, policy, timestep_filtering_kwargs, image_transform_kwargs, frame_stack, eval_mode=True):
+    def __init__(self, policy, timestep_filtering_kwargs, image_transform_kwargs, frame_stack, eval_mode=True, dataset_statistics=None):
         self.policy = policy
 
         assert eval_mode is True
@@ -80,20 +77,7 @@ class PolicyWrapperRobomimic:
             ignore_action=True, **timestep_filtering_kwargs, image_transform_kwargs=image_transform_kwargs
         )
 
-    def convert_raw_extrinsics_to_Twc(self, raw_data):
-        """
-        helper function that convert raw extrinsics (6d pose) to transformation matrix (Twc)
-        """
-        raw_data = torch.from_numpy(np.array(raw_data))
-        pos = raw_data[0:3]
-        rot_mat = TorchUtils.euler_angles_to_matrix(raw_data[3:6], convention="XYZ")
-        extrinsics = np.zeros((4, 4))
-        extrinsics[:3,:3] = TensorUtils.to_numpy(rot_mat)
-        extrinsics[:3,3] = TensorUtils.to_numpy(pos)
-        extrinsics[3,3] = 1.0
-        # invert the matrix to represent standard definition of extrinsics: from world to cam
-        extrinsics = np.linalg.inv(extrinsics)
-        return extrinsics
+        self.dataset_statistics = dataset_statistics
 
     def forward(self, observation):
         timestep = {"observation": observation}
@@ -101,37 +85,18 @@ class PolicyWrapperRobomimic:
 
         extrinsics_dict = processed_timestep["extrinsics_dict"]
         intrinsics_dict = processed_timestep["intrinsics_dict"]
-        # import pdb; pdb.set_trace()
+        assert len(processed_timestep["observation"]["camera"]["image"]["static_camera"].shape) == 3
 
         obs = {
             "robot_state/cartesian_position": observation["robot_state"]["cartesian_position"],
             "robot_state/gripper_position": [observation["robot_state"]["gripper_position"]], # wrap as array, raw data is single float
-            "camera/image/hand_camera_left_image": processed_timestep["observation"]["camera"]["image"]["hand_camera"][0],
-            "camera/image/hand_camera_right_image": processed_timestep["observation"]["camera"]["image"]["hand_camera"][1],
-            "camera/image/varied_camera_1_left_image": processed_timestep["observation"]["camera"]["image"]["varied_camera"][0],
-            "camera/image/varied_camera_1_right_image": processed_timestep["observation"]["camera"]["image"]["varied_camera"][1],
-            "camera/image/varied_camera_2_left_image": processed_timestep["observation"]["camera"]["image"]["varied_camera"][2],
-            "camera/image/varied_camera_2_right_image": processed_timestep["observation"]["camera"]["image"]["varied_camera"][3],
-
-            "camera/extrinsics/hand_camera_left": self.convert_raw_extrinsics_to_Twc(extrinsics_dict["hand_camera"][0]),
-            "camera/extrinsics/hand_camera_right": self.convert_raw_extrinsics_to_Twc(extrinsics_dict["hand_camera"][2]),
-            "camera/extrinsics/varied_camera_1_left": self.convert_raw_extrinsics_to_Twc(extrinsics_dict["varied_camera"][0]),
-            "camera/extrinsics/varied_camera_1_right": self.convert_raw_extrinsics_to_Twc(extrinsics_dict["varied_camera"][1]),
-            "camera/extrinsics/varied_camera_2_left": self.convert_raw_extrinsics_to_Twc(extrinsics_dict["varied_camera"][2]),
-            "camera/extrinsics/varied_camera_2_right": self.convert_raw_extrinsics_to_Twc(extrinsics_dict["varied_camera"][3]),
-
-            "camera/intrinsics/hand_camera_left": intrinsics_dict["hand_camera"][0],
-            "camera/intrinsics/hand_camera_right": intrinsics_dict["hand_camera"][1],
-            "camera/intrinsics/varied_camera_1_left": intrinsics_dict["varied_camera"][0],
-            "camera/intrinsics/varied_camera_1_right": intrinsics_dict["varied_camera"][1],
-            "camera/intrinsics/varied_camera_2_left": intrinsics_dict["varied_camera"][2],
-            "camera/intrinsics/varied_camera_2_right": intrinsics_dict["varied_camera"][3],
+            "static_image": processed_timestep["observation"]["camera"]["image"]["static_camera"],
         }
 
         # set item of obs as np.array
         for k in obs:
             obs[k] = np.array(obs[k])
-        
+
         self.fs_wrapper.add_obs(obs)
         obs_history = self.fs_wrapper.get_obs_history()
         action = self.policy(obs_history)
