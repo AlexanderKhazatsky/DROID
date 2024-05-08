@@ -4,7 +4,7 @@ from cv2 import aruco
 # Robot Params #
 # TODO: Revert all to blank strings before release.
 nuc_ip = '172.16.0.7'
-robot_ip = '172.16.0.2'
+robot_ip = '172.16.0.22'
 sudo_password = ''
 if sudo_password == '':
     raise ValueError('Must set sudo_password in droid/misc/parameters.py!')
