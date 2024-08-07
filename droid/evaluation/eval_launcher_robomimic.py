@@ -2,7 +2,6 @@ import json
 import os
 import numpy as np
 import torch
-from collections import OrderedDict
 from copy import deepcopy
 
 from droid.controllers.oculus_controller import VRPolicy
