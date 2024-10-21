@@ -79,7 +79,7 @@ class PolicyWrapperRobomimic:
 
         self.dataset_statistics = dataset_statistics
 
-    def forward(self, observation):
+    def forward(self, observation, task_label):
         timestep = {"observation": observation}
         processed_timestep = self.timestep_processor.forward(timestep)
 
@@ -87,11 +87,19 @@ class PolicyWrapperRobomimic:
         intrinsics_dict = processed_timestep["intrinsics_dict"]
         assert len(processed_timestep["observation"]["camera"]["image"]["static_camera"].shape) == 3
 
-        obs = {
-            "robot_state/cartesian_position": observation["robot_state"]["cartesian_position"],
-            "robot_state/gripper_position": [observation["robot_state"]["gripper_position"]], # wrap as array, raw data is single float
-            "static_image": processed_timestep["observation"]["camera"]["image"]["static_camera"],
-        }
+        if "state" in observation["robot_state"]:
+            obs = {
+                "state": observation["robot_state"]["state"],
+                "image": processed_timestep["observation"]["camera"]["image"]["static_camera"],
+            }
+        elif "cartesian_position" in observation["robot_state"]:
+            obs = {
+                "robot_state/cartesian_position": observation["robot_state"]["cartesian_position"],
+                "robot_state/gripper_position": [observation["robot_state"]["gripper_position"]], # wrap as array, raw data is single float
+                "static_image": processed_timestep["observation"]["camera"]["image"]["static_camera"],
+            }
+        else:
+            raise ValueError("Missing robot proprio state in input!")
 
         # set item of obs as np.array
         for k in obs:
@@ -99,6 +107,7 @@ class PolicyWrapperRobomimic:
 
         self.fs_wrapper.add_obs(obs)
         obs_history = self.fs_wrapper.get_obs_history()
+        obs_history["task_label"] = task_label
         action = self.policy(obs_history)
 
         return action
@@ -117,7 +126,6 @@ class FrameStackWrapper:
     def __init__(self, num_frames):
         """
         Args:
-            env (EnvBase instance): The environment to wrap.
             num_frames (int): number of past observations (including current observation)
                 to stack together. Must be greater than 1 (otherwise this wrapper would
                 be a no-op).
